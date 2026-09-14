@@ -12,6 +12,35 @@ func _draw() -> void:
 	var s: float = minf(size.x, size.y) / 32.0
 	draw_set_transform((size - Vector2.ONE * 32 * s) * 0.5, 0, Vector2.ONE * s)
 	match kind:
+		"music":
+			draw_line(Vector2(13,24),Vector2(13,6),Color("D96577"),4,true)
+			draw_line(Vector2(27,20),Vector2(27,2),Color("D96577"),4,true)
+			draw_line(Vector2(13,7),Vector2(27,3),Color("F5A18F"),6,true)
+			draw_circle(Vector2(8,25),6,Color("F5A18F"))
+			draw_circle(Vector2(22,21),6,Color("F5A18F"))
+		"sound":
+			draw_circle(Vector2(16,4),3,Color("C58A28"))
+			draw_style_box(_round(Color("FFCC68"),10),Rect2(6,5,20,21))
+			draw_line(Vector2(3,25),Vector2(29,25),Color("E7AA3E"),5,true)
+			draw_circle(Vector2(16,29),3,Color("C58A28"))
+		"evening":
+			draw_circle(Vector2(16,16),14,Color("8C83C8"))
+			draw_circle(Vector2(21,10),12,Color("FFF8E9"))
+			draw_circle(Vector2(28,5),2,Color("FFCC68"))
+		"weather":
+			draw_circle(Vector2(23,9),8,Color("FFCC68"))
+			for point in [Vector2(8,22),Vector2(15,18),Vector2(23,24)]: draw_circle(point,8,Color("ACD9E8"))
+		"motion":
+			draw_circle(Vector2(16,20),11,Color("E8B780"))
+			for side in [-1,1]:
+				draw_colored_polygon(PackedVector2Array([Vector2(16+side*11,18),Vector2(16+side*12,4),Vector2(16+side*2,12)]),Color("E8B780"))
+			for x in [10,22]: draw_arc(Vector2(x,20),3,PI,TAU,10,Color("24483E"),2,true)
+			draw_circle(Vector2(16,24),2,Color("F5A18F"))
+		"haptics": _paw(Vector2(16,17),1.0,Color("ED8CA4"))
+		"heart":
+			draw_circle(Vector2(10,10),8,Color("F5A18F"))
+			draw_circle(Vector2(22,10),8,Color("F5A18F"))
+			draw_colored_polygon(PackedVector2Array([Vector2(3,13),Vector2(29,13),Vector2(16,30)]),Color("F5A18F"))
 		"camera":
 			draw_style_box(_round(Color("5CC8A1"),5),Rect2(2,8,28,22))
 			draw_style_box(_round(Color("5CC8A1"),2),Rect2(9,3,13,8))
@@ -90,4 +119,3 @@ func _round(c: Color, r: int) -> StyleBoxFlat:
 	b.bg_color = c
 	b.set_corner_radius_all(r)
 	return b
-

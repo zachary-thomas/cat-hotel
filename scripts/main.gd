@@ -154,7 +154,7 @@ func start_game() -> void:
 	ticks = Time.get_ticks_usec()
 	_rebuild_world()
 	_update_ui()
-	soundscape.play_effect("open")
+	_feedback("open")
 	ui.show_toast("Welcome home. Your suites are already earning!")
 	world.focus_hotel()
 
@@ -265,7 +265,11 @@ func change_setting(key: String, value: Variant) -> void:
 	model.settings[key] = float(value) if numeric_setting else value
 	if key == "ui_text_scale":
 		model.settings.build_text_scale = float(value)
-	if not _commit(before):
+	# Preferences chosen before Play join the first game save.
+	if model.started and not _commit(before):
+		return
+	if not model.started:
+		_update_ui()
 		return
 	world.set_motion_enabled(model.settings.motion)
 	world.set_evening(model.settings.evening)
@@ -280,7 +284,8 @@ func _prepare_transaction() -> bool:
 	if not model.started:
 		return false
 	if save_error != "" and not _save():
-		ui.show_toast(save_error)
+		if is_instance_valid(ui.sheet): ui.show_inline_error(save_error)
+		else: ui.show_toast(save_error)
 		return false
 	return true
 
@@ -289,7 +294,8 @@ func _commit(before: Dictionary) -> bool:
 		return true
 	model.restore(before)
 	_update_ui()
-	ui.show_toast(save_error)
+	if is_instance_valid(ui.sheet): ui.show_inline_error(save_error)
+	else: ui.show_toast(save_error)
 	return false
 
 func _save() -> bool:
@@ -311,7 +317,7 @@ func _rebuild_world() -> void:
 func _update_ui() -> void:
 	_sync_audio()
 	if not model.started:
-		ui.render({"started": false})
+		ui.render({"started":false,"settings":model.settings.duplicate(),"save_error":save_error})
 		return
 	var selected: int = model.current_hotel
 	var costs: Array = []
@@ -395,6 +401,7 @@ func _sync_audio() -> void:
 
 func _feedback(kind: String = "spend") -> void:
 	soundscape.play_effect(kind)
+	if save_error == "": ui.success_feedback(kind)
 	if model.settings.haptics and OS.has_feature("mobile"):
 		Input.vibrate_handheld(30)
 
@@ -482,13 +489,13 @@ func perform_action(action: String, payload: Dictionary = {}) -> void:
 		world.apply_life(model)
 	if result.get("animation","") != "":
 		world.react_cat(int(result.get("cat",model.life.state.favorite)),result.animation,result.get("buddy",-1))
+	_update_ui()
+	ui.refresh_after_action(action)
 	if action=="interact":
 		var kind: String = payload.get("kind","pet")
 		_feedback("purr" if kind in ["pet","brush","cushion"] else ("bell" if kind=="bell" else "toy"))
 	else:
 		_feedback("build" if action=="furnish" else "tap")
-	_update_ui()
-	ui.refresh_after_action(action)
 	ui.show_toast(result.message)
 
 func perform_layout(action: String, payload: Dictionary) -> Dictionary:

@@ -187,18 +187,6 @@ func _focus_shop_product() -> void:
 		target.grab_focus()
 	shop_focus_product = ""
 
-func _settings() -> void:
-	super._settings()
-	var toggle = CheckButton.new()
-	toggle.text = "Seasonal weather"
-	toggle.custom_minimum_size.y = 52
-	toggle.button_pressed = snapshot.settings.get("weather",true)
-	toggle.toggled.connect(func(value): setting_changed.emit("weather",value))
-	sheet_content.add_child(toggle)
-	sheet_content.add_child(button("Expansions & restore purchases",func(): _navigate("Shop")))
-	if snapshot.get("privacy_available",false):
-		sheet_content.add_child(button("Advertising privacy choices",func(): privacy_requested.emit()))
-
 func refresh_after_action(action: String) -> void:
 	if action in ["interact","favorite"] and tab=="Pet":
 		return
@@ -212,16 +200,6 @@ func show_toast(message: String) -> void:
 	if snapshot.get("settings",{}).get("watch",false):
 		return
 	super.show_toast(message)
-	if tab != "Hotel":
-		toast_label.anchor_top = 0
-		toast_label.anchor_bottom = 0
-		toast_label.offset_top = 82
-		toast_label.offset_bottom = 135
-	else:
-		toast_label.anchor_top = 1
-		toast_label.anchor_bottom = 1
-		toast_label.offset_top = -207
-		toast_label.offset_bottom = -155
 
 func open_amenity(id: String) -> void:
 	selected_amenity = id

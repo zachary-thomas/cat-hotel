@@ -13,6 +13,7 @@ signal reset_camera_requested
 signal world_rect_changed(rect: Rect2)
 signal hotel_focus_requested
 
+const HomeViews = preload("res://scripts/ui/views/home_views.gd")
 const GameSheet = preload("res://scripts/ui/game_sheet.gd")
 const GameTile = preload("res://scripts/ui/game_tile.gd")
 const DOCK = ["Hotel", "Cats", "Build", "Life", "Map"]
@@ -46,6 +47,10 @@ var progress_label: Label
 var pending_button: Button
 var toast_label: Label
 var toast_timer: float = 0.0
+var success_count := 0
+var feedback_tween: Tween
+var feedback_icon: Control
+var inline_error: Label
 var tab: String = "Hotel"
 var selected_zone: int = 0
 var selected_wing: int = -1
@@ -184,6 +189,7 @@ func relayout() -> void:
 	_apply_control_metrics(self)
 	_apply_shell_geometry()
 	_layout_navigation()
+	_layout_home()
 	if is_instance_valid(sheet):
 		sheet.relayout(_sheet_bounds())
 
@@ -269,48 +275,37 @@ func _build_chrome() -> void:
 	add_child(header)
 	header.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# Compact status strip keeps the hotel in view.
-	var bar = panel_at(header, 10, 66)
+	var bar = Control.new()
 	bar.name = "HotelStatus"
-	var chrome_style = style(CREAM, 18)
-	chrome_style.content_margin_top = 6
-	chrome_style.content_margin_bottom = 6
-	chrome_style.content_margin_left = 12
-	chrome_style.content_margin_right = 8
-	bar.add_theme_stylebox_override("panel", chrome_style)
-	var row = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	bar.add_child(row)
-	var identity = VBoxContainer.new()
-	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	identity.add_theme_constant_override("separation", 0)
-	row.add_child(identity)
-	title_label = label("Meadow House", 19)
-	title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	identity.add_child(title_label)
-	level_label = label("Level 1 · 2 rooms", 12, MUTED)
-	identity.add_child(level_label)
-	var wallet = VBoxContainer.new()
-	wallet.add_theme_constant_override("separation", 0)
-	row.add_child(wallet)
-	var balance = HBoxContainer.new()
-	wallet.add_child(balance)
-	balance.add_child(icon("coin", Vector2(23,23)))
-	coins_label = label("1,000", 21)
-	balance.add_child(coins_label)
-	rate_label = label("+10 / min", 11, GREEN)
-	rate_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	wallet.add_child(rate_label)
-	var settings = button("", func(): _open_settings())
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.add_child(bar)
+	var background = Panel.new()
+	background.name = "HeaderPaper"
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.add_child(background)
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background.add_theme_stylebox_override("panel",style(CREAM,18))
+	var hotel_art = art("hotel",48)
+	hotel_art.name = "HeaderHotelArt"
+	bar.add_child(hotel_art)
+	title_label = label("Meadow House",16)
+	bar.add_child(title_label)
+	level_label = label("Level 1 · 2 rooms",14,MUTED)
+	bar.add_child(level_label)
+	coins_label = label("1,000",16)
+	bar.add_child(coins_label)
+	rate_label = label("+10 / min",14,INK)
+	bar.add_child(rate_label)
+	var coin = icon("coin",Vector2(20,20))
+	coin.name = "HeaderCoin"
+	bar.add_child(coin)
+	var settings = button("",func(): _open_settings())
 	settings.name = "SettingsButton"
-	settings.tooltip_text = "Settings"
 	settings.accessibility_name = "Settings"
-	settings.custom_minimum_size = Vector2(44,44)
-	row.add_child(settings)
-	var cog = icon("settings", Vector2(28,28))
+	bar.add_child(settings)
+	var cog = icon("settings",Vector2(28,28))
 	cog.name = "SettingsIcon"
 	settings.add_child(cog)
-	cog.position = Vector2(10,10)
 	activity_label = label("", 12, GREEN)
 	header.add_child(activity_label)
 	activity_label.hide()
@@ -412,35 +407,7 @@ func _build_chrome() -> void:
 	_update_nav()
 
 func _build_welcome() -> void:
-	welcome = Control.new()
-	add_child(welcome)
-	welcome.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	welcome.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var title = label("PURRINGTON\nH O T E L", 46)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	welcome.add_child(title)
-	title.anchor_right = 1
-	title.offset_top = 38
-	title.offset_bottom = 157
-	var subtitle = label("A little hotel. A world of cats.", 16, MUTED)
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	welcome.add_child(subtitle)
-	subtitle.anchor_right = 1
-	subtitle.offset_top = 160
-	subtitle.offset_bottom = 194
-	var start = panel_at(welcome, -211, -29, true)
-	var box = VBoxContainer.new()
-	box.add_theme_constant_override("separation", 12)
-	start.add_child(box)
-	var copy = paragraph("Build cozy stays. Meet your guests.\nYour hotels earn while you're away.", 15)
-	copy.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(copy)
-	var play = button("Open your hotel  →", func(): play_requested.emit(), true)
-	play.name = "PlayButton"
-	box.add_child(play)
-	var small = label("CAT-RUN  ·  CAT-APPROVED", 11, MUTED)
-	small.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(small)
+	HomeViews.welcome(self)
 
 func render(data: Dictionary) -> void:
 	snapshot = data
@@ -452,11 +419,21 @@ func render(data: Dictionary) -> void:
 	footer.visible = started and tab != "Build"
 	welcome.visible = not started
 	if not started:
+		var pre_key := str(data.get("settings",{})) + str(data.get("save_error",""))
+		if state_key != pre_key:
+			state_key = pre_key
+			if tab == "Settings": _settings()
 		return
+	if tab == "Offline" and is_instance_valid(sheet):
+		if data.get("pending",0)<=0: close_sheet()
+		else: show_inline_error(data.get("save_error",""))
+	elif tab in ["Settings","Upgrades"] and is_instance_valid(sheet):
+		show_inline_error(data.get("save_error",""))
 	coins_label.text = number(float(data.coins))
 	rate_label.text = "+%s / min" % number(float(data.rate))
 	title_label.text = data.hotel_name
-	level_label.text = "Hotel level %d  ·  %s" % [data.hotel_level, "Garden retreat" if data.hotel == 0 else "Coastal escape"]
+	level_label.text = "Level %d · %d rooms" % [data.hotel_level,data.rooms]
+	_layout_home()
 	pending_button.visible = data.pending > 0
 	var remaining: float = data.get("repair_remaining", 0)
 	var action := next_action(data)
@@ -660,6 +637,8 @@ func close_sheet() -> void:
 	_update_nav()
 
 func _dispose_sheet() -> void:
+	_stop_feedback()
+	inline_error = null
 	_pending_restore.clear()
 	for node in [shade, sheet]:
 		if is_instance_valid(node):
@@ -723,40 +702,10 @@ func _refresh_sheet() -> void:
 		"Cats": _cats()
 		"Settings": _settings()
 		"View": _view()
+		"Offline": HomeViews.offline(self)
 
 func _upgrades() -> void:
-	var content = _base_sheet("A little more lovely", 587)
-	var selector = HBoxContainer.new()
-	selector.add_theme_constant_override("separation", 6)
-	content.add_child(selector)
-	var names = ["Suites", "Kitchen", "Lounge", "Desk"]
-	for i in range(4):
-		var b = button(names[i], func(): open_upgrades(i))
-		b.add_theme_font_size_override("font_size", 13)
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		if selected_zone == i:
-			b.add_theme_stylebox_override("normal", style(Color("d7e3cc"), 12))
-		selector.add_child(b)
-	content.add_child(art(["suite", "kitchen", "lounge", "desk"][selected_zone], 150, snapshot.hotel == 1))
-	var level: int = snapshot.levels[selected_zone]
-	content.add_child(label(snapshot.zone_names[selected_zone], 27))
-	content.add_child(paragraph(snapshot.zone_descriptions[selected_zone]))
-	var preview = PanelContainer.new()
-	preview.add_theme_stylebox_override("panel", style(Color("e7ecda"), 16))
-	content.add_child(preview)
-	var statbox = VBoxContainer.new()
-	preview.add_child(statbox)
-	statbox.add_child(label("LEVEL %d  →  %d" % [level, mini(10, level + 1)] if level > 0 else "READY FOR A NEW SERVICE", 12, MUTED))
-	statbox.add_child(label("+%d  →  +%d / min" % [level * 10, mini(10, level + 1) * 10], 27))
-	
-	var purchase = set_primary_action("Upgrade", func(): upgrade_requested.emit(selected_zone))
-	purchase.name = "PurchaseUpgrade"
-	live_buttons.append({"button": purchase, "kind": "upgrade", "zone": selected_zone})
-	
-	content.add_child(paragraph("Visual makeovers at levels 4 and 7.", 12, MUTED))
-	if selected_zone == 0:
-		content.add_child(button("Need more space? Add rooms  →", open_expansions))
-	render(snapshot)
+	HomeViews.upgrades(self)
 
 func _map() -> void:
 	var content = _base_sheet("Your hotel journey", 650)
@@ -814,43 +763,12 @@ func _open_settings() -> void:
 	open_route("Settings", tab)
 
 func _settings() -> void:
-	var content = _base_sheet("Make yourself comfortable", 555)
-	content.add_child(button("Hotel view", func(): open_route("View", "Settings")))
-	for option in [["music", "Background music"], ["sound", "Coins, cats & sound effects"], ["evening", "Evening lighting"], ["motion", "Gentle animations"], ["haptics", "Touch feedback"]]:
-		var toggle = CheckButton.new()
-		toggle.text = option[1]
-		toggle.name = "Setting_" + option[0]
-		toggle.custom_minimum_size.y = 54
-		toggle.button_pressed = snapshot.settings[option[0]]
-		toggle.toggled.connect(func(value): setting_changed.emit(option[0], value))
-		content.add_child(toggle)
-	content.add_child(paragraph("Your hotel saves automatically. Offline earnings are collected for up to 8 hours. All hotel staff and guests are cats.", 14))
-	content.add_child(paragraph(snapshot.save_error if snapshot.save_error != "" else "Progress saved on this device.", 13, GOLD if snapshot.save_error != "" else GREEN))
-	content.add_child(label("PURRINGTON HOTEL  ·  PLAYABLE PROTOTYPE", 10, MUTED))
+	HomeViews.settings(self)
 
 func show_offline() -> void:
-	if snapshot.get("pending", 0) <= 0:
-		return
+	if snapshot.get("pending",0)<=0: return
 	tab = "Offline"
-	var content = _base_sheet("Welcome back!", 475)
-	content.add_child(paragraph("Your cats kept things cozy."))
-	var portrait = Badge.new()
-	portrait.custom_minimum_size = Vector2(120, 125)
-	content.add_child(portrait)
-	var reward = label(number(snapshot.pending), 44, GOLD)
-	reward.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(reward)
-	var earned = label("Cat Coins earned", 18)
-	earned.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(earned)
-	content.add_child(paragraph("Away for %s  ·  Credited %s\nOffline earnings are capped at 8 hours." % [duration(snapshot.away_seconds), duration(snapshot.pending_seconds)], 14))
-	var collect = button("Collect " + number(snapshot.pending), func():
-		claim_requested.emit()
-		close_sheet()
-	, true)
-	collect.name = "CollectEarnings"
-	collect.disabled = snapshot.save_error != ""
-	content.add_child(collect)
+	HomeViews.offline(self)
 
 func duration(seconds: int) -> String:
 	return "%dh %dm" % [int(seconds / 3600), int(seconds / 60) % 60] if seconds >= 3600 else "%dm" % maxi(1, int(seconds / 60))
@@ -860,6 +778,7 @@ func show_toast(message: String) -> void:
 	toast_label.visible = true
 	toast_label.move_to_front()
 	toast_timer = 3.5
+	_layout_toast()
 
 func _process(delta: float) -> void:
 	_advance_sheet_restore()
@@ -921,6 +840,99 @@ func _expansions() -> void:
 
 func world_input_contains(point: Vector2) -> bool:
 	return metrics.get("world_rect",Rect2()).has_point(point)
+
+func _layout_home() -> void:
+	if not is_instance_valid(header): return
+	var unit: float = metrics.unit
+	var large: bool = metrics.font_scale>1.0
+	var bar: Control = header.find_child("HotelStatus",true,false)
+	bar.position = metrics.header_rect.position-header.position+Vector2(6,2)*unit
+	bar.size = metrics.header_rect.size-Vector2(12,4)*unit
+	var available: float = bar.size.x/unit
+	var art_node: Control = bar.find_child("HeaderHotelArt",true,false)
+	var show_art: bool = not large and available>=370
+	art_node.visible = show_art
+	art_node.position = Vector2(4,4)*unit
+	art_node.size = Vector2(48,48)*unit
+	var left: float = 58 if show_art else 10
+	var gear: Control = bar.find_child("SettingsButton",true,false)
+	gear.position = Vector2(available-54,4)*unit
+	gear.custom_minimum_size = Vector2.ONE*float(metrics.target)
+	gear.size = Vector2.ONE*float(metrics.target)
+	var coin: Control = bar.find_child("HeaderCoin",true,false)
+	if large:
+		title_label.position = Vector2(10,2)*unit
+		level_label.position = Vector2(10,34)*unit
+		coin.position = Vector2(10,77)*unit
+		coins_label.position = Vector2(36,72)*unit
+		rate_label.position = Vector2(available-10-rate_label.get_minimum_size().x/unit,75)*unit
+	else:
+		title_label.position = Vector2(left,4)*unit
+		level_label.position = Vector2(left,29)*unit
+		var wallet_x: float = available-62-maxf(coins_label.get_minimum_size().x,rate_label.get_minimum_size().x)/unit
+		coins_label.position = Vector2(wallet_x,4)*unit
+		rate_label.position = Vector2(wallet_x,29)*unit
+		coin.position = Vector2(wallet_x-23,6)*unit
+	coin.size = Vector2(20,20)*unit
+	for item in [title_label,level_label,coins_label,rate_label]: item.size = item.get_minimum_size()
+	pending_button.position = Vector2(12,metrics.header_rect.size.y+8*unit)
+	pending_button.size = Vector2(metrics.safe_rect.size.x-24*unit,48*unit)
+	if is_instance_valid(welcome):
+		var illustration: Control = welcome.find_child("WelcomeArt",true,false)
+		if illustration != null: illustration.custom_minimum_size.y = minf((welcome.size.x-32*unit)/1.5,260*unit)
+	_layout_toast()
+
+func show_inline_error(message: String) -> void:
+	if not is_instance_valid(sheet): return
+	if not is_instance_valid(inline_error):
+		inline_error = paragraph("",16,Color("9C3F3F"))
+		inline_error.name = "InlineError"
+		inline_error.add_theme_stylebox_override("normal",style(Color("FFF0EC"),12))
+		sheet._column.add_child(inline_error)
+		sheet._column.move_child(inline_error,sheet.primary.get_index())
+	inline_error.text = "! " + message if message!="" else ""
+	inline_error.visible = message!=""
+	if tab == "Settings":
+		var status = sheet.find_child("SaveStatus",true,false)
+		if status != null: status.text = "Changes could not be saved." if message!="" else ("Saved on this device." if snapshot.get("started",false) else "Preferences will save when you open your hotel.")
+
+func _layout_toast() -> void:
+	if not is_instance_valid(toast_label): return
+	var unit: float = metrics.unit
+	var safe: Rect2 = metrics.safe_rect
+	toast_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	toast_label.size.x = safe.size.x-32*unit
+	var height: float = maxf(48*unit,toast_label.get_minimum_size().y)
+	var bottom: float = metrics.objective_rect.position.y-8*unit
+	if is_instance_valid(sheet):
+		bottom = sheet.primary.global_position.y-8*unit if sheet.primary.visible else sheet.get_global_rect().end.y-12*unit
+	toast_label.position = Vector2(safe.position.x+16*unit,maxf(safe.position.y,bottom-height))
+	toast_label.size.y = height
+
+func _stop_feedback() -> void:
+	if feedback_tween != null and feedback_tween.is_valid(): feedback_tween.kill()
+	feedback_tween = null
+	if is_instance_valid(feedback_icon): feedback_icon.queue_free()
+	feedback_icon = null
+	if is_instance_valid(sheet): sheet.modulate = Color.WHITE
+
+func success_feedback(kind: String) -> void:
+	success_count += 1
+	_stop_feedback()
+	if not snapshot.get("settings",{}).get("motion",true): return
+	feedback_icon = icon("heart" if kind in ["purr","toy"] else "coin",Vector2(32,32)*float(metrics.unit))
+	feedback_icon.name = "SuccessReaction"
+	add_child(feedback_icon)
+	var origin: Vector2 = metrics.objective_rect.position + Vector2(metrics.objective_rect.size.x/2,0)
+	if is_instance_valid(sheet): origin = sheet.primary.global_position+Vector2(sheet.primary.size.x/2,-32*float(metrics.unit))
+	feedback_icon.position = origin
+	feedback_tween = create_tween().set_parallel(true)
+	feedback_tween.tween_property(feedback_icon,"position",origin-Vector2(0,16)*float(metrics.unit),0.18)
+	feedback_tween.tween_property(feedback_icon,"modulate:a",0.0,0.18)
+	if is_instance_valid(sheet):
+		sheet.modulate = Color("E3F3E9")
+		feedback_tween.tween_property(sheet,"modulate",Color.WHITE,0.18)
+	feedback_tween.chain().tween_callback(_stop_feedback)
 
 func _settle_objective_layout() -> void:
 	# Autowrapped labels initially shape at zero width. Refit once the row has its real width.

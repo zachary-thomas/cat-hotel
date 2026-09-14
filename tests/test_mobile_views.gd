@@ -12,7 +12,8 @@ func settle() -> void:
 	for frame in range(6): await process_frame
 func click(control: Control) -> void:
 	await settle()
-	app.ui.sheet.scroll.ensure_control_visible(control)
+	if is_instance_valid(app.ui.sheet): app.ui.sheet.scroll.ensure_control_visible(control)
+	elif app.ui.welcome.visible: app.ui.welcome.get_child(0).ensure_control_visible(control)
 	await settle()
 	var point := control.get_global_rect().get_center()
 	for down in [true, false]:
@@ -49,7 +50,41 @@ func run() -> void:
 	app.save_path = key
 	root.add_child(app)
 	await process_frame
-	app.start_game()
+	await home_capture("welcome-100")
+	app.change_setting("ui_text_scale",1.25)
+	await home_capture("welcome-125")
+	app.change_setting("ui_text_scale",1.0)
+	check(app.ui.welcome.find_child("WelcomeSettings",true,false) != null,"Welcome exposes Settings before Play")
+	app.ui._open_settings()
+	await settle()
+	var scale_choice = app.ui.sheet.find_child("TextScale_150",true,false)
+	check(scale_choice != null,"Settings exposes global text size")
+	if scale_choice != null:
+		await click(scale_choice)
+		await settle()
+		check(not app.model.started and app.model.settings.ui_text_scale == 1.5,"Pre-start text preference is accepted without starting")
+		var weather = app.ui.sheet.find_child("Setting_weather",true,false)
+		await click(weather)
+		check(not app.model.settings.weather,"Pre-start preferences work")
+		await home_capture("settings-prestart-150")
+		app.ui.go_back()
+		await settle()
+		check(app.ui.welcome.visible and app.ui.welcome.find_child("PlayButton",true,false).is_visible_in_tree(),"Back keeps Play available")
+		await home_capture("welcome-150")
+	app.ui.close_sheet()
+	await click(app.ui.welcome.find_child("PlayButton",true,false))
+	check(app.model.started and app.model.settings.ui_text_scale==1.5,"Play starts game and retains pre-start preferences")
+	app.change_setting("ui_text_scale",1.0)
+	await home_coverage()
+	if "--home-only" in OS.get_cmdline_user_args():
+		app.soundscape.shutdown()
+		await create_timer(0.15).timeout
+		app.queue_free()
+		await process_frame
+		preload("res://scripts/core/save_journal.gd").new(key).clear()
+		print("HOME VIEWS TESTS: ","PASS" if failures==0 else "FAIL"," (",failures," failures)")
+		quit(1 if failures else 0)
+		return
 	await travel_shop_coverage()
 	app.ui.action_requested.connect(func(action, payload):
 		if action == "interact": care_actions.append(payload.kind)
@@ -173,6 +208,8 @@ func run() -> void:
 		await click(app.ui.sheet.find_child("Playdate_2", true, false))
 		check(app.model.life.state.cats[1].friend == 2 and app.model.life.state.cats[2].friend == 1, "Playdate button creates the selected real friendship pair")
 	await life_coverage()
+	app.soundscape.shutdown()
+	await create_timer(0.15).timeout
 	app.queue_free()
 	await process_frame
 	await create_timer(0.1).timeout
@@ -510,3 +547,80 @@ func life_coverage() -> void:
 		app.ui._journal()
 		check(app.ui.sheet.find_child("JournalPhoto",true,false).texture==previous,"Album reuses photo thumbnail on refresh")
 		await life_capture("real-photo-100")
+
+func home_capture(title: String) -> void:
+	app.ui.toast_timer = 0
+	app.ui.toast_label.hide()
+	await settle()
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://tmp/task8-"+title+"-"+str(DisplayServer.window_get_size().x)+"x"+str(DisplayServer.window_get_size().y)+".png")
+
+func home_coverage() -> void:
+	app.active = false
+	app.ui.close_sheet()
+	app.model.coins = 1000
+	app._update_ui()
+	await home_capture("header-ordinary")
+	for scale in [1.0,1.25,1.5]:
+		app.change_setting("ui_text_scale",scale)
+		app.ui.close_sheet()
+		app.model.coins = 9999999
+		app._update_ui()
+		await settle()
+		var bounds: Rect2 = app.ui.metrics.header_rect
+		var unit: float = app.ui.metrics.unit
+		var gear: Control = app.ui.header.find_child("SettingsButton",true,false)
+		for item in [app.ui.title_label,app.ui.level_label,app.ui.coins_label,app.ui.rate_label,gear]:
+			check(bounds.grow(1).encloses(item.get_global_rect()),"Header contains essential label/gear at "+str(scale))
+		check(gear.size.x>=48*unit and gear.size.y>=48*unit,"Header gear retains physical target")
+		check(app.ui.level_label.get_theme_font_size("font_size")>=floori(14*unit*scale),"Header essential text respects scale")
+		check(not app.ui.coins_label.get_global_rect().intersects(gear.get_global_rect()),"Wallet does not overlap settings")
+		await home_capture("header-"+str(int(scale*100)))
+		app.ui._open_settings()
+		await settle()
+		app.ui.sheet.scroll.scroll_vertical = 0
+		await home_capture("settings-"+str(int(scale*100)))
+		for key in ["music","sound","motion","haptics","evening","weather"]:
+			var control: Control = app.ui.sheet.find_child("Setting_"+key,true,false)
+			app.ui.sheet.scroll.ensure_control_visible(control)
+			await settle()
+			check(app.ui.sheet.scroll.get_global_rect().grow(1).encloses(control.get_global_rect()),"Preference reachable at "+str(scale)+": "+key)
+			check(control.size.x>=48*unit and control.size.y>=48*unit,"Preference is touch-sized")
+		var choice: Control = app.ui.sheet.find_child("TextScale_150",true,false)
+		app.ui.sheet.scroll.ensure_control_visible(choice)
+		await settle()
+		check(app.ui.sheet.scroll.get_global_rect().grow(1).encloses(choice.get_global_rect()),"Last text size is reachable")
+		choice.grab_focus()
+		app.ui.relayout()
+		await settle()
+		check(choice.has_focus(),"Resizing preserves settings focus")
+		await home_capture("settings-scale-"+str(int(scale*100)))
+	app.change_setting("ui_text_scale",1.0)
+	app.model.hotels[0].zones[2] = 2
+	app.model.coins = 1000
+	app._update_ui()
+	app.ui.open_upgrades(2)
+	await home_capture("upgrade-affordable")
+	check(not app.ui.sheet.find_child("PurchaseUpgrade",true,false).disabled,"Affordable service is enabled")
+	app.model.coins = 0
+	app._update_ui()
+	check(app.ui.sheet.find_child("PurchaseUpgrade",true,false).disabled,"Poor service is disabled")
+	await home_capture("upgrade-poor")
+	app.model.hotels[0].zones[2] = 10
+	app._update_ui()
+	check(app.ui.sheet.find_child("PurchaseUpgrade",true,false).disabled,"Maximum service is disabled")
+	await home_capture("upgrade-max")
+	app.change_setting("ui_text_scale",1.5)
+	await home_capture("upgrade-150")
+	app.change_setting("motion",false)
+	app.ui.success_feedback("collect")
+	check(app.ui.feedback_tween == null and app.ui.feedback_icon == null,"Reduced motion has zero transition")
+	await home_capture("reduced-motion")
+	app.change_setting("ui_text_scale",1.0)
+	app.change_setting("motion",true)
+	app.model.hotels[0].zones[2] = 0
+	app.model.coins = 1000
+	app._update_ui()
+	app.ui.close_sheet()
+	app.active = true

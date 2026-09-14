@@ -64,9 +64,11 @@ func run() -> void:
 	await process_frame
 	var buy = app.ui.sheet.find_child("PurchaseUpgrade", true, false)
 	check(buy != null and not buy.disabled, "First upgrade is affordable")
+	var initial_feedback: int = app.ui.success_count
 	await click(buy)
 	await process_frame
 	check(app.model.hotels[0].zones[0] == 2 and app.model.rate() == 20, "UI purchase changes real model")
+	check(app.ui.success_count == initial_feedback+1,"Successful upgrade emits exactly one visual reaction")
 	check(app.world.actors[2] == original_cat, "Upgrades preserve existing cat routines")
 	app.buy_upgrade(1)
 	app.buy_upgrade(2)
@@ -166,8 +168,10 @@ func run() -> void:
 	app.model.hotels[1].purchases = 10
 	var real_store = app.store
 	app.store = FailingStore.new()
+	var before_failed_feedback: int = app.ui.success_count
 	app.expand_hotel()
 	check(app.model.wing_count(1) == 1 and app.model.coins >= 20000 and app.world.wings == 1, "Failed save rolls back expansion and leaves scenery unchanged")
+	check(app.ui.success_count == before_failed_feedback,"Failed expansion save has no success reaction")
 	app.store = real_store
 	app._save()
 	app.expand_hotel()

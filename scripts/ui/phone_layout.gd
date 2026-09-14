@@ -6,7 +6,7 @@ static func measure(viewport: Vector2, safe: Rect2, phone_scale: float, text_sca
 	var font_scale := clampf(text_scale, 1.0, 1.5)
 	var safe_rect: Rect2 = safe.abs()
 	var gap := 8.0 * unit
-	var header_h := (80.0 if font_scale > 1.0 else 64.0) * unit
+	var header_h := (112.0 if font_scale > 1.0 else 64.0) * unit
 	var dock_h := 80.0 * unit
 	var objective_h := (80.0 if font_scale > 1.0 else 64.0) * unit
 	var header := _inside(safe_rect, Rect2(safe_rect.position, Vector2(safe_rect.size.x, header_h)))

@@ -2,7 +2,7 @@ extends Control
 ## Original isometric menu illustrations, drawn with the game's palette.
 var kind: String = "suite"
 var seaside: bool = false
-const SCENES = {"grounds":"garden", "staff":"staff", "journal":"scrapbook", "kiosk":"paw-mart", "nap":"nap-gathering", "cardboard":"gatherings", "lantern":"lantern-gathering", "beach":"beach-gathering", "trail":"trail-gathering", "spa":"spa-gathering", "world_map":"world-map"}
+const SCENES = {"welcome":"welcome-hotel", "reward":"reward", "upgrade_lounge":"upgrade-lounge", "grounds":"garden", "staff":"staff", "journal":"scrapbook", "kiosk":"paw-mart", "nap":"nap-gathering", "cardboard":"gatherings", "lantern":"lantern-gathering", "beach":"beach-gathering", "trail":"trail-gathering", "spa":"spa-gathering", "world_map":"world-map"}
 const HOTEL_CENTERS = {"hotel_meadow":Vector2(0.27,0.70), "hotel_seaside":Vector2(0.79,0.48), "hotel_forest":Vector2(0.30,0.29), "hotel_snowcap":Vector2(0.74,0.12)}
 static var textures: Dictionary = {}
 static var staff_regions: Dictionary = {}

@@ -115,7 +115,7 @@ func check_controller_transaction(Model) -> void:
 	check(app.model.settings.ui_text_scale == 1.5 and app.model.settings.build_text_scale == 1.5, "Global text size updates both preferences in one controller transaction")
 	check(app.store.load_model(reloaded, int(Time.get_unix_time_from_system())) and reloaded.settings.ui_text_scale == 1.5 and reloaded.settings.build_text_scale == 1.5, "Global text size reloads from the committed save")
 	check(app.ui.metrics.font_scale == 1.5, "Committed text size recalculates shared UI metrics")
-	check(app.ui.title_label.get_theme_font_size("font_size") > initial_title_size and app.ui.title_label.get_theme_font_size("font_size") == roundi(19 * app.ui.metrics.unit * 1.5), "Global text size updates an existing MobileUI label in place")
+	check(app.ui.title_label.get_theme_font_size("font_size") > initial_title_size and app.ui.title_label.get_theme_font_size("font_size") == roundi(16 * app.ui.metrics.unit * 1.5), "Global text size updates the 16-unit hotel identity in place")
 	app.build_panel.open(0)
 	await process_frame
 	var build_title: Label = app.build_panel.get_node("BuildHeader").get_child(0)
@@ -148,8 +148,8 @@ func check_live_relayout(UI) -> void:
 	viewport.add_child(live_ui)
 	await process_frame
 	check(live_ui.metrics.safe_rect == BuildMetrics.safe_area(live_ui) and is_equal_approx(live_ui.metrics.unit, 1.0 / BuildMetrics.phone_scale(live_ui)), "MobileUI reuses BuildMetrics safe-area and phone-scale conversion")
-	var view_all: Button = live_ui.find_child("ViewAllHotel", true, false)
-	check(view_all.custom_minimum_size.x >= 72 * live_ui.metrics.unit, "Live relayout preserves authored button dimensions above the target floor")
+	var settings: Button = live_ui.find_child("SettingsButton", true, false)
+	check(settings.custom_minimum_size.x >= 48 * live_ui.metrics.unit, "Live relayout preserves the header settings target")
 	var shell_size_before: Vector2 = live_ui.header.size
 	var normal_before: StyleBox = live_ui.theme.get_stylebox("normal", "Button")
 	viewport.size = Vector2i(1280, 800)
