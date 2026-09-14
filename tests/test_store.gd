@@ -27,6 +27,15 @@ func _initialize() -> void:
 	check(store.save_model(other), "Claim commits")
 	check(store.load_model(model, 8200), "Claimed state loads")
 	check(model.claim() == 0 and model.coins == 698 + reward, "Claim cannot repeat after reload")
+	var event_key: String = "res://tmp/test-event-save-" + str(Time.get_ticks_usec())
+	var event_store = Store.new(event_key)
+	var event_model = Model.new()
+	event_model.new_game(1000)
+	check(event_model.life.perform(event_model,"event",{"id":"cardboard"}).ok,"Persisted event fixture starts through the real controller")
+	event_model.life.advance(50,event_model)
+	check(event_store.save_model(event_model),"Completed gathering identity saves through GameStore")
+	var event_reloaded = Model.new()
+	check(event_store.load_model(event_reloaded,1000) and event_reloaded.life.state.hotels[0].get("last_completed_event","")=="cardboard","Completed gathering identity reloads through GameStore during cooldown")
 	var broken_slot: String = key + ".0.json"
 	var broken = FileAccess.open(broken_slot, FileAccess.WRITE)
 	broken.store_string("invalid")
@@ -38,5 +47,7 @@ func _initialize() -> void:
 	for suffix in [".0.json", ".1.json", ".0.json.tmp", ".1.json.tmp"]:
 		if FileAccess.file_exists(key + suffix):
 			DirAccess.remove_absolute(key + suffix)
+		if FileAccess.file_exists(event_key + suffix):
+			DirAccess.remove_absolute(event_key + suffix)
 	print("STORE TESTS: ", "PASS" if failures == 0 else "FAIL", " (", failures, " failures)")
 	quit(1 if failures else 0)

@@ -379,6 +379,25 @@ func featured_life_coverage() -> void:
 	await settle()
 	check_featured_event("nap","Great Nap Championship","Available again","Get ready","Available-again Life")
 	check(app.model.life.state.hotels[0].trophies.count("cardboard") == 1 and app.model.coins_units-rewarded_units < 250*app.model.UNIT,"Life availability adds no duplicate reward or claim path")
+	app.model.advance(1.0)
+	app.model.life.state.hotels[0].happy=0
+	app.perform_action("event",{"id":"nap"})
+	app.model.advance(46.0)
+	app._update_ui()
+	await settle()
+	check_featured_event("nap","Great Nap Championship","Gathering complete","See results","Nap cooldown Life")
+	app.model.advance(60.0)
+	app.model.life.state.hotels[0].happy=0
+	app.perform_action("event",{"id":"cardboard"})
+	var repeat_reward_units: int = app.model.coins_units
+	app.model.advance(51.0)
+	app._update_ui()
+	await settle()
+	check_featured_event("cardboard","Cardboard Castle Festival","Gathering complete","See results","Repeated Cardboard cooldown Life")
+	check(app.model.coins_units-repeat_reward_units < 250*app.model.UNIT and app.model.life.state.hotels[0].trophies.count("cardboard")==1,"Repeated Cardboard completion keeps its one-time trophy reward")
+	var persisted = preload("res://scripts/core/hotel_model.gd").new()
+	check(persisted.restore(JSON.parse_string(JSON.stringify(app.model.serialize()))) and persisted.life.state.hotels[0].get("last_completed_event","")=="cardboard","Repeated Cardboard cooldown identity survives model serialization")
+	await life_capture("featured-cardboard-repeat-cooldown-100-final")
 	check(app.model.restore(fixture),"Featured Life fixture restores the prior model")
 	app._update_ui()
 

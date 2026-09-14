@@ -148,16 +148,7 @@ static func _featured_event(ui: Control, h: Dictionary) -> Dictionary:
 	if not h.event.is_empty():
 		event = Content.find_event(str(h.event.id))
 	elif cooldown > 0:
-		var prefix: String = "event_%d_" % int(ui.snapshot.hotel)
-		for index in range(ui.snapshot.life.memories.size()-1,-1,-1):
-			var memory_id: String = str(ui.snapshot.life.memories[index].id)
-			if not memory_id.begins_with(prefix): continue
-			var suffix: String = memory_id.trim_prefix(prefix)
-			for candidate in Content.EVENTS:
-				if suffix.begins_with(str(candidate.id)+"_"):
-					event = candidate
-					break
-			if not event.is_empty(): break
+		event = Content.find_event(str(h.get("last_completed_event","")))
 	if event.is_empty(): event = Content.find_event("nap")
 	if not h.event.is_empty():
 		var remaining: int = maxi(0,ceili(float(h.event.ends)-float(ui.snapshot.life.seconds)))

@@ -71,6 +71,46 @@ func _initialize() -> void:
 	m.life.grant_product(m,"purrington.forest_lodge")
 	check(m.life.state.entitlements.size()==1,"Repeated purchase delivery is idempotent")
 	check(not m.life.grant_product(m,"unknown.product"),"Unknown products cannot grant entitlements")
+	var repeats = Model.new()
+	repeats.new_game(1000)
+	var repeats_start_units: int = repeats.coins_units
+	check(action(repeats,"event",{"id":"cardboard"}).ok,"Cardboard can start for repeated-completion coverage")
+	repeats.life.advance(50,repeats)
+	check(repeats.life.state.hotels[0].get("last_completed_event","")=="cardboard","The completion boundary records Cardboard identity")
+	repeats.life.advance(60,repeats)
+	repeats.life.state.hotels[0].happy=0
+	check(action(repeats,"event",{"id":"nap"}).ok,"Nap can separate two Cardboard completions")
+	repeats.life.advance(45,repeats)
+	check(repeats.life.state.hotels[0].get("last_completed_event","")=="nap","The same hotel replaces completion identity with Nap")
+	repeats.life.advance(60,repeats)
+	repeats.life.state.hotels[0].happy=0
+	check(action(repeats,"event",{"id":"cardboard"}).ok,"Cardboard can run again after Nap cooldown")
+	var repeat_before_units: int = repeats.coins_units
+	repeats.life.advance(50,repeats)
+	check(repeats.life.state.hotels[0].get("last_completed_event","")=="cardboard","A repeated same-medal completion restores Cardboard identity")
+	check(repeats.coins_units==repeat_before_units and repeats.coins_units==repeats_start_units+500*repeats.UNIT,"The repeated trophy grants no second first-completion reward")
+	var event_memories: Array = repeats.life.state.memories.filter(func(entry): return str(entry.id).begins_with("event_0_"))
+	var cardboard_memory: String = str(event_memories.filter(func(entry): return str(entry.id).begins_with("event_0_cardboard_"))[0].id) if event_memories.any(func(entry): return str(entry.id).begins_with("event_0_cardboard_")) else ""
+	var nap_memory: String = str(event_memories.filter(func(entry): return str(entry.id).begins_with("event_0_nap_"))[0].id) if event_memories.any(func(entry): return str(entry.id).begins_with("event_0_nap_")) else ""
+	check(event_memories.size()==2 and cardboard_memory!="" and nap_memory!="","Repeated same-medal Cardboard completion keeps the two deduplicated journal memories")
+	repeats.hotels[1].owned=true
+	repeats.furniture.ensure_rooms(repeats,1)
+	repeats.current_hotel=1
+	check(action(repeats,"event",{"id":"beach"}).ok,"A second hotel can complete its destination gathering")
+	repeats.life.advance(50,repeats)
+	check(repeats.life.state.hotels[1].get("last_completed_event","")=="beach" and repeats.life.state.hotels[0].get("last_completed_event","")=="cardboard","Completed gathering identity is per hotel")
+	repeats.current_hotel=0
+	var repeat_round_trip: Dictionary = JSON.parse_string(JSON.stringify(repeats.serialize()))
+	var repeat_restored = Model.new()
+	check(repeat_restored.restore(repeat_round_trip) and repeat_restored.life.state.hotels[0].get("last_completed_event","")=="cardboard" and repeat_restored.life.state.hotels[1].get("last_completed_event","")=="beach","Per-hotel completed gathering identity survives JSON save/load")
+	var corrupt_completion: Dictionary = repeats.serialize()
+	corrupt_completion.life.hotels[0].last_completed_event="missing-event"
+	var before_corrupt_completion: Dictionary = repeat_restored.serialize()
+	check(not repeat_restored.restore(corrupt_completion) and repeat_restored.serialize()==before_corrupt_completion,"Unknown completed gathering identity is rejected atomically")
+	var missing_completion: Dictionary = repeats.serialize()
+	for hotel in missing_completion.life.hotels: hotel.erase("last_completed_event")
+	var defaulted_completion = Model.new()
+	check(defaulted_completion.restore(missing_completion) and defaulted_completion.life.state.hotels.all(func(hotel): return hotel.get("last_completed_event","")==""),"Saves without completed gathering identity receive the safe empty default")
 	var restored = Model.new()
 	var json_state: Dictionary = JSON.parse_string(JSON.stringify(m.serialize()))
 	check(restored.restore(json_state),"Complete gameplay state survives JSON round-trip")

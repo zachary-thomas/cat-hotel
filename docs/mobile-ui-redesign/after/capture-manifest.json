@@ -198,5 +198,10 @@
     "Capture": "40-life-360x640-150-cardboard-cooldown.png",
     "Source": "tmp/task6-featured-cardboard-cooldown-150-final-360x640.png",
     "SHA256": "BF0F0BC7979CBC1ACF8C97A751DE12DD99DB2C00C2B2370E602F5EDBFB5CB8B4"
+  },
+  {
+    "Capture": "41-life-360x640-100-cardboard-repeat-cooldown.png",
+    "Source": "tmp/task6-featured-cardboard-repeat-cooldown-100-final-360x640.png",
+    "SHA256": "C7092E7B046FB233AF62C7072D38E204FBB21F1CB7EEE7ECD5C9212F02EBA410"
   }
 ]

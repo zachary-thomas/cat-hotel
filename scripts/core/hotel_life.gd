@@ -43,7 +43,7 @@ func reset() -> void:
 		var rooms: Array = []
 		for j in range(8):
 			rooms.append(["mat","box","plant"])
-		state.hotels.append({"rooms":rooms, "specialty":"balanced", "visits":0, "happy":0, "stars":0, "visit_clock":0.0, "review":"Your first guests are settling in.", "staff":[0,0,0], "skills":[-1,-1,-1], "event":{}, "trophies":[], "last_event":-1000.0, "inspection":-1.0})
+		state.hotels.append({"rooms":rooms, "specialty":"balanced", "visits":0, "happy":0, "stars":0, "visit_clock":0.0, "review":"Your first guests are settling in.", "staff":[0,0,0], "skills":[-1,-1,-1], "event":{}, "trophies":[], "last_event":-1000.0, "last_completed_event":"", "inspection":-1.0})
 	notices.clear()
 	if model_ref != null: _strip_legacy_state()
 
@@ -269,6 +269,7 @@ func finish_event(model, hotel: int) -> void:
 	if first:
 		data.trophies.append(event.id)
 		model.coins_units += 250 * model.UNIT
+	data.last_completed_event = event.id
 	memory("event_%d_%s_%s" % [hotel,event.id,medal], medal + ": " + event.name, "%d/100. %s" % [score, "Your first trophy brought a 250-coin prize." if first else "Another happy gathering for your regulars."], 0, hotel, "celebrate")
 	data.event = {}
 	data.last_event = state.seconds
@@ -447,8 +448,18 @@ func restore(raw: Variant, furniture_version: bool = false) -> bool:
 		for place in cat.locations:
 			if not whole(place) or place < 0 or place > 3:
 				return false
-	for hotel in candidate.hotels:
-		if not hotel is Dictionary or not hotel.get("rooms") is Array or hotel.rooms.size() != 8 or not hotel.get("event") is Dictionary or not hotel.get("trophies") is Array or not hotel.get("review") is String:
+	for hotel_index in range(candidate.hotels.size()):
+		var hotel = candidate.hotels[hotel_index]
+		if not hotel is Dictionary:
+			return false
+		if not hotel.has("last_completed_event"):
+			hotel.last_completed_event = ""
+		if not hotel.get("rooms") is Array or hotel.rooms.size() != 8 or not hotel.get("event") is Dictionary or not hotel.get("trophies") is Array or not hotel.get("review") is String:
+			return false
+		if not hotel.get("last_completed_event") is String:
+			return false
+		var completed_event: Dictionary = Content.find_event(hotel.last_completed_event)
+		if hotel.last_completed_event != "" and (completed_event.is_empty() or (completed_event.hotel >= 0 and completed_event.hotel != hotel_index)):
 			return false
 		if not ["balanced","peaceful","playful","gourmet"].has(hotel.get("specialty")):
 			return false
