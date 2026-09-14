@@ -37,6 +37,11 @@ func travel_capture(title: String) -> void:
 	if DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/task7-" + title + "-" + str(DisplayServer.window_get_size().x) + "x" + str(DisplayServer.window_get_size().y) + ".png")
+
+func travel_capture_row(title: String, row: Control) -> void:
+	app.ui.sheet.scroll.ensure_control_visible(row)
+	await settle()
+	await travel_capture(title)
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute("res://tmp")
 	var key := "res://tmp/mobile-views-" + str(Time.get_ticks_usec())
@@ -206,6 +211,19 @@ func travel_shop_coverage() -> void:
 	var seaside_pin: Button = app.ui.sheet.find_child("Destination_1",true,false)
 	check(unlock == unlock_before and unlock.text == "Open Seaside · 10,000" and not unlock.disabled and seaside_pin.text.contains("Ready"), "Live balance enables Seaside in place when both requirements are met")
 	await travel_capture("map-ready-100")
+	await click(app.ui.sheet.find_child("Destination_2",true,false))
+	var normal_forest_details: Control = app.ui.sheet.find_child("DestinationDetails",true,false)
+	app.model.coins = 9999
+	app._update_ui()
+	await settle()
+	seaside_pin = app.ui.sheet.find_child("Destination_1",true,false)
+	var normal_pin_before := seaside_pin
+	app.model.coins = 10000
+	app._update_ui()
+	await settle()
+	seaside_pin = app.ui.sheet.find_child("Destination_1",true,false)
+	check(seaside_pin == normal_pin_before and seaside_pin.text.contains("Ready") and seaside_pin.accessibility_name.contains("Ready"), "Off-selection Seaside pin and accessibility state update in place")
+	check(app.ui.sheet.find_child("DestinationDetails",true,false) == normal_forest_details and app.ui.sheet.find_child("SheetPrimary",true,false).text == "View expansion", "Normal off-selection update preserves Forest details")
 	app.model.coins = 1000
 	app.model.hotels[0].purchases = 0
 	app._update_ui()
@@ -278,6 +296,36 @@ func travel_shop_coverage() -> void:
 	await settle()
 	check(app.ui.sheet.find_child("DestinationList",true,false) != null, "Large text reflows destinations into an illustrated list")
 	await travel_capture("map-150")
+	app.model.hotels[0].purchases = 18
+	app.model.coins = 9999
+	app._update_ui()
+	await settle()
+	var forest_details: Control = app.ui.sheet.find_child("DestinationDetails",true,false)
+	var forest_action: Button = app.ui.sheet.find_child("SheetPrimary",true,false)
+	var seaside_row: Button = app.ui.sheet.find_child("Destination_1",true,false)
+	var seaside_status: Label = app.ui.sheet.find_child("DestinationStatus_1",true,false)
+	app.model.coins = 10000
+	app._update_ui()
+	await settle()
+	check(app.ui.sheet.find_child("Destination_1",true,false) == seaside_row and seaside_status.text.contains("Ready") and seaside_status.text.contains("10,000"), "Off-selection Seaside state crosses the live coin gate in place")
+	check(app.ui.sheet.find_child("DestinationDetails",true,false) == forest_details and app.ui.sheet.find_child("SheetPrimary",true,false) == forest_action and forest_action.text == "View expansion", "Off-selection Seaside updates do not disturb Forest details")
+	app.model.coins = 9999999
+	app._update_ui()
+	await settle()
+	var rows: Array[Control] = []
+	for index in range(4):
+		var choice: Control = app.ui.sheet.find_child("Destination_"+str(index),true,false)
+		rows.append(choice)
+		for text_node in choice.find_children("*","Label",true,false):
+			check(choice.get_global_rect().grow(1).encloses(text_node.get_global_rect()), "Large-text destination contains wrapped label: "+str(index))
+		if index > 0:
+			check(not rows[index-1].get_global_rect().intersects(choice.get_global_rect()), "Large-text destination rows do not overlap: "+str(index-1)+"/"+str(index))
+		app.ui.sheet.scroll.ensure_control_visible(choice)
+		await settle()
+		choice.grab_focus()
+		check(choice.has_focus() and app.ui.sheet.scroll.get_global_rect().intersects(choice.get_global_rect()), "Large-text destination remains reachable: "+str(index))
+	await travel_capture_row("map-forest-row-150",rows[2])
+	await travel_capture_row("map-seaside-row-150",rows[1])
 	app.ui.selected_destination = 1
 	app.ui._map()
 	await settle()

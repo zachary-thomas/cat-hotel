@@ -81,6 +81,7 @@ static func _list_destination(ui: Control, index: int) -> Button:
 	choice.name = "Destination_" + str(index)
 	choice.accessibility_name = ui.snapshot.hotel_names[index] + " · " + _destination_status(ui, index)
 	choice.custom_minimum_size.y = 104 * ui.metrics.unit
+	choice.clip_contents = true
 	if index == ui.selected_destination:
 		choice.add_theme_stylebox_override("normal", ui.PlayfulTheme.button_style(ui.GREEN, ui.metrics.unit))
 	var row := Control.new()
@@ -103,14 +104,26 @@ static func _list_destination(ui: Control, index: int) -> Button:
 	status.name = "DestinationStatus_" + str(index)
 	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	copy.add_child(status)
-	choice.resized.connect(func():
-		row.position = Vector2(12, 8) * ui.metrics.unit
-		row.size = Vector2(maxf(0, choice.size.x - 24 * ui.metrics.unit), maxf(0, choice.size.y - 16 * ui.metrics.unit))
-		picture.position = Vector2(0, maxf(0, (row.size.y - picture.size.y) / 2))
-		copy.position = Vector2(84 * ui.metrics.unit, 0)
-		copy.size = Vector2(maxf(0, row.size.x - 84 * ui.metrics.unit), row.size.y)
-	)
+	choice.resized.connect(func(): _layout_list_destination(choice, row, picture, copy, ui.metrics.unit))
+	copy.minimum_size_changed.connect(func(): _layout_list_destination(choice, row, picture, copy, ui.metrics.unit))
+	_layout_list_destination.call_deferred(choice, row, picture, copy, ui.metrics.unit)
 	return choice
+
+static func _layout_list_destination(choice: Button, row: Control, picture: Control, copy: VBoxContainer, unit: float) -> void:
+	if not is_instance_valid(choice) or not is_instance_valid(copy): return
+	var inset := Vector2(12, 8) * unit
+	row.position = inset
+	row.size.x = maxf(0, choice.size.x - inset.x * 2)
+	picture.size = Vector2(72, 64) * unit
+	copy.position = Vector2(84 * unit, 0)
+	copy.size.x = maxf(0, row.size.x - copy.position.x)
+	var content_height: float = maxf(picture.size.y, copy.get_combined_minimum_size().y)
+	var required_height: float = maxf(104 * unit, content_height + inset.y * 2)
+	if not is_equal_approx(choice.custom_minimum_size.y, required_height):
+		choice.custom_minimum_size.y = ceilf(required_height)
+	row.size.y = maxf(content_height, choice.size.y - inset.y * 2)
+	picture.position = Vector2(0, maxf(0, (row.size.y - picture.size.y) / 2))
+	copy.size.y = row.size.y
 
 static func _select(ui: Control, index: int) -> void:
 	ui.selected_destination = index
@@ -123,7 +136,7 @@ static func _destination_status(ui: Control, index: int) -> String:
 	if ui.snapshot.owned[index]:
 		return "Current hotel" if index == ui.snapshot.hotel else "Open"
 	if index == 1:
-		return "Meadow level %d of 10 · %s of 10,000 coins" % [ui.snapshot.meadow_level, ui.number(ui.snapshot.coins)]
+		return ("Ready" if ui.snapshot.can_unlock else "Locked") + " · Meadow level %d of 10 · %s of 10,000 coins" % [ui.snapshot.meadow_level, ui.number(ui.snapshot.coins)]
 	return "Expansion"
 
 static func _add_destination_details(ui: Control, index: int) -> void:
@@ -160,30 +173,36 @@ static func _add_destination_details(ui: Control, index: int) -> void:
 	if ui.snapshot.owned[index]:
 		action = ui.set_primary_action("You're here" if index == ui.snapshot.hotel else "Visit hotel", func(): ui.hotel_requested.emit(index), index == ui.snapshot.hotel)
 	elif index == 1:
-		var text: String = "Open Seaside · 10,000" if ui.snapshot.can_unlock else ("Reach Meadow level 10" if ui.snapshot.meadow_level < 10 else "Save %s more coins" % ui.number(maxf(0, 10000 - ui.snapshot.coins)))
-		action = ui.set_primary_action(text, func(): ui.hotel_requested.emit(index), not ui.snapshot.can_unlock or ui.snapshot.save_error != "")
+		var state: Dictionary = _seaside_action(ui)
+		action = ui.set_primary_action(state.text, func(): ui.hotel_requested.emit(index), state.disabled)
 		action.name = "UnlockHotel"
 	else:
 		action = ui.set_primary_action("View expansion", func(): _open_product(ui, index), false)
 
 static func update_map(ui: Control) -> void:
-	if not is_instance_valid(ui.sheet) or ui.selected_destination != 1 or ui.snapshot.owned[1]:
-		return
-	var level: Label = ui.sheet.find_child("RequirementLevel", true, false)
-	var coins: Label = ui.sheet.find_child("RequirementCoins", true, false)
-	if level != null: level.text = "Meadow level %d / 10" % ui.snapshot.meadow_level
-	if coins != null: coins.text = "%s / 10,000 Cat Coins" % ui.number(ui.snapshot.coins)
+	if not is_instance_valid(ui.sheet): return
 	var destination: Button = ui.sheet.find_child("Destination_1", true, false)
 	if destination != null:
 		if not destination.text.is_empty(): destination.text = _pin_text(ui, 1)
 		destination.accessibility_name = ui.snapshot.hotel_names[1] + " · " + _destination_status(ui, 1)
 	var destination_status: Label = ui.sheet.find_child("DestinationStatus_1", true, false)
-	if destination_status != null: destination_status.text = _destination_status(ui, 1)
+	if destination_status != null:
+		destination_status.text = _destination_status(ui, 1)
+	if ui.selected_destination != 1 or ui.snapshot.owned[1]: return
+	var level: Label = ui.sheet.find_child("RequirementLevel", true, false)
+	var coins: Label = ui.sheet.find_child("RequirementCoins", true, false)
+	if level != null: level.text = "Meadow level %d / 10" % ui.snapshot.meadow_level
+	if coins != null: coins.text = "%s / 10,000 Cat Coins" % ui.number(ui.snapshot.coins)
 	var action: Button = ui.sheet.find_child("UnlockHotel", true, false)
 	if action == null: return
-	action.text = "Open Seaside · 10,000" if ui.snapshot.can_unlock else ("Reach Meadow level 10" if ui.snapshot.meadow_level < 10 else "Save %s more coins" % ui.number(maxf(0, 10000 - ui.snapshot.coins)))
-	action.disabled = not ui.snapshot.can_unlock or ui.snapshot.save_error != ""
+	var state: Dictionary = _seaside_action(ui)
+	action.text = state.text
+	action.disabled = state.disabled
 	action.accessibility_name = action.text + (" · unavailable" if action.disabled else "")
+
+static func _seaside_action(ui: Control) -> Dictionary:
+	var text: String = "Open Seaside · 10,000" if ui.snapshot.can_unlock else ("Reach Meadow level 10" if ui.snapshot.meadow_level < 10 else "Save %s more coins" % ui.number(maxf(0, 10000 - ui.snapshot.coins)))
+	return {"text":text, "disabled":not ui.snapshot.can_unlock or ui.snapshot.save_error != ""}
 
 static func _open_product(ui: Control, hotel_index: int) -> void:
 	for product in Content.PRODUCTS:
