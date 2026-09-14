@@ -2,6 +2,24 @@ extends SceneTree
 func _initialize() -> void:
 	call_deferred("run")
 func run() -> void:
+	var mobile_art := preload("res://scripts/ui/menu_art.gd")
+	for scene in mobile_art.SCENES.values():
+		var texture = mobile_art.texture(scene)
+		if texture==null or texture.get_width()<=0 or maxi(texture.get_width(),texture.get_height())>1024:
+			push_error("Pack failed to import mobile illustration: "+scene)
+			quit(1)
+			return
+	for filename in ["cats-01","cats-02","cats-03","care-toys"]:
+		var texture = load("res://assets/ui/mobile/"+filename+".png")
+		if texture==null or texture.get_width()<=0:
+			push_error("Pack is missing an assigned atlas: "+filename)
+			quit(1)
+			return
+	if FileAccess.file_exists("res://docs/mobile-ui-redesign/01-hotel-build-cat-care.png"):
+		push_error("Pack incorrectly contains design boards")
+		quit(1)
+		return
+	print("PACK ART: all 18 imported sources loaded; design board excluded")
 	var app = load("res://scenes/main.tscn").instantiate()
 	app.save_path = "user://pack-smoke-" + str(Time.get_ticks_usec())
 	root.add_child(app)
@@ -39,14 +57,15 @@ func run() -> void:
 		push_error("Pack failed to place a player-designed room")
 		quit(1)
 		return
-	app.build_panel.preview_item("sun_cushion")
-	if app.model.life.state.hotels[0].rooms[2][0]!="mat":
+	var furniture_before: Array = app.model.furniture.room_items(0,2).duplicate(true)
+	app.build_panel.preview_item("scratch")
+	if app.model.furniture.room_items(0,2)!=furniture_before:
 		push_error("Pack preview changed saved furniture before confirmation")
 		quit(1)
 		return
 	app.build_panel.confirm()
 	app.build_panel.close()
-	if app.model.life.state.hotels[0].rooms[2][0]!="sun_cushion":
+	if not app.model.furniture.room_items(0,2).any(func(item): return item.item=="scratch"):
 		push_error("Pack failed to purchase previewed furniture")
 		quit(1)
 		return
@@ -96,8 +115,8 @@ func run() -> void:
 		app.visit_hotel(2)
 	print("PACK SMOKE: isometric views, doors, scenery, amenities, manager jobs, housekeeping, repairs, audio, petting, commerce config and selected store mode passed")
 	app.soundscape.shutdown()
+	await create_timer(0.15).timeout
 	app.queue_free()
 	await process_frame
 	await create_timer(0.15).timeout
 	quit(0)
-

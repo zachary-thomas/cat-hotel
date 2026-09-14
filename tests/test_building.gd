@@ -148,6 +148,8 @@ func run() -> void:
 	app.ui.close_sheet()
 	builder.open(2)
 	builder.close()
+	app.soundscape.shutdown()
+	await create_timer(0.15).timeout
 	app.queue_free()
 	await process_frame
 	await create_timer(0.1).timeout

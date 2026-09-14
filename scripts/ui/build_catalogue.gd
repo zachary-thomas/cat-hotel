@@ -77,16 +77,16 @@ func populate(ui, model, hotel: int, category: String, target: float, text_scale
 		art_center.add_child(thumbnail)
 		var price_copy: String = "Stored · Free" if uid!="" else ("Free reuse" if free else "%d coins each" % price)
 		if locked: price_copy = "Friendship 20 gift" if definition.bond>0 else "Hotel level %d" % definition.level
-		var title: Label = ui.canvas_paragraph(str(definition.name),roundi(16*text_scale),PlayfulTheme.INK)
+		var title: Label = ui.canvas_paragraph(str(definition.name),ceili(16*text_scale),PlayfulTheme.INK)
 		title.name="FurnitureName"; title.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER; title.max_lines_visible=2
 		body.add_child(title)
-		var price_label: Label = ui.canvas_paragraph(price_copy,roundi(14*text_scale),PlayfulTheme.SECONDARY_INK)
+		var price_label: Label = ui.canvas_paragraph(price_copy,ceili(14*text_scale),PlayfulTheme.SECONDARY_INK)
 		price_label.name="FurniturePrice"; price_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER; price_label.max_lines_visible=2
 		body.add_child(price_label)
 		var entry: Dictionary={"button":card,"price_label":price_label,"definition":definition,"uid":uid,"free":free,"locked":locked,"price":price}
 		_entries.append(entry)
 		_entries_by_key[("stored:"+uid) if uid!="" else ("item:"+item_id)]=entry
-	_empty_state=ui.canvas_paragraph("No stored furniture yet. Store an object from a room to reuse it here." if category=="storage" else "No items match this filter. Try showing all items.",roundi(16*text_scale))
+	_empty_state=ui.canvas_paragraph("No stored furniture yet. Store an object from a room to reuse it here." if category=="storage" else "No items match this filter. Try showing all items.",ceili(16*text_scale))
 	_empty_state.name="FurnitureEmptyState"
 	add_child(_empty_state)
 	update_availability(balance)

@@ -175,7 +175,7 @@ func button(text: String, action: Callable, primary: bool = false) -> Button:
 	return item
 
 func _scaled_font_size(phone_units: int) -> int:
-	return maxi(1, roundi(phone_units * float(metrics.get("unit", 1.0)) * float(metrics.get("font_scale", 1.0))))
+	return maxi(1, ceili(phone_units * float(metrics.get("unit", 1.0)) * float(metrics.get("font_scale", 1.0))))
 
 func relayout() -> void:
 	var viewport: Vector2 = get_viewport_rect().size
@@ -311,9 +311,6 @@ func _build_chrome() -> void:
 	activity_label.hide()
 	pending_button = button("Collect away earnings", func(): show_offline())
 	header.add_child(pending_button)
-	pending_button.position = Vector2(16, 118)
-	pending_button.custom_minimum_size.y = 44
-	pending_button.add_theme_font_size_override("font_size", 14)
 	pending_button.visible = false
 	footer = Control.new()
 	add_child(footer)
@@ -620,14 +617,16 @@ func _advance_sheet_restore() -> void:
 	var initial_focus_id: int = pending.focus_id
 	target.relayout(_sheet_bounds())
 	var saved: Dictionary = route_state.get(route, {})
-	var focus_name: String = saved.get("focus", "")
+	var focus_name: String = pending.get("reveal", saved.get("focus", ""))
 	var focus_target = target.find_child(focus_name, true, false) if not focus_name.is_empty() else null
 	var current_focus := get_viewport().gui_get_focus_owner()
 	var current_focus_id: int = current_focus.get_instance_id() if current_focus != null else 0
-	if current_focus_id == initial_focus_id:
+	if current_focus_id == initial_focus_id or pending.has("reveal"):
 		if focus_target is Control: focus_target.grab_focus()
 		else: target.back.grab_focus()
 	target.scroll.scroll_vertical = int(saved.get("scroll", 0))
+	if pending.has("reveal") and focus_target is Control:
+		target.scroll.ensure_control_visible(focus_target)
 
 func close_sheet() -> void:
 	_remember_sheet()
@@ -654,6 +653,9 @@ func _sheet_bounds() -> Rect2:
 	var unit: float = metrics.unit
 	bounds.position.x += 8 * unit
 	bounds.size.x -= 16 * unit
+	var column_width := minf(bounds.size.x,620*unit)
+	bounds.position.x += (bounds.size.x-column_width)/2.0
+	bounds.size.x = column_width
 	var height: float = minf(_sheet_height * unit, bounds.size.y)
 	bounds.position.y = bounds.end.y - height
 	bounds.size.y = height
@@ -875,8 +877,8 @@ func _layout_home() -> void:
 		coin.position = Vector2(wallet_x-23,6)*unit
 	coin.size = Vector2(20,20)*unit
 	for item in [title_label,level_label,coins_label,rate_label]: item.size = item.get_minimum_size()
-	pending_button.position = Vector2(12,metrics.header_rect.size.y+8*unit)
-	pending_button.size = Vector2(metrics.safe_rect.size.x-24*unit,48*unit)
+	pending_button.position = Vector2(12*unit,metrics.header_rect.size.y+8*unit)
+	pending_button.size = Vector2(metrics.safe_rect.size.x-24*unit,maxf(metrics.target,pending_button.get_minimum_size().y))
 	if is_instance_valid(welcome):
 		var illustration: Control = welcome.find_child("WelcomeArt",true,false)
 		if illustration != null: illustration.custom_minimum_size.y = minf((welcome.size.x-32*unit)/1.5,260*unit)

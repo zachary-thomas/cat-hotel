@@ -2,7 +2,7 @@
 
 Twelve new screen concepts across four coordinated boards, informed by the original artwork and the current running Godot game. The proposed direction keeps the cozy voxel cats and introduces brighter toy-like controls, larger character moments, illustrated activities and a simpler five-destination dock.
 
-**Status:** Concepts and implementation plan ready for review. The game's source UI has not been changed.
+**Status:** Approved for full implementation. The mobile overhaul is being built on `codex/playful-mobile-ui`, including the playable hotel, every concept screen and the features shown in them. This is a fresh version; preserving the old game data is not required.
 
 [Design specification](../superpowers/specs/2026-09-13-playful-mobile-ui-design.md) · [Implementation plan](../superpowers/plans/2026-09-13-playful-mobile-ui.md) · [Exact generation prompts](prompts.md)
 
@@ -82,7 +82,7 @@ The most consequential finding is that returning through the Hotel tab resets th
 - Five destinations: **Hotel, Cats, Build, Life, Map**. Existing features move into these destinations; none are intentionally removed.
 - Use shared phone-unit sizing throughout the app. A logical Godot target can shrink below comfortable touch size on a phone; measure its actual displayed dimensions.
 - Minimum 48×48 touch targets, 56-high primary actions, 16-unit body copy, reflow at 125% and 150%, safe-area-aware layout and explicit Back behavior.
-- Keep existing Cat Coin prices, content IDs, transactions, saves and expansion ownership. Seaside still needs Meadow level 10 and 10,000 earned coins.
+- Keep a coherent earned Cat Coin economy and reliable transactions. Existing prices, content IDs, progression and save format are starting points and may change for the overhaul. Test with isolated profiles.
 - Build still saves each Place immediately, refunds with Undo and exits immediately with Play.
 - Preserve known/unknown cat preferences, staff training, specialty choices, events, discoveries, housekeeping, garden, Watch and the local album.
 - Collect is the only reward-claim action. Later and close preserve pending earnings.
@@ -91,13 +91,13 @@ The most consequential finding is that returning through the Hotel tab resets th
 
 These are generated visual concepts, not executable layouts or a single consistent save snapshot. The specification governs exact sizes and state behavior. Use native text, prices and icons over separately exported illustrations.
 
-The final native UI should use dark pine text on mint buttons (the generated boards use white in places). Spec token contrast is approximately 4.94:1 for pine on mint and 9.59:1 for pine on cream. Small background signage should become simple paw emblems. The welcome button gets a paw/play icon, not the generated coin icon; hosting an event must not imply an invented fee. Furniture thumbnails and prices must be paired from the real catalogue; the first board's secondary thumbnails are illustrative. The 480 upgrade price is illustrative and must be replaced with the model quote. The concept world is more polished than current runtime art; the plan separates interface work from that additional art effort.
+The final native UI uses dark pine text on mint buttons (the generated boards use white in places). Spec token contrast is approximately 4.94:1 for pine on mint and 9.59:1 for pine on cream. Small background signage becomes simple paw emblems. The welcome button gets a paw/play icon; hosting an event must not imply an invented fee. Furniture thumbnails and prices come from the real catalogue; the first board's secondary thumbnails and 480 upgrade price are illustrative. The playable 3D hotel is also being reworked with warmer materials, closer framing and more expressive cats.
 
 ## Build order
 
 1. Shared sizing/theme and whole-app text scale.
 2. Five-destination navigation and reliable Back/scroll/focus.
-3. Closer hotel camera and useful objectives.
+3. Closer hotel camera, useful objectives and playable-world art.
 4. Illustrated Build catalogue and placement.
 5. Cats and care.
 6. Hotel life and its activities.
@@ -105,10 +105,19 @@ The final native UI should use dark pine text on mint buttons (the generated boa
 8. Welcome, rewards, upgrades and settings.
 9. Phone-size matrix, physical-device validation and production art.
 
-The [implementation plan](../superpowers/plans/2026-09-13-playful-mobile-ui.md) includes exact files, interfaces, code examples, behavioral checks and review checkpoints. Begin by reviewing the running result after steps 1–3.
+The [implementation plan](../superpowers/plans/2026-09-13-playful-mobile-ui.md) includes exact files, interfaces, code examples, behavioral checks and review checkpoints. Each implementation task receives independent review before the next task begins.
 
 ## Provenance
 
 Reviewed the six [original concepts](../concept-art/README.md), historical [prototype captures](../prototype-screenshots/README.md), later [building captures](../room-building-screenshots/README.md), and current code/gameplay. Fresh current-game images are preserved in `current/`.
 
 Created all four new boards with the built-in image generation tool. Boards 2–4 use Board 1 as a style reference. Exact prompts are in [prompts.md](prompts.md). Final PNGs are saved in this folder; no deliverable depends on an image remaining in a temporary generation directory.
+
+Eighteen text-free production images, including guest portraits and care-toy atlases, were subsequently generated and reviewed for the native screens. Their [exact prompts](production-art-prompts.md) record the intended use and reference treatment. These assets accompany live text and controls; the concept boards are design documents.
+
+
+
+
+## Final implementation evidence
+
+The [final implementation review](implementation-review.md) links the 36 curated [actual after captures](after/README.md), five-size/three-text-scale checks, artwork manifest and Windows preview handoff. Physical Android checks remain an explicit release gate.

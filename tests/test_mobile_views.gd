@@ -50,6 +50,16 @@ func run() -> void:
 	app.save_path = key
 	root.add_child(app)
 	await process_frame
+	if "--matrix-only" in OS.get_cmdline_user_args():
+		app.start_game()
+		await final_matrix_coverage()
+		app.soundscape.shutdown()
+		await create_timer(0.15).timeout
+		app.queue_free()
+		await process_frame
+		print("MOBILE MATRIX TESTS: %s (%d failures)" % ["PASS" if failures==0 else "FAIL",failures])
+		quit(1 if failures else 0)
+		return
 	await home_capture("welcome-100")
 	app.change_setting("ui_text_scale",1.25)
 	await home_capture("welcome-125")
@@ -208,6 +218,8 @@ func run() -> void:
 		await click(app.ui.sheet.find_child("Playdate_2", true, false))
 		check(app.model.life.state.cats[1].friend == 2 and app.model.life.state.cats[2].friend == 1, "Playdate button creates the selected real friendship pair")
 	await life_coverage()
+	await album_capacity_coverage()
+	await final_matrix_coverage()
 	app.soundscape.shutdown()
 	await create_timer(0.15).timeout
 	app.queue_free()
@@ -400,7 +412,12 @@ func life_coverage() -> void:
 	app.model.life.state.memories.clear()
 	app._rebuild_world()
 	app._update_ui()
-	for scale in [1.0,1.5]:
+	var life_fixture: Dictionary = {"coins":app.model.coins,"hotel":app.model.hotels[0].duplicate(true),"life":app.model.life.state.duplicate(true),"grounds":app.model.grounds.hotels.duplicate(true)}
+	for scale in [1.0,1.25,1.5]:
+		app.model.coins = life_fixture.coins
+		app.model.hotels[0] = life_fixture.hotel.duplicate(true)
+		app.model.life.state = life_fixture.life.duplicate(true)
+		app.model.grounds.hotels = life_fixture.grounds.duplicate(true)
 		app.change_setting("ui_text_scale",scale)
 		var tag: String = str(roundi(scale*100))
 		app.ui._navigate("Life")
@@ -574,7 +591,7 @@ func home_coverage() -> void:
 		for item in [app.ui.title_label,app.ui.level_label,app.ui.coins_label,app.ui.rate_label,gear]:
 			check(bounds.grow(1).encloses(item.get_global_rect()),"Header contains essential label/gear at "+str(scale))
 		check(gear.size.x>=48*unit and gear.size.y>=48*unit,"Header gear retains physical target")
-		check(app.ui.level_label.get_theme_font_size("font_size")>=floori(14*unit*scale),"Header essential text respects scale")
+		check(app.ui.level_label.get_theme_font_size("font_size")/unit>=14*scale,"Header essential text respects scale")
 		check(not app.ui.coins_label.get_global_rect().intersects(gear.get_global_rect()),"Wallet does not overlap settings")
 		await home_capture("header-"+str(int(scale*100)))
 		app.ui._open_settings()
@@ -677,3 +694,115 @@ func settings_action(caption: String) -> Button:
 	for action in app.ui.sheet.find_children("*","Button",true,false):
 		if action.text == caption: return action
 	return null
+
+func album_capacity_coverage() -> void:
+	var views = preload("res://scripts/ui/views/life_views.gd")
+	views.thumbnails.clear()
+	var entries: Array = []
+	var previous := {}
+	var paths: Array[String] = []
+	var tiny := Image.create(8,8,false,Image.FORMAT_RGBA8)
+	tiny.fill(Color("5CC8A1"))
+	for index in range(81):
+		var path := "res://tmp/album-capacity-%d-%d.png" % [Time.get_ticks_usec(),index]
+		check(tiny.save_png(path)==OK,"Capacity fixture photo saves")
+		paths.append(path)
+		if index<80:
+			entries.append({"photo":path})
+			previous[path] = views.thumbnail(path)
+	check(views.thumbnails.size()==80,"Album cache reaches its existing 80-photo cap")
+	entries.push_front({"photo":paths[80]})
+	entries.resize(80)
+	views.prune_thumbnails(entries)
+	for entry in entries:
+		var texture = views.thumbnail(entry.photo)
+		if previous.has(entry.photo): check(texture==previous[entry.photo],"A new full-album photo preserves every other displayed texture")
+	check(views.thumbnails.size()==80 and not views.thumbnails.has(paths[79]),"Only the undisplayed oldest photo is pruned")
+	views.thumbnails.clear()
+	for path in paths: DirAccess.remove_absolute(path)
+
+func final_matrix_coverage() -> void:
+	app.ui.close_sheet()
+	app.active = false
+	app.set_process(false)
+	app.ui.set_process(false)
+	# Every scale/inset starts from the same ordinary model, independent of prior seeded scenarios.
+	var fresh = preload("res://scripts/core/hotel_model.gd").new()
+	fresh.new_game(int(Time.get_unix_time_from_system()))
+	var fixture: Dictionary = fresh.serialize()
+	for scale in [1.0,1.25,1.5]:
+		for inset in [false,true]:
+			app.ui.route_state.clear()
+			app.ui._route_history.clear()
+			check(app.model.restore(fixture.duplicate(true)),"Matrix resets its independent starting-state fixture")
+			app.change_setting("ui_text_scale",scale)
+			app._rebuild_world()
+			app._update_ui()
+			for route in ["Hotel","Cats","Pet","Life","Events","Journal","Upgrades","Map","Settings","Staff","Grounds","Shop"]:
+				app.ui.selected_cat = 0
+				app.ui._navigate(route)
+				apply_matrix_geometry(scale,inset)
+				await settle()
+				# The fixture pauses UI processing to preserve injected safe geometry, so drive its normal post-layout restore.
+				for frame in range(3): app.ui._advance_sheet_restore()
+				await settle()
+				var safe: Rect2 = app.ui.metrics.safe_rect
+				var unit: float = app.ui.metrics.unit
+				if is_instance_valid(app.ui.sheet):
+					check(safe.grow(0.1).encloses(app.ui.sheet.get_global_rect()),"Matrix sheet stays safe: "+route)
+					check(app.ui.sheet.get_global_rect().end.y<=app.ui.metrics.footer_rect.position.y+0.1,"Matrix dock remains reachable: "+route)
+					check(app.ui.sheet.back.size.x>=48*unit-0.01 and app.ui.sheet.back.size.y>=48*unit-0.01,"Matrix Back meets physical target: "+route)
+					if app.ui.sheet.primary.visible: check(app.ui.sheet.primary.size.y>=56*unit-0.01,"Matrix pinned action meets physical target: "+route)
+					if DisplayServer.window_get_size().x>=1000: check(app.ui.sheet.size.x<=620*unit,"Desktop detail uses a reading column: "+route)
+				await final_capture(route.to_lower()+"-"+str(roundi(scale*100))+"-"+("inset" if inset else "plain"))
+				if route=="Pet":
+					var toys: Control = app.ui.sheet.find_child("toys",true,false)
+					for toy in toys.get_children():
+						check(toy.get_global_rect().grow(1).encloses(toy._art.get_global_rect()),"Care toy artwork stays inside its actual target")
+						for caption in toy.find_children("*","Label",true,false):
+							check(toy.get_global_rect().grow(1).encloses(caption.get_global_rect()),"Care toy caption stays inside its actual target")
+					app.ui.sheet.scroll.ensure_control_visible(toys.get_child(0))
+					await final_capture("care-toys-"+str(roundi(scale*100))+"-"+("inset" if inset else "plain"))
+				if route=="Map" and scale>1.0:
+					await click(app.ui.sheet.find_child("Destination_1",true,false))
+					apply_matrix_geometry(scale,inset)
+					await settle()
+					for frame in range(3): app.ui._advance_sheet_restore()
+					await settle()
+					var details: Control = app.ui.sheet.find_child("DestinationDetails",true,false)
+					check(details.has_focus(),"Selected destination details receive deliberate visible focus")
+					for requirement in ["RequirementLevel","RequirementCoins"]:
+						check(app.ui.sheet.scroll.get_global_rect().grow(1).encloses(app.ui.sheet.find_child(requirement,true,false).get_global_rect()),"Selection reveals both live Seaside requirements: "+requirement)
+					await final_capture("map-selected-seaside-"+str(roundi(scale*100))+"-"+("inset" if inset else "plain"))
+	app.ui.set_process(true)
+	app.ui.relayout()
+	for index in [11,13]:
+		app.ui.open_cat(index)
+		await settle()
+		check(app.ui.sheet.find_child("PettingView",true,false)==null,"Unknown and paid guests do not expose a live care stage")
+		await final_capture("cat-"+("unknown" if index==11 else "paid")+"-150-plain")
+
+func apply_matrix_geometry(scale: float,inset: bool) -> void:
+	var unit: float = app.ui.metrics.unit
+	var viewport: Vector2 = app.ui.size
+	var safe := Rect2(Vector2.ZERO,viewport)
+	if inset: safe = Rect2(Vector2(12,24)*unit,viewport-Vector2(30,44)*unit)
+	app.ui.metrics = app.ui.PhoneLayout.measure(viewport,safe,1.0/unit,scale)
+	app.ui._apply_theme_metrics()
+	app.ui._apply_control_metrics(app.ui)
+	app.ui._apply_shell_geometry()
+	app.ui._layout_navigation()
+	app.ui._layout_home()
+	if is_instance_valid(app.ui.sheet): app.ui.sheet.relayout(app.ui._sheet_bounds())
+	app.ui.CatViews.relayout(app.ui)
+	app.ui.LifeViews.relayout(app.ui)
+
+func final_capture(title: String) -> void:
+	await settle()
+	if DisplayServer.get_name()!="headless":
+		await RenderingServer.frame_post_draw
+		var extent := DisplayServer.window_get_size()
+		app.ui.toast_timer = 0
+		app.ui.toast_label.hide()
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://tmp/final-%dx%d-%s.png" % [extent.x,extent.y,title])

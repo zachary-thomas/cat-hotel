@@ -148,6 +148,8 @@ func run() -> void:
 	var restored = app.Model.new()
 	check(app.store.load_model(restored,int(Time.get_unix_time_from_system())),"Expanded gameplay can be loaded from disk")
 	check(restored.hotels[2].owned and restored.hotels[3].owned and restored.life.owns("purrington.snowcap_spa"),"Expansion access survives reopening")
+	app.soundscape.shutdown()
+	await create_timer(0.15).timeout
 	app.queue_free()
 	await process_frame
 	await create_timer(0.1).timeout

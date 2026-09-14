@@ -29,11 +29,15 @@ $mobileNotices += "`r`n`r`nPOING STUDIOS ADMOB PLUGIN`r`n`r`n" + (Get-Content -L
 $mobileNotices | Set-Content -LiteralPath (Join-Path $destination 'MOBILE_SDK_NOTICES.txt') -Encoding utf8
 @'
 @echo off
-start "" "%~dp0PurringtonHotel.exe" --main-pack "%~dp0PurringtonHotel.pck"
+set "PURRINGTON_PREVIEW=%LOCALAPPDATA%\Purrington Playful Preview 2026-09"
+if not exist "%PURRINGTON_PREVIEW%" mkdir "%PURRINGTON_PREVIEW%"
+set "APPDATA=%PURRINGTON_PREVIEW%"
+set "LOCALAPPDATA=%PURRINGTON_PREVIEW%"
+start "" "%~dp0PurringtonHotel.exe" --path "%~dp0." --main-pack "%~dp0PurringtonHotel.pck" %* -- --save-path=user://playful-mobile-preview-save
 '@ | Set-Content -LiteralPath (Join-Path $destination 'Play.cmd') -Encoding ascii
 @'
 @echo off
-start "" "%~dp0PurringtonHotel.exe" --main-pack "%~dp0PurringtonHotel.pck" -- --commerce-preview
+start "" "%~dp0PurringtonHotel.exe" --path "%~dp0." --main-pack "%~dp0PurringtonHotel.pck" -- --commerce-preview
 '@ | Set-Content -LiteralPath (Join-Path $destination 'Test expansions.cmd') -Encoding ascii
 @'
 PURRINGTON HOTEL - WINDOWS PLAYABLE PREVIEW
@@ -43,53 +47,41 @@ No installation is needed. This preview bundles the local Godot 4.7.2
 editor-capable binary as its runner because desktop export templates were
 not installed. A production release should use Godot's export template.
 
-Open Build, choose furniture, then tap any guest room, lobby or shared floor.
-The checkmark saves immediately at the shown price; X cancels the preview.
-Valid furniture has a filled green footprint; invalid furniture turns red.
-Play returns straight to the game.
-Undo refunds a building action while preserving income; Redo repeats it if
-there are enough coins. Moving and storing owned copies are free.
-Tap a room and Copy room to preview its shell and furniture. Paste shows the
-full cost and creates a complete, independently owned copy. Rooms opens the
-new-room tools and text sizes. Comfort, entertainment and atmosphere improve
-with your furnishings. Doors, walking routes and fixed service fixtures stay clear.
+Press Play to open your hotel. The five bottom destinations are Hotel, Cats,
+Build, Life and Map. Hotel returns to your live hotel without resetting its
+camera. The whole next-step card opens the action it describes.
 
-Click Open your hotel. Income is automatic. Use Hotel life to decorate rooms,
-discover combinations, train staff, host events, earn stars and save photos.
-Tap Cats or a guest for a close petting view, purrs, toys and friendship.
-Use Hotel life > Watch your favorite cat to follow a guest without controls.
-Use Manager to direct your coral-vested cat. Tap paths to walk, bushes to
-trim, the mouse to chase, or untidy rooms to clean. Completed jobs pay coins.
-Loose yarn gives 5 coins and respawns after 35 seconds.
-Tap pool, litter nook, playpen or picnic sites to buy amenities with coins.
-Cats use each open amenity, which adds persistent income.
-The front road has passing cats and Paw Mart: share 30-coin treats to invite
-neighbors over and gain 3 friendship with your favorite (120-second cooldown).
-At hotel level 3, hire Daisy for 600 coins to clean rooms automatically.
-Tap boarded wings to repair them; Rooms also shows repair details.
-The compact header leaves the full isometric hotel visible. Fit all resets the view.
-Outside / Inside toggles the full roof and walls; the chosen view is saved.
-Room doors open when tapped or when cats approach, then close afterward.
-Panning and zooming stop at the property and street. Each restored wing opens
-another fenced garden plot for exploration and manager walking.
-Map travels between the four destinations you own.
-Room wings require hotel levels 2 / 4 / 6 and cost 1,200 / 3,500 / 8,000 coins.
-Construction cats repair them in 30 / 60 / 90 seconds, including while away.
-Each finished repair opens empty building space and adds persistent income.
-Maximum: eight individually placed rooms per hotel.
-Open Build to place regular rooms (450 coins) or suites (1,200 coins).
-Tap floor tiles to position, rotate to choose the entrance, then confirm.
-All entrances need a clear path to the lobby. Tap a room to preview real
-furnishings before buying. Moving rooms and rearranging owned objects are free.
-Keyboard: R rotates placement; Esc cancels the preview or closes Build.
-Old saves migrate their rooms and keep furniture, cats and progress.
-Drag the world to pan; mouse wheel zooms. Tap a zone to upgrade it.
-The top-right menu controls music, sound effects, evening lighting, animation,
-weather and touch feedback. Backgrounding the app pauses audio.
+Cats shows Met and To meet collections. Tap a known guest for a live care
+stage: Pet, Brush, Feather, Yarn, Cushion and Box build real friendship.
+Favorite and invitation actions explain their current requirements.
 
-Progress saves under %APPDATA%/Godot/app_userdata/Purrington Hotel/.
-Offline earning is capped at eight hours. The two .json save slots
-alternate to preserve a backup. Keep both files when moving saves.
+Build opens an illustrated catalogue. Choose a category and furniture, then
+tap a room, lobby or shared floor. Rotate and Adjust position the preview.
+Place saves immediately at the displayed Cat Coin price. Cancel removes only
+an unpurchased preview. Undo refunds a saved action; Redo repeats it if affordable.
+Play returns immediately to Hotel. Storage, room tools and Copy/Paste are in
+this workspace. Valid footprints are green; invalid ones explain the problem.
+Keyboard: R rotates; Esc cancels a preview or goes Back.
+
+Life opens Garden, Manager, Staff, Scrapbook, Discoveries and Paw Mart,
+plus gatherings, specialties and Watch. Watch has a Back to hotel button.
+Scrapbook saves actual hotel photos to this preview profile. Map shows all
+four destinations and live travel/unlock requirements. Seaside requires both
+Meadow level 10 and 10,000 earned Cat Coins.
+
+The header's Settings button offers music, sound effects, gentle animation,
+touch feedback, evening lighting and weather. Text size 100%, 125% or 150%
+applies throughout the interface. Scroll longer pages; Back returns to their
+parent. Hotel view offers Fit the full hotel and Inside / Outside.
+Drag the world to pan; the mouse wheel zooms. Tap service areas to upgrade.
+Offline earnings cap at eight hours. Later leaves earnings available to collect.
+
+Play.cmd uses a fresh, persistent overhaul preview profile at:
+%LOCALAPPDATA%\Purrington Playful Preview 2026-09\Godot\app_userdata\Purrington Hotel\
+(The LOCALAPPDATA above means your normal Windows local application-data folder.)
+Its playful-mobile-preview-save.0.json and .1.json slots alternate backups.
+Your normal game saves are separate. The package contains no preview saves,
+walkthrough fixtures or logs. Subsequent preview launches retain progress.
 
 FREE GAME AND EXPANSIONS
 Meadow House, Seaside Suites and twelve guests form the free game.
@@ -110,10 +102,10 @@ Full engine and dependency notices are in GODOT_NOTICES.txt.
 Fredoka and Nunito font licenses are in FONT_NOTICES.txt.
 Mobile plugin licenses are in MOBILE_SDK_NOTICES.txt.
 '@ | Set-Content -LiteralPath (Join-Path $destination 'README.txt') -Encoding utf8
-Compress-Archive -Path (Join-Path $destination '*') -DestinationPath (Join-Path $projectRoot 'builds/PurringtonHotel-WindowsPreview.zip') -Force
+$deliverables = @('PurringtonHotel.exe','PurringtonHotel.pck','Play.cmd','Test expansions.cmd','README.txt','GODOT_NOTICES.txt','FONT_NOTICES.txt','MOBILE_SDK_NOTICES.txt') | ForEach-Object { Join-Path $destination $_ }
+Compress-Archive -LiteralPath $deliverables -DestinationPath (Join-Path $projectRoot 'builds/PurringtonHotel-WindowsPreview.zip') -Force
 Write-Output "Preview ready: $destination\Play.cmd"
 } finally {
     $env:APPDATA = $originalAppData
     $env:LOCALAPPDATA = $originalLocalData
 }
-

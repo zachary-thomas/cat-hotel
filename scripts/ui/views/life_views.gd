@@ -195,6 +195,14 @@ static func thumbnail(path: String) -> Texture2D:
 		thumbnails[path] = ImageTexture.create_from_image(image)
 	return thumbnails[path]
 
+static func prune_thumbnails(entries: Array) -> void:
+	# Protect the displayed newest-first set before inserting a new photo into a full album.
+	var displayed := {}
+	for entry in entries.slice(0,80):
+		if entry.has("photo"): displayed[entry.photo] = true
+	for path in thumbnails.keys():
+		if not displayed.has(path): thumbnails.erase(path)
+
 static func journal(ui: Control) -> void:
 	var col: VBoxContainer = ui._base_sheet("Our little scrapbook",650)
 	col.add_child(ui.paragraph("Small moments. Big purrs."))
@@ -216,6 +224,7 @@ static func journal(ui: Control) -> void:
 		col.add_child(action(ui,"Visit your cats  ›",func(): ui.open_route("Cats","Journal")))
 	var entries: Array = ui.snapshot.life.memories.duplicate()
 	entries.reverse()
+	prune_thumbnails(entries)
 	for entry in entries.slice(0,80):
 		var box := card(ui,col,Color("FFF1D6"))
 		var saved: Texture2D = thumbnail(entry.photo) if entry.has("photo") and FileAccess.file_exists(entry.photo) else null

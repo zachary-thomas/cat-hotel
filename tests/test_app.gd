@@ -84,7 +84,7 @@ func run() -> void:
 	check(app.world.actors.size() == 8, "Opening services adds a chef, eating and playing guests")
 	app.world.reset_camera()
 	await capture("02-hotel")
-	check(not app.ui.quick_bar.visible and app.ui.quick_bar.get_child_count() == 0, "The dock replaces the old quick bar without obscuring the hotel")
+	check(app.ui.metrics.world_rect.end.y <= app.ui.dock_panel.get_global_rect().position.y, "Shared world geometry leaves the dock clear")
 	for x in [-5.9, 5.9]:
 		for z in [-17.2, 5.0]:
 			var point: Vector2 = app.world.camera.unproject_position(Vector3(x,0.2,z))
@@ -202,4 +202,3 @@ func run() -> void:
 			DirAccess.remove_absolute(key + suffix)
 	print("APP TESTS: ", "PASS" if failures == 0 else "FAIL", " (", failures, " failures)")
 	quit(1 if failures else 0)
-

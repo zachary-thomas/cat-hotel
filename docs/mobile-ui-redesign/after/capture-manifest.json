@@ -1,0 +1,182 @@
+[
+  {
+    "Capture": "01-hotel-360x640-100-starting.png",
+    "Source": "tmp/walkthrough-360x640-100-02-hotel.png",
+    "SHA256": "940BE8CAFC17432FB52F33C297769F672B3A77454A788C0F56ADF398A220532B"
+  },
+  {
+    "Capture": "02-build-360x640-100-catalogue.png",
+    "Source": "tmp/walkthrough-360x640-100-05-build-catalogue.png",
+    "SHA256": "C57E19B390F64ED95566DDA3EECBD73794F92BD3609B309D4C92D895BEFCA60E"
+  },
+  {
+    "Capture": "03-care-360x640-100-known.png",
+    "Source": "tmp/walkthrough-360x640-100-04-care.png",
+    "SHA256": "65A13997916DC75D540B2A9E1BDEBD51605274A896B09E2A2B364ED81DB4C922"
+  },
+  {
+    "Capture": "04-upgrades-360x640-100-affordable.png",
+    "Source": "tmp/task8-upgrade-affordable-360x640.png",
+    "SHA256": "89E241C636BC4EF7B08C468E587DAD511C4B012672DAA850E6124E0E548BAEEF"
+  },
+  {
+    "Capture": "05-life-360x640-100-starting.png",
+    "Source": "tmp/walkthrough-360x640-100-08-life.png",
+    "SHA256": "49078BC31BA31D56C48E3085391574F8296B220169A7CD1B1FA1AF57F000EC1B"
+  },
+  {
+    "Capture": "06-map-360x640-100-locked.png",
+    "Source": "tmp/walkthrough-360x640-100-09-map.png",
+    "SHA256": "73FD347E840D83CD94BDA03DE84F40A5BFA6A4F4050D9B5BDDA1A83CE43A706B"
+  },
+  {
+    "Capture": "07-cats-360x640-100-met.png",
+    "Source": "tmp/walkthrough-360x640-100-03-cats.png",
+    "SHA256": "5951A2D3F7191D27128DABAE396B78EE8D6EC0801A4630F53072608563D74082"
+  },
+  {
+    "Capture": "08-gatherings-360x640-100-ready.png",
+    "Source": "tmp/task6-event-ready-100-360x640.png",
+    "SHA256": "A6DEB04FE67558451EAE9FF64BCF5E22B3390309CCE272180F8E2C49EDD4796B"
+  },
+  {
+    "Capture": "09-scrapbook-360x640-100-photo.png",
+    "Source": "tmp/task6-real-photo-100-360x640.png",
+    "SHA256": "4406D89A7D532CE118618667FCE012F38A64605A30F731E4ABF19418BFA7D326"
+  },
+  {
+    "Capture": "10-welcome-360x640-100-fresh.png",
+    "Source": "tmp/walkthrough-360x640-100-01-welcome.png",
+    "SHA256": "F2BEADA7F11DE250E55945931D2282592E7857F37D7E6FA3F1573D7867E5B8E3"
+  },
+  {
+    "Capture": "11-reward-360x640-100-pending.png",
+    "Source": "tmp/task8-reward-360x640.png",
+    "SHA256": "C77FEE8A68EAB1D6CD6F08970C09A346CF967B08E9A6F8E6B3A035FE5F74C440"
+  },
+  {
+    "Capture": "12-settings-360x640-100-sound.png",
+    "Source": "tmp/task8-settings-100-360x640.png",
+    "SHA256": "46CCFCBF3B1A5CBE21CCE8DC2D1F7577591031E8631618038390698A722EF2D2"
+  },
+  {
+    "Capture": "13-build-360x640-100-preview.png",
+    "Source": "tmp/walkthrough-360x640-100-06-build-preview.png",
+    "SHA256": "D9C8E57BC2BE042662CA05E325355D4B40220E0C3041A36FCCD3EF9CA02CF0D7"
+  },
+  {
+    "Capture": "14-build-360x640-100-placed.png",
+    "Source": "tmp/walkthrough-360x640-100-07-build-placed.png",
+    "SHA256": "E8BE724240A05C59016BF37756620C195221F32E5740344509FE24EC12159436"
+  },
+  {
+    "Capture": "15-build-360x640-150-invalid.png",
+    "Source": "tmp/furniture-check-invalid-360x640.png",
+    "SHA256": "8AC9A3586E961D6112906EC2CAFC417255BB559A2D811481BC63F18972BAC780"
+  },
+  {
+    "Capture": "16-build-360x640-150-save-error.png",
+    "Source": "tmp/task4-build-save-failure-360x640-150.png",
+    "SHA256": "1EBFE45477A20A2F220B83D33BB5C93D8A0F247BB25A9835552C8432B3C50D8B"
+  },
+  {
+    "Capture": "17-reward-360x640-150-save-error.png",
+    "Source": "tmp/task8-reward-error-150-360x640.png",
+    "SHA256": "92CDB56AF54D25E83F7F49BFC0CD528FC9CBFD661E728EAFCC0EA9D9607AFB90"
+  },
+  {
+    "Capture": "18-upgrades-360x640-100-poor.png",
+    "Source": "tmp/task8-upgrade-poor-360x640.png",
+    "SHA256": "A340A86216FEA0516E0636007F6F3F459CADCA7DCDD9CF0049D716D48AA7E64F"
+  },
+  {
+    "Capture": "19-settings-360x640-150-privacy.png",
+    "Source": "tmp/task8-settings-bottom-privacy-150-360x640.png",
+    "SHA256": "0849D140A3412A512807B06D523881C8EE31ED4EA262C547B89C10839F060523"
+  },
+  {
+    "Capture": "20-map-360x640-150-inset-list.png",
+    "Source": "tmp/final-360x640-map-150-inset.png",
+    "SHA256": "EC884A0264A41F3B02BC97489B28966833324A185040BDB1C762A48614A1E6E1"
+  },
+  {
+    "Capture": "21-map-360x640-150-inset-seaside.png",
+    "Source": "tmp/final-360x640-map-selected-seaside-150-inset.png",
+    "SHA256": "18BD4B9471D68F20A4505CE54A6AA3E4EB22F27D531E2515FBCD102D14D293A0"
+  },
+  {
+    "Capture": "22-watch-360x640-150-inset.png",
+    "Source": "tmp/task9-watch-safe-150-360x640.png",
+    "SHA256": "3C9D7064C4D3BB0A6BF5321247C400C8D0F527320A78249F4470E85DE19F240D"
+  },
+  {
+    "Capture": "23-cats-360x640-150-collection.png",
+    "Source": "tmp/task5-collection-150-360x640.png",
+    "SHA256": "3CFAF3A2F5F1FBF755CE7D8E7E656BF2420920912D6A7A0E21F9602D1EF4356C"
+  },
+  {
+    "Capture": "24-care-360x640-150-toys.png",
+    "Source": "tmp/task5-toys-150-360x640.png",
+    "SHA256": "D63E69CC08E550944BADF431DCE687451C546247B44569F3872F7E5AC94BBA78"
+  },
+  {
+    "Capture": "25-cats-360x640-150-unknown.png",
+    "Source": "tmp/final-360x640-cat-unknown-150-plain.png",
+    "SHA256": "03572A3575F746BA1EF6FA7041B5F67711F00A98F61E62E6909CF027B405A2E5"
+  },
+  {
+    "Capture": "26-cats-360x640-150-paid.png",
+    "Source": "tmp/final-360x640-cat-paid-150-plain.png",
+    "SHA256": "A16C07DA069D3E619FBCE7BE5D5EE95D5A8E09A9A0F1E3317183165EF5ABC439"
+  },
+  {
+    "Capture": "27-welcome-360x640-125-fresh.png",
+    "Source": "tmp/task8-welcome-125-360x640.png",
+    "SHA256": "E6CC18780D84520C9F73280907B0694BF7A9A3F980B56A2ECEED5AE8D443AB11"
+  },
+  {
+    "Capture": "28-settings-360x640-150-inset.png",
+    "Source": "tmp/final-360x640-settings-150-inset.png",
+    "SHA256": "F2BF7EA32E0B73439558C48625EB117A37581CE234A19FBFFB381C80F4794C58"
+  },
+  {
+    "Capture": "29-scrapbook-360x640-150-empty.png",
+    "Source": "tmp/task6-journal-empty-150-360x640.png",
+    "SHA256": "C81A676519758ECE816CF24B701132A70BB9791213CBD1EE2AE4B7A9AB297858"
+  },
+  {
+    "Capture": "30-gatherings-360x640-150-complete.png",
+    "Source": "tmp/task6-event-complete-150-360x640.png",
+    "SHA256": "0E114CD9FCE0AB94BF8BEFB31336EA228B0211E7793D35509B00E6EE44103235"
+  },
+  {
+    "Capture": "31-life-1280x800-100-desktop.png",
+    "Source": "tmp/final-1280x800-life-100-plain.png",
+    "SHA256": "7DAF0108E1BEF9C38BFC6679482EC148B8EAF2DEE725013C87DBD3A7CB3C170A"
+  },
+  {
+    "Capture": "32-map-390x844-125-inset.png",
+    "Source": "tmp/final-390x844-map-125-inset.png",
+    "SHA256": "211C2077B8793840BDCD701D24DFF59B0B23F31327F53A42BCA9D6973023ECB7"
+  },
+  {
+    "Capture": "33-header-390x844-100-ordinary.png",
+    "Source": "tmp/task8-header-ordinary-390x844.png",
+    "SHA256": "2B45686074699C7B4FAF1E1E5CF989C3429209D16AB4B0422D5A9A401CBFEF8B"
+  },
+  {
+    "Capture": "34-life-430x932-150-inset.png",
+    "Source": "tmp/final-430x932-life-150-inset.png",
+    "SHA256": "E47F4744B4336282501C0B949F142B8133A2E652A0CCF42539664322CE190E6D"
+  },
+  {
+    "Capture": "35-care-360x800-125-inset.png",
+    "Source": "tmp/final-360x800-care-toys-125-inset.png",
+    "SHA256": "5D3E1917F96173C90263B8055ABDE16F69A125A7655862E1C676B287878F0DFF"
+  },
+  {
+    "Capture": "36-build-1280x800-150-desktop.png",
+    "Source": "tmp/build-1280x800-150.png",
+    "SHA256": "2335339B045B93EEFE4D86C2AFEB1BA5561E90CEA4B8C1090F4B7E1AE94D1655"
+  }
+]

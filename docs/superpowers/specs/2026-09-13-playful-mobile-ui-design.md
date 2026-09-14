@@ -1,6 +1,8 @@
 # Purrington Hotel: playful mobile UI
 
-**Status:** Proposed design for visual review. This delivery includes investigation, generated concepts and a build plan; it does not implement the redesign.
+**Status:** Approved for full implementation with subagents. The user explicitly requested the complete app overhaul and all features shown in the new screenshots.
+
+**Implementation steering:** The user confirmed that current game data does not need to be kept. Existing economy, content IDs, progression and save schema are starting points, not compatibility requirements. Replace them where the new experience benefits; ensure the resulting game remains coherent and purchases/actions save correctly. The concepts define the visual target throughout the app, including the playable hotel. Legacy preservation statements below describe the original proposal and are superseded by this instruction. Normal player saves and live commerce are still excluded from automated verification.
 
 **Requested outcome:** A better mobile UI throughout the game, informed by the original concepts and playing the existing game. The interface should feel playful, friendly and unmistakably like a game.
 
@@ -39,14 +41,14 @@ This is a desktop-rendered phone-size inspection with scripted input, not a phys
 2. **Playful diorama interface — recommended:** retain the voxel hotel, make cats and furniture prominent, use rounded toy-like controls, and reorganize existing features into five destinations.
 3. **Full illustrated storybook replacement:** strong visual shift, but much larger art scope and a weaker connection to the playable 3D hotel.
 
-Use option 2. The original references contribute warm light, Cat Coins, cat-run hotels, material warmth and expressive little scenes. The new UI adds brighter mint, peach and lilac accents, clearer thumb-sized actions, and fewer competing surfaces. Generated scene art is aspirational art direction; matching its lighting and mesh detail is a separate art-production decision, not a hidden requirement to rebuild the world renderer.
+Use option 2 as the foundation for the user's approved complete overhaul. The original references contribute warm light, Cat Coins, cat-run hotels, material warmth and expressive little scenes. The new UI adds brighter mint, peach and lilac accents, clearer thumb-sized actions, and fewer competing surfaces. The playable hotel also receives a coherent visual rework in geometry, materials, lighting and framing within the existing renderer; separately generated illustrations support menu moments rather than replacing the interactive 3D world.
 
 ## Global constraints
 
 - Keep Godot 4.7.2, GDScript and the existing GL Compatibility renderer.
 - Add no new runtime dependencies or external fonts; use the bundled Fredoka and Nunito.
 - Every hotel worker, guest and neighborhood resident is a cat.
-- Preserve the existing economy, stable content IDs, save format behavior and purchase entitlements.
+- This is a fresh-version overhaul. Current game data does not need to be kept. Existing economy, content IDs, progression and save schema are starting points, not compatibility requirements; replace them where the approved design benefits. Keep the resulting game coherent and transactional.
 - Earned currency remains Cat Coins; add no gems, energy, loot boxes or new daily-reward system.
 - Primary navigation is Hotel, Cats, Build, Life, Map, in that order.
 - Build is a contextual workspace: Place saves immediately; Undo refunds the action; Play exits immediately; Cancel discards only the unpurchased preview.
@@ -56,7 +58,7 @@ Use option 2. The original references contribute warm light, Cat Coins, cat-run 
 - Respect all four safe-area insets and provide keyboard/controller focus and Android Back behavior.
 - Test 360×640, 360×800, 390×844, 430×932 and 1280×800, with additional simulated safe-area insets.
 - Use dark pine text on mint, coral and gold controls; small white text on these light fills is not acceptable.
-- Generated mockup text, prices, statistics and scenery are illustrative; model data and this specification are authoritative.
+- Generated mockup text, prices and statistics are illustrative. Use live, coherent game data in native UI. The concept boards define the playful visual experience across the app, including the playable hotel.
 - Keep normal player saves and live commerce untouched during verification.
 
 ## Visual system
@@ -79,6 +81,8 @@ Use option 2. The original references contribute warm light, Cat Coins, cat-run 
 | Icons | Consistent chunky illustrated objects; 24–32-unit dock icons, 64–88-unit tile art |
 
 No decorative text on in-world signs beyond authored, readable copy. Use paw emblems where tiny signage would become visual noise. Never bake dynamic UI labels or prices into an image. Keep illustrations separate from native controls and text.
+
+Full-scene illustrations in welcome, journey, featured-event, upgrade and activity-scene cards use responsive image areas sized to match the concept composition. Keep their aspect ratio and reduce optional artwork before shrinking controls. The 64–88-unit icon token governs regular object-icon and portrait slots; the live care stage follows its separate dimensions.
 
 ## Layout and navigation
 
@@ -106,7 +110,7 @@ Back behavior: profile → collection, Life detail → Life, expansion detail �
 
 ### 01 Hotel
 
-Top: hotel name, level badge, coin balance, income rate and Settings. Center: active rooms with large visible cats. Bottom: one next-step card and dock. Tapping the next-step card opens a concrete existing action: pending reward, running job/repair, pinned discovery, or an available service upgrade in that priority. A large-text setting may put the balance on a separate line without adding another full navigation strip.
+Top: hotel name, level badge, coin balance, income rate and Settings. Center: active rooms with large visible cats. Bottom: one next-step card and dock. Tapping the next-step card opens a concrete existing action: pending reward, running job/repair, pinned discovery, or an available service upgrade in that priority. A large-text setting may put the balance on a separate line without adding another full navigation strip. The integrated large-text header may use112 phone units (normal64) for three readable rows; all world and sheet bounds must use this shared measurement.
 
 Keep the camera bounded by the property. The goal is a closer active-hotel frame, not unrestricted movement or removing Fit all. At the starter state, room beds and at least one resident cat should be recognizable at 360 pixels wide without zooming. Returning from a sheet must not recenter. Labels should not obscure the selected cat or object.
 
@@ -136,7 +140,7 @@ Garden uses illustrated amenity cards for pool, litter nook, playpen and picnic 
 
 ### 06 Map and expansions
 
-Scrollable illustrated journey with clearly distinct Meadow, Seaside, Forest and Snowcap postcards and a paw path. Tapping a destination pins a details card. The map is a navigation surface rather than a dense statistical overview; accessible destination buttons duplicate any decorative path hit areas.
+Scrollable illustrated journey with clearly distinct Meadow, Seaside, Forest and Snowcap postcards and a paw path. Tapping a destination reveals its live details and a pinned primary action. At normal text, the details card is pinned too; at enlarged text it may scroll to preserve safe bounds and full-size controls. Selection must deliberately reveal both Seaside requirements with coherent focus/scroll rather than burying them below the destination list. The map is a navigation surface rather than a dense statistical overview; accessible destination buttons duplicate any decorative path hit areas.
 
 Meadow opens with the base game. Seaside requires Meadow level 10 and 10,000 earned Cat Coins. Forest Lodge and Snowcap Spa are expansion products; the Traveling Cat Club is available in the expansion shop. Display owned/active/locked/paid-expansion states distinctly. Never relabel these implemented products “Coming later.”
 

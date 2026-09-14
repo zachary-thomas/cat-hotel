@@ -103,7 +103,7 @@ func dismiss_for_menu() -> void:
 
 func _process(_delta: float) -> void:
  if not visible: return
- ui.header.hide(); ui.footer.hide(); ui.quick_bar.hide(); ui.toast_label.hide()
+ ui.header.hide(); ui.footer.hide(); ui.toast_label.hide()
  if is_instance_valid(wallet): wallet.text=_wallet_copy()
  if _last_balance!=int(app.model.coins):
   _last_balance=int(app.model.coins)
@@ -128,15 +128,15 @@ func _refresh() -> void:
  header_surface.add_theme_stylebox_override("panel",header_style)
  var header=HBoxContainer.new(); header.name="BuildHeader"; header.add_theme_constant_override("separation",roundi(6*metrics.unit)); add_child(header)
  header.position=metrics.header_rect.position+Vector2(12,4)*metrics.unit; header.size=metrics.header_rect.size-Vector2(18,8)*metrics.unit
- var title=ui.canvas_label("BUILD",roundi(17*_font_scale),PlayfulTheme.INK)
+ var title=ui.canvas_label("BUILD",ceili(17*_font_scale),PlayfulTheme.INK)
  title.size_flags_horizontal=Control.SIZE_EXPAND_FILL; header.add_child(title)
- wallet=ui.canvas_label(_wallet_copy(),roundi(14*_font_scale),PlayfulTheme.INK); header.add_child(wallet)
+ wallet=ui.canvas_label(_wallet_copy(),ceili(14*_font_scale),PlayfulTheme.INK); header.add_child(wallet)
  var close_button: Button=_button("▶  Play",close,true,"CloseBuilder",header)
  close_button.size_flags_horizontal=Control.SIZE_SHRINK_END
  close_button.autowrap_mode=TextServer.AUTOWRAP_OFF
  close_button.custom_minimum_size.x=104*metrics.unit
  close_button.custom_minimum_size.y=56*metrics.unit
- close_button.add_theme_font_size_override("font_size",roundi(14*_font_scale))
+ close_button.add_theme_font_size_override("font_size",ceili(14*_font_scale))
  var history_panel=PanelContainer.new(); history_panel.name="BuildHistory"; add_child(history_panel)
  history_panel.position=metrics.history_rect.position; history_panel.size=metrics.history_rect.size
  var history_style=PlayfulTheme.panel(PlayfulTheme.CREAM,metrics.unit,16)
@@ -170,7 +170,7 @@ func _refresh() -> void:
 func _button(text: String, callback: Callable, primary: bool=false, id: String="", parent: Node=null) -> Button:
  var button: Button=ui.button(text,callback,primary)
  button.custom_minimum_size=Vector2(_target,_target)
- button.add_theme_font_size_override("font_size",roundi(16*_font_scale))
+ button.add_theme_font_size_override("font_size",ceili(16*_font_scale))
  button.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
  button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
  if id!="": button.name=id
@@ -204,7 +204,7 @@ func _placement_button(accept: bool) -> Button:
  return button
 
 func _copy(text: String, color: Color=PlayfulTheme.SECONDARY_INK, parent: Node=null, size: int=16) -> Label:
- var label: Label=ui.canvas_paragraph(text,roundi(size*_font_scale),color); (parent if parent!=null else content).add_child(label); return label
+ var label: Label=ui.canvas_paragraph(text,ceili(size*_font_scale),color); (parent if parent!=null else content).add_child(label); return label
 
 func _alert_copy(text: String, parent: Node=null) -> Label:
  var alert=PanelContainer.new(); alert.name="BuildAlert"
@@ -218,9 +218,9 @@ func _alert_copy(text: String, parent: Node=null) -> Label:
  var badge_style=PlayfulTheme.panel(PlayfulTheme.ERROR_INK,metrics.unit,12); badge_style.shadow_size=0
  badge_style.content_margin_left=0; badge_style.content_margin_right=0; badge_style.content_margin_top=0; badge_style.content_margin_bottom=0
  badge.add_theme_stylebox_override("panel",badge_style)
- var icon=ui.canvas_label("!",roundi(16*_font_scale),Color.WHITE); icon.name="BuildAlertIcon"; icon.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+ var icon=ui.canvas_label("!",ceili(16*_font_scale),Color.WHITE); icon.name="BuildAlertIcon"; icon.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
  icon.vertical_alignment=VERTICAL_ALIGNMENT_CENTER; icon.accessibility_name="Error"; badge.add_child(icon)
- var label=ui.canvas_paragraph(text,roundi(14*_font_scale),PlayfulTheme.ERROR_INK); label.size_flags_horizontal=Control.SIZE_EXPAND_FILL; row.add_child(label)
+ var label=ui.canvas_paragraph(text,ceili(14*_font_scale),PlayfulTheme.ERROR_INK); label.size_flags_horizontal=Control.SIZE_EXPAND_FILL; row.add_child(label)
  return label
 
 func _rooms_content() -> void:
@@ -314,7 +314,7 @@ func _catalogue_content() -> void:
  if filter_panel_visible:
   var filters=HBoxContainer.new(); filters.name="BuildFilters"; content.add_child(filters)
   _button("Affordable ✓" if affordable else "All prices",func(): affordable=not affordable; _refresh(),false,"AffordableFilter",filters)
-  var sort_control=OptionButton.new(); sort_control.name="BuildSort"; sort_control.custom_minimum_size.y=_target; sort_control.add_theme_font_size_override("font_size",roundi(16*_font_scale))
+  var sort_control=OptionButton.new(); sort_control.name="BuildSort"; sort_control.custom_minimum_size.y=_target; sort_control.add_theme_font_size_override("font_size",ceili(16*_font_scale))
   var sorts=["price","comfort","entertainment","atmosphere"]
   for key in sorts: sort_control.add_item(key.capitalize())
   sort_control.size_flags_horizontal=Control.SIZE_EXPAND_FILL

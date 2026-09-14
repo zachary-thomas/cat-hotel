@@ -20,7 +20,6 @@ const GroundsViews = preload("res://scripts/ui/views/grounds_views.gd")
 const TravelViews = preload("res://scripts/ui/views/travel_views.gd")
 var selected_staff: int = 0
 const CatViews = preload("res://scripts/ui/views/cat_views.gd")
-const PetView = preload("res://scripts/ui/cat_interaction.gd")
 var selected_cat: int = 0
 var cat_filter: String = "Met"
 var selected_room: int = 0
@@ -30,7 +29,6 @@ var bond_label: Label
 var preference_label: Label
 var event_label: Label
 var view_button: Button
-var quick_bar: HBoxContainer
 var watch_exit: Button
 var commerce: Dictionary = {}
 var purchase_buttons: Array = []
@@ -55,15 +53,18 @@ func _process(delta: float) -> void:
 
 func _ready() -> void:
 	super._ready()
-	quick_bar = HBoxContainer.new()
-	header.add_child(quick_bar)
-	quick_bar.hide()
-	pending_button.position.y = 122
 	watch_exit = button("Back to hotel",func(): setting_changed.emit("watch",false))
+	watch_exit.clip_text = false
 	add_child(watch_exit)
-	watch_exit.position = Vector2(16,20)
-	watch_exit.size = Vector2(160,52)
 	watch_exit.visible = false
+	_layout_home()
+
+func _layout_home() -> void:
+	super._layout_home()
+	if not is_instance_valid(watch_exit): return
+	var unit: float = metrics.unit
+	watch_exit.position = metrics.safe_rect.position + Vector2(12,12)*unit
+	watch_exit.size = Vector2(minf(metrics.safe_rect.size.x-24*unit, maxf(160*unit,watch_exit.get_minimum_size().x)),maxf(metrics.target,watch_exit.get_minimum_size().y))
 
 func command(action: String, payload: Dictionary = {}) -> void:
 	action_requested.emit(action,payload)
@@ -74,14 +75,13 @@ func _base_sheet(title: String, height: float = 525) -> VBoxContainer:
 
 func render(data: Dictionary) -> void:
 	super.render(data)
-	if not data.get("started",false) or not data.has("life") or quick_bar == null:
+	if not data.get("started",false) or not data.has("life") or not is_instance_valid(watch_exit):
 		return
 	if is_instance_valid(view_button):
 		view_button.text = "Inside" if data.settings.exterior else "Outside"
 		view_button.tooltip_text = "Reveal the rooms" if data.settings.exterior else "View the complete hotel with its roof and walls"
 	_update_grounds(data)
 	var quiet: bool = data.settings.watch
-	quick_bar.hide()
 	header.visible = not quiet
 	footer.visible = not quiet
 	if tab == "Build": footer.hide()

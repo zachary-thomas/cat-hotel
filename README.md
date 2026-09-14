@@ -4,19 +4,27 @@ A playable Godot cat hotel game: learn what each guest loves, furnish a favorite
 
 ## Build your own hotel
 
-Open **Build**, choose furniture, then tap any guest room, lobby, or shared floor to position it. You can move an object directly between rooms without putting it in storage first. Rotate or nudge its preview, then tap **✓** at the displayed price. That action saves immediately. **Play** returns straight to the game; there is no Apply, checkout, or discard dialog.
+Open **Build**, choose furniture, then tap any guest room, lobby, or shared floor to position it. You can move an object directly between rooms without putting it in storage first. Rotate or nudge its preview, then tap **Place** at the displayed price. That action saves immediately. **Play** returns straight to the game; there is no Apply, checkout, or discard dialog.
 
-**Undo** reverses the last building action and refunds its cost while keeping income earned since. **Redo** repeats it at the same price if you can afford it. History covers furniture, room moves, and copied rooms, with up to 20 actions during the running game. **×** only removes an unpurchased preview. Existing furniture and free-reuse licenses are preserved; new paid items cost coins per copy.
+**Undo** reverses the last building action and refunds its cost while keeping income earned since. **Redo** repeats it at the same price if you can afford it. History covers furniture, room moves, and copied rooms, with up to 20 actions during the running game. **Cancel** only removes an unpurchased preview. Existing furniture and free-reuse licenses are preserved; new paid items cost coins per copy.
 
 Tap a room and choose **Copy room** to pick up a blueprint of its shell and furnishings. The preview shows the complete room and the combined shell-plus-furniture price. Tap a clear location, rotate the entrance if needed, then **Paste**. Each copy owns its own furniture. **Rooms** also offers new regular rooms (450 coins) and suites (1,200 coins), plus building expansion. The hotel starts with two rooms and holds up to eight. Restored wings unlock additional floor space.
 
 Doorways, walking routes, existing service fixtures, and locked wings stay clear. Guest rooms keep a reachable bed. Shared furnishings add Comfort, Entertainment, Atmosphere, and a hotel income bonus; guest preference and combination bonuses remain tied to bedrooms. Fixed lounge/service scenery remains in place.
 
-Mobile controls keep Play and the main actions visible, support pan/pinch, and offer larger Build text under **Rooms**. Keyboard: **R** rotates a room placement; **Esc** cancels a preview or returns to play. See the [continuous Build revision](docs/superpowers/plans/2026-09-13-continuous-build-mode.md) for the design decisions and validation.
+Mobile controls keep Play and the main actions visible, support pan/pinch, and offer global text sizes under **Settings**. Keyboard: **R** rotates a room placement; **Esc** cancels a preview or returns to play. See the [continuous Build revision](docs/superpowers/plans/2026-09-13-continuous-build-mode.md) for the design decisions and validation.
+
+## Navigation and comfort
+
+The five bottom destinations are **Hotel, Cats, Build, Life, Map**. Hotel preserves your camera. Cats has Met and To meet collections and live care. Life holds gatherings, Garden, Manager, Staff, Scrapbook, Discoveries and Paw Mart. Map displays current travel and unlock requirements. Each detail page has Back; Escape and Android Back follow the same route.
+
+The header's **Settings** button controls music, sound effects, animation, touch feedback, evening light and weather. **100%, 125% and 150% text** apply throughout the UI. Longer pages scroll; purchase and retry actions remain accessible. Hotel view provides **Fit the full hotel** and **Inside / Outside**. Watch has a dedicated **Back to hotel** button. Away earnings support **Later** and retry after a failed save.
+
+See the [final mobile implementation review](docs/mobile-ui-redesign/implementation-review.md) for the before/after gallery, verification and physical-device release gate.
 
 ## Play
 
-Double-click [Play.cmd](builds/windows/Play.cmd), or extract [the Windows preview ZIP](builds/PurringtonHotel-WindowsPreview.zip). Keep its executable and PCK together.
+Double-click [Play.cmd](builds/windows/Play.cmd), or extract [the Windows preview ZIP](builds/PurringtonHotel-WindowsPreview.zip). Keep its executable and PCK together. Play.cmd creates a separate persistent overhaul preview under `%LOCALAPPDATA%/Purrington Playful Preview 2026-09/Godot/app_userdata/Purrington Hotel/`; it never loads the ordinary player save. The distributed ZIP starts without saves or test fixtures.
 
 When playing inside Godot, choose **Input** in the Game toolbar so clicks reach the game. If menus are unresponsive after using inspection mode, stop and run the game again with Input selected. **Esc** also dismisses the coin screen without collecting its earnings.
 
@@ -45,7 +53,7 @@ Packaging uses the bundled Godot 4.7.2 binaries in ignored .tools/godot. Run/tes
 - Playdates, souvenirs, an illustrated scrapbook and real photos saved to the local hotel album.
 - Suitcase arrivals/departures, head bumps, kneading, pouncing, chasing, grooming, yawning, stretching, circling to sleep, loafing, blankets, boxes, shared naps, staff work, construction and celebration poses.
 - Quiet Watch mode follows a favorite; evening lighting, drifting leaves/snow, reduced motion, music/effects controls and supported-device haptics.
-- A fixed isometric camera, compact hotel HUD and full property visible from the start. Tap any boarded wing to see its repair requirements; use **Fit all** to return to the overview.
+- A fixed isometric camera, readable hotel HUD and a close, playable hotel view from the start. Tap any boarded wing to see its repair requirements; use **Fit all** to return to the overview.
 - **Outside / Inside** switches between a complete roofed hotel and the room cutaway. The choice is saved. Hinged room and entrance doors open for approaching cats or a tap, then close afterward.
 - Camera dragging and zooming stop at the current property and street. Each restored wing opens another fenced garden strip for exploration and manager walking; locked land and boarded corridors stay inaccessible.
 - Construction cats in hard hats repair purchased wings in 30 / 60 / 90 seconds. Work survives saving and continues while away; building space and wing income unlock only when repairs finish.
@@ -56,9 +64,9 @@ Packaging uses the bundled Godot 4.7.2 binaries in ignored .tools/godot. Run/tes
 - Paw Mart sells a 30-coin treat picnic: neighbors stop by and your favorite gains three friendship. Its garden and housekeeping links use earned coins.
 - Automatic income, eight-hour offline earning and service upgrades. Two rooms can grow to eight at each hotel.
 
-Use **Build** or **Hotel life → Decorate rooms** to start decorating immediately. Furniture cards show prices and room benefits. The large **✓** saves the purchase and **×** cancels its preview. Valid furniture appears in its own colors over a filled green footprint; invalid furniture and its footprint turn red, and ✓ is disabled. Undo reverses a saved change; Play exits. Storage, room tools, and Copy/Paste are part of the same workspace.
+Use **Build** or **Life** to start decorating immediately. Furniture cards show prices and room benefits. **Place** saves the purchase and **Cancel** cancels its preview. Valid furniture appears in its own colors over a filled green footprint; invalid furniture and its footprint turn red, and Place is disabled. Undo reverses a saved change; Play exits. Storage, room tools, and Copy/Paste are part of the same workspace.
 
-Use **Manager** to direct your character and manage housekeeping. Tap outdoor amenities or find them under **Hotel life → Amenities & garden**. **Hotel life** also contains Watch mode, decorating, events, staff, discoveries and the scrapbook. Tap a cat or open **Cats** for its profile. Use **Rooms** to expand and **Map** to travel. Meadow House starts free; Seaside Suites opens at Meadow level 10 for 10,000 earned Cat Coins.
+Use **Manager** to direct your character and manage housekeeping. Tap outdoor amenities or find them under **Life → Garden**. **Life** also contains Watch mode, decorating, events, staff, discoveries and the scrapbook. Tap a cat or open **Cats** for its profile. Use **Rooms** to expand and **Map** to travel. Meadow House starts free; Seaside Suites opens at Meadow level 10 for 10,000 earned Cat Coins.
 
 ## Monetization
 
@@ -78,7 +86,7 @@ See [implementation and mobile setup](docs/EXPANSION-IMPLEMENTATION.md) for conf
 
 ## Saves and tests
 
-Normal saves live in %APPDATA%/Godot/app_userdata/Purrington Hotel/. Two checksummed slots preserve a fallback. Legacy two-hotel saves migrate to the new format. Friendship, rooms, staff, events, stars, memories and purchase entitlements persist. Failed writes roll back transactions; store acknowledgement follows successful fulfillment. Photos live in the local photos directory.
+Normal saves live in %APPDATA%/Godot/app_userdata/Purrington Hotel/. Two checksummed slots preserve a fallback. The overhaul preview is a fresh version with its own save slots. Friendship, rooms, staff, events, stars, memories and purchase entitlements persist. Failed writes roll back transactions; store acknowledgement follows successful fulfillment. Photos live in the local photos directory.
 
 Tests use isolated saves and cover economy, persistence, hotel life, commerce, audio, app controls and the expanded experience. Rendered tests capture the mobile layouts in ignored tmp/.
 

@@ -76,6 +76,18 @@ func run() -> void:
 		check(app.ui.success_count == feedback_before,"Failed save has no success reaction")
 		check(app.ui.toast_label.text != app.save_error,"Persistent save error is not duplicated over the pinned action")
 		await capture("reward-error")
+		for scale in [1.25,1.5]:
+			# Change text through the real preference command, then exercise another failed claim.
+			app.store = real_store
+			app.change_setting("ui_text_scale",scale)
+			app.ui.show_offline()
+			app.store = FailingStore.new()
+			await click(app.ui.sheet.find_child("CollectEarnings",true,false))
+			await capture("reward-error-"+str(roundi(scale*100)))
+			check(app.ui.metrics.safe_rect.encloses(app.ui.sheet.get_global_rect()),"Enlarged reward error stays inside the phone")
+			var claim: Button = app.ui.sheet.find_child("CollectEarnings",true,false)
+			check(app.ui.sheet.get_global_rect().encloses(claim.get_global_rect()) and claim.size.y>=56*app.ui.metrics.unit,"Enlarged reward retry remains visible with a physical primary target")
+			check(app.ui.sheet.get_global_rect().encloses(app.ui.sheet.find_child("InlineError",true,false).get_global_rect()),"Enlarged reward error remains fully visible")
 		app.store = real_store
 		await click(app.ui.sheet.find_child("CollectEarnings",true,false))
 		check(app.model.pending_units == 0 and app.model.coins_units == wallet+pending,"Retry claims pending exactly once")
@@ -83,6 +95,8 @@ func run() -> void:
 		var claimed: int = app.model.coins_units
 		app.ui.show_offline()
 		check(app.model.coins_units == claimed,"Reopening cannot claim twice")
+	app.soundscape.shutdown()
+	await create_timer(0.15).timeout
 	app.queue_free()
 	await process_frame
 	await create_timer(0.1).timeout

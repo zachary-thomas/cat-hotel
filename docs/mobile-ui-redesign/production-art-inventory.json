@@ -1,0 +1,128 @@
+[
+  {
+    "File": "beach-gathering.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1681359,
+    "SHA256": "43090A493FEA969BFBA33FC5334A66A553A3562B32218CAA51C5F3282F8E8384"
+  },
+  {
+    "File": "care-toys.png",
+    "Width": 1536,
+    "Height": 1024,
+    "Bytes": 1471253,
+    "SHA256": "73C91D789239F49746BC9A18D63A13BED845502A2A0458C3CC1924C821B5FF5B"
+  },
+  {
+    "File": "cats-01.png",
+    "Width": 1536,
+    "Height": 1024,
+    "Bytes": 1772608,
+    "SHA256": "362CEDF08AAE87BF5C2D28305C814400378778100801708C5F5459C152A82610"
+  },
+  {
+    "File": "cats-02.png",
+    "Width": 1536,
+    "Height": 1024,
+    "Bytes": 1744116,
+    "SHA256": "E59D782FDE46CE1D6D55A8B75993A4216207C3C8D5E85730059A03202AF27D71"
+  },
+  {
+    "File": "cats-03.png",
+    "Width": 1536,
+    "Height": 1024,
+    "Bytes": 1845286,
+    "SHA256": "BF8F6901B9B33F6A229D51EBDE1369C453F5F68A80F006AD70371918CBFD67AC"
+  },
+  {
+    "File": "garden.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1634161,
+    "SHA256": "91FA611863563D89899F8CCBCB1D9F0897857032D9FEAB1917C83D26FC1D09F5"
+  },
+  {
+    "File": "gatherings.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1964792,
+    "SHA256": "F32DD16CE565361B42E258338AE86916987887AD3FE729C725336418AE4721DC"
+  },
+  {
+    "File": "lantern-gathering.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1962937,
+    "SHA256": "848DC3369531CC6837D381E2563878D3B6477885B140CADC917288B93614B688"
+  },
+  {
+    "File": "nap-gathering.png",
+    "Width": 1536,
+    "Height": 1024,
+    "Bytes": 1963538,
+    "SHA256": "B39BAB725F850088CFADF3F9911F9CC2B0259E69CDEB081AF14CBEE220244238"
+  },
+  {
+    "File": "paw-mart.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1700223,
+    "SHA256": "5EB81D2B8272B56D7EEAA53DAD3112D085145E7193C67D67D80284992CB27C6D"
+  },
+  {
+    "File": "reward.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1390607,
+    "SHA256": "9E6BCE07665A37DA3230BA75640C3E461AECA2A25DC8C3083F80066C15798697"
+  },
+  {
+    "File": "scrapbook.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1557514,
+    "SHA256": "B29F793EA96396C93B4C3E325E80CA4947C5796EC633F2D1BE14DDA20D80CA9F"
+  },
+  {
+    "File": "spa-gathering.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1646330,
+    "SHA256": "6FFA681CB46D18F9C7E2D4431B511115E1E26B75F3AEF31BDEEBB3C4F2DBF63F"
+  },
+  {
+    "File": "staff.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1406653,
+    "SHA256": "BE22746F278746C89576222A4D1158F3F009D9117102DC5126CE7C1683319D98"
+  },
+  {
+    "File": "trail-gathering.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1928911,
+    "SHA256": "3D54A6CF5419D471EAE35F578F020A862A7A035105558C60C5914D390C2A0135"
+  },
+  {
+    "File": "upgrade-lounge.png",
+    "Width": 1254,
+    "Height": 1254,
+    "Bytes": 1862573,
+    "SHA256": "A12BC851567C53D5452DAB840C8E04184AB77E0A02162EB7221965315ABC88F6"
+  },
+  {
+    "File": "welcome-hotel.png",
+    "Width": 1536,
+    "Height": 1024,
+    "Bytes": 2500813,
+    "SHA256": "51290190C899D97661FA64441702D6D168CFB45ACC198A28CF2D67B8451CB91A"
+  },
+  {
+    "File": "world-map.png",
+    "Width": 1024,
+    "Height": 1536,
+    "Bytes": 3096477,
+    "SHA256": "184391F26BEB501A70222B330E145CE63BA403E603FFFDFED3FBBB58EB4FAA15"
+  }
+]

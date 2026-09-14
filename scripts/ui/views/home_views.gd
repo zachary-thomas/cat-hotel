@@ -132,7 +132,9 @@ static func settings(ui: Control) -> void:
 	content.add_child(status)
 	if ui.snapshot.get("save_error","")!="": status.text = "Changes could not be saved."
 	if ui.snapshot.get("started",false):
-		content.add_child(ui.label("Purchases & privacy",22))
+		var privacy_heading: Label = ui.label("Purchases & privacy",22)
+		privacy_heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		content.add_child(privacy_heading)
 		var purchases: Button = ui.button("Expansions & restore purchases",func(): ui.open_route("Shop","Settings"))
 		purchases.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		content.add_child(purchases)

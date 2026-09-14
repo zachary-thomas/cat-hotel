@@ -242,6 +242,22 @@ func run() -> void:
 	check_shell()
 	check_tile_art(existing_tile)
 	await capture("task2-safe-150")
+	app.ui.close_sheet()
+	app.change_setting("watch",true)
+	app.ui.set_process(false)
+	app.ui.metrics = app.ui.PhoneLayout.measure(viewport, inset_safe, 1.0 / unit, 1.5)
+	app.ui._apply_shell_geometry()
+	app.ui._layout_home()
+	await settle()
+	var exit_button: Button = app.ui.watch_exit
+	check(inset_safe.encloses(exit_button.get_global_rect()),"Watch exit respects all four safe insets")
+	check(exit_button.size.x >= 48*unit and exit_button.size.y >= 48*unit,"Watch exit keeps a 48-unit physical target at 150%")
+	check(exit_button.size.x >= exit_button.get_minimum_size().x,"Watch exit shows its complete 150% label")
+	await capture("task9-watch-safe-150")
+	await click(exit_button)
+	check(not app.model.settings.watch and app.ui.header.visible,"Real Back to hotel pointer exits Watch")
+	app.soundscape.shutdown()
+	await create_timer(0.15).timeout
 	app.queue_free()
 	await process_frame
 	await create_timer(0.1).timeout

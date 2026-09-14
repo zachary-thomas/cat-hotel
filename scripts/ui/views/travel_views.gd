@@ -15,7 +15,7 @@ static func _card(ui: Control, parent: Control, tint: Color = Color("FFF8E9")) -
 	return column
 
 static func map(ui: Control) -> void:
-	var content: VBoxContainer = ui._base_sheet("Your hotel journey", 650)
+	var content: VBoxContainer = ui._base_sheet("Hotel journey" if ui.metrics.font_scale>1.0 else "Your hotel journey", 650)
 	if ui.metrics.font_scale >= 1.5:
 		var list := VBoxContainer.new()
 		list.name = "DestinationList"
@@ -129,7 +129,9 @@ static func _select(ui: Control, index: int) -> void:
 	ui.selected_destination = index
 	map(ui)
 	var selected: Control = ui.sheet.find_child("Destination_" + str(index), true, false)
-	if selected != null:
+	if ui.metrics.font_scale>1.0:
+		ui._pending_restore["reveal"] = "DestinationDetails"
+	elif selected != null:
 		selected.grab_focus.call_deferred()
 
 static func _destination_status(ui: Control, index: int) -> String:
@@ -140,10 +142,15 @@ static func _destination_status(ui: Control, index: int) -> String:
 	return "Expansion"
 
 static func _add_destination_details(ui: Control, index: int) -> void:
-	var details := _card(ui, ui.sheet._column, Color("FFF1D6") if index == 1 else ui.CREAM)
+	# Enlarged text keeps destination details in the scroll body; the action remains pinned.
+	var scroll_details: bool = ui.metrics.font_scale > 1.0
+	var details := _card(ui, ui.sheet_content if scroll_details else ui.sheet._column, Color("FFF1D6") if index == 1 else ui.CREAM)
 	var panel: PanelContainer = details.get_parent()
-	ui.sheet._column.move_child(panel, ui.sheet.primary.get_index())
+	if not scroll_details: ui.sheet._column.move_child(panel, ui.sheet.primary.get_index())
 	details.name = "DestinationDetails"
+	if scroll_details:
+		details.focus_mode = Control.FOCUS_ALL
+		details.accessibility_name = ui.snapshot.hotel_names[index]+" details"
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", roundi(12 * ui.metrics.unit))
 	details.add_child(row)

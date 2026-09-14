@@ -145,7 +145,8 @@ static func relayout(ui: Control) -> void:
 	for grid_name in ["CatCollection", "toys"]:
 		var grid = ui.sheet.find_child(grid_name, true, false)
 		if grid == null: continue
-		grid.columns = (1 if large else 2) if grid_name == "CatCollection" else (2 if large else 3)
+		var toy_columns: int = 2 if ui.metrics.font_scale>1.0 or ui._sheet_bounds().size.x/unit-40<328 else 3
+		grid.columns = (1 if large else 2) if grid_name == "CatCollection" else toy_columns
 		grid.add_theme_constant_override("h_separation", roundi(8 * unit))
 		grid.add_theme_constant_override("v_separation", roundi(12 * unit))
 	if ui.tab == "Pet" and is_instance_valid(ui.pet_view):

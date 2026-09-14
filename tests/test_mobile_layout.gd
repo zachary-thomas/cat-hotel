@@ -54,6 +54,12 @@ func run() -> void:
 
 	var UI = load("res://scripts/ui/mobile_ui.gd")
 	var ui = UI.new()
+	for phone_width in [360,390,430,1280]:
+		var phone_scale := float(phone_width)/450.0
+		for text_scale in [1.0,1.25,1.5]:
+			ui.metrics = {"unit":1.0/phone_scale,"font_scale":text_scale}
+			for minimum in [12,14,16]:
+				check(ui._scaled_font_size(minimum)*phone_scale>=minimum*text_scale,"Fractional conversion preserves exact physical text minimum")
 	ui.metrics = {"unit": 1.25, "font_scale": 1.5}
 	var scaled_label: Label = ui.label("Scaled", 16)
 	var canvas_label: Label = ui.canvas_label("Canvas", 16, PlayfulTheme.INK)
@@ -115,11 +121,11 @@ func check_controller_transaction(Model) -> void:
 	check(app.model.settings.ui_text_scale == 1.5 and app.model.settings.build_text_scale == 1.5, "Global text size updates both preferences in one controller transaction")
 	check(app.store.load_model(reloaded, int(Time.get_unix_time_from_system())) and reloaded.settings.ui_text_scale == 1.5 and reloaded.settings.build_text_scale == 1.5, "Global text size reloads from the committed save")
 	check(app.ui.metrics.font_scale == 1.5, "Committed text size recalculates shared UI metrics")
-	check(app.ui.title_label.get_theme_font_size("font_size") > initial_title_size and app.ui.title_label.get_theme_font_size("font_size") == roundi(16 * app.ui.metrics.unit * 1.5), "Global text size updates the 16-unit hotel identity in place")
+	check(app.ui.title_label.get_theme_font_size("font_size") > initial_title_size and app.ui.title_label.get_theme_font_size("font_size") == ceili(16 * app.ui.metrics.unit * 1.5), "Global text size updates the 16-unit hotel identity in place")
 	app.build_panel.open(0)
 	await process_frame
 	var build_title: Label = app.build_panel.get_node("BuildHeader").get_child(0)
-	check(build_title.get_theme_font_size("font_size") == roundi(17 * app.build_panel._font_scale), "Build title consumes its already-converted canvas size once")
+	check(build_title.get_theme_font_size("font_size") == ceili(17 * app.build_panel._font_scale), "Build title consumes its already-converted canvas size once")
 	var real_store = app.store
 	app.store = FailingStore.new()
 	app.change_setting("ui_text_scale", 1.25)
@@ -128,7 +134,7 @@ func check_controller_transaction(Model) -> void:
 	app.save_error = ""
 	app.change_setting("ui_text_scale", 1.25)
 	build_title = app.build_panel.get_node("BuildHeader").get_child(0)
-	check(app.build_panel._font_scale == 1.25 * app.build_panel.metrics.unit and build_title.get_theme_font_size("font_size") == roundi(17 * app.build_panel._font_scale), "Committed global text size relayouts a visible builder without double scaling")
+	check(app.build_panel._font_scale == 1.25 * app.build_panel.metrics.unit and build_title.get_theme_font_size("font_size") == ceili(17 * app.build_panel._font_scale), "Committed global text size relayouts a visible builder without double scaling")
 	app.change_setting("build_text_scale", 1.5)
 	check(app.model.settings.ui_text_scale == 1.25 and app.model.settings.build_text_scale == 1.5, "Legacy Build-only changes preserve the global preference")
 	app.build_panel.close()
