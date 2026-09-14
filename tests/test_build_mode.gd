@@ -61,6 +61,12 @@ func test_makeover_flow() -> void:
 	app.world.guest_visit(app.model,0)
 	check_guarded_segments(visitor.routine)
 	var panel = app.build_panel; panel.open(0); await process_frame
+	var build_body: Label
+	for child in panel.content.get_children():
+		if child is Label:
+			build_body = child
+			break
+	check(build_body != null and build_body.get_theme_font_size("font_size") >= roundi(16 * panel._font_scale),"Build body copy is at least 16 phone units")
 	app.model.settings.watch=true; app.world.apply_life(app.model)
 	check(app.world.follow_cat==-1 and not app.world.exterior_view,"Build camera takes precedence over Watch and exterior settings")
 	app.model.settings.watch=false

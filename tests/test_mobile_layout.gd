@@ -34,6 +34,11 @@ func run() -> void:
 			for key in ["header_rect", "footer_rect", "objective_rect", "world_rect", "content_rect"]:
 				check(safe.encloses(m[key]), "Safe-area containment: " + key)
 			check(not m.world_rect.intersects(m.footer_rect), "World excludes dock")
+	var desktop_safe := Rect2(24, 18, 1232, 752)
+	var desktop: Dictionary = Layout.measure(Vector2(1280, 800), desktop_safe, 1.0, 1.5)
+	for key in ["header_rect", "footer_rect", "objective_rect", "world_rect", "content_rect"]:
+		check(desktop_safe.encloses(desktop[key]), "Desktop inset containment: " + key)
+	check(desktop.target >= 48 and not desktop.world_rect.intersects(desktop.footer_rect), "Desktop layout preserves targets and dock exclusion")
 	var tiny: Dictionary = Layout.measure(Vector2(32, 24), Rect2(4, 5, 3, 2), 0.8, 1.5)
 	for key in ["header_rect", "footer_rect", "objective_rect", "world_rect", "content_rect"]:
 		check(tiny[key].size.x >= 0 and tiny[key].size.y >= 0, "Invalid geometry clamps: " + key)
@@ -52,18 +57,23 @@ func run() -> void:
 	ui.metrics = {"unit": 1.25, "font_scale": 1.5}
 	var scaled_label: Label = ui.label("Scaled", 16)
 	var canvas_label: Label = ui.canvas_label("Canvas", 16, PlayfulTheme.INK)
-	var canvas_paragraph: Label = ui.canvas_paragraph("Canvas body", 15, PlayfulTheme.SECONDARY_INK)
+	var canvas_paragraph: Label = ui.canvas_paragraph("Canvas body", 16, PlayfulTheme.SECONDARY_INK)
+	var minimum_paragraph: Label = ui.paragraph("Readable body", 15)
 	var primary: Button = ui.button("Open hotel", func(): pass, true)
 	check(scaled_label.get_theme_font_size("font_size") == 30, "Labels convert phone units and global text scale")
-	check(canvas_label.get_theme_font_size("font_size") == 16 and canvas_paragraph.get_theme_font_size("font_size") == 15, "Canvas helpers preserve Build's converted text sizes")
+	check(canvas_label.get_theme_font_size("font_size") == 16 and canvas_paragraph.get_theme_font_size("font_size") == 16, "Canvas helpers preserve Build's converted text sizes")
+	check(minimum_paragraph.get_theme_font_size("font_size") == 30, "Body helper enforces the 16-phone-unit minimum")
 	check(primary.custom_minimum_size == Vector2(60, 70), "Primary buttons convert the 48 by 56 phone-unit target")
 	check(primary.accessibility_name == "Open hotel", "Buttons expose a readable accessibility name")
 	check(primary.get_theme_color("font_color") == PlayfulTheme.INK and primary.get_theme_color("font_hover_color") == PlayfulTheme.INK and primary.get_theme_color("font_pressed_color") == PlayfulTheme.INK, "Light primary buttons retain dark ink in every state")
 	scaled_label.free()
 	canvas_label.free()
 	canvas_paragraph.free()
+	minimum_paragraph.free()
 	primary.free()
 	ui.free()
+
+	await check_live_relayout(UI)
 
 	var Model = load("res://scripts/core/hotel_model.gd")
 	var source = Model.new()
@@ -99,11 +109,13 @@ func check_controller_transaction(Model) -> void:
 	await process_frame
 	app.start_game()
 	app.active = false
+	var initial_title_size: int = app.ui.title_label.get_theme_font_size("font_size")
 	app.change_setting("ui_text_scale", 1.5)
 	var reloaded = Model.new()
 	check(app.model.settings.ui_text_scale == 1.5 and app.model.settings.build_text_scale == 1.5, "Global text size updates both preferences in one controller transaction")
 	check(app.store.load_model(reloaded, int(Time.get_unix_time_from_system())) and reloaded.settings.ui_text_scale == 1.5 and reloaded.settings.build_text_scale == 1.5, "Global text size reloads from the committed save")
 	check(app.ui.metrics.font_scale == 1.5, "Committed text size recalculates shared UI metrics")
+	check(app.ui.title_label.get_theme_font_size("font_size") > initial_title_size and app.ui.title_label.get_theme_font_size("font_size") == roundi(19 * app.ui.metrics.unit * 1.5), "Global text size updates an existing MobileUI label in place")
 	app.build_panel.open(0)
 	await process_frame
 	var build_title: Label = app.build_panel.get_node("BuildHeader").get_child(0)
@@ -126,6 +138,28 @@ func check_controller_transaction(Model) -> void:
 	await process_frame
 	await create_timer(0.1).timeout
 	preload("res://scripts/core/save_journal.gd").new(path).clear()
+
+func check_live_relayout(UI) -> void:
+	var BuildMetrics = load("res://scripts/ui/build_metrics.gd")
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(450, 900)
+	root.add_child(viewport)
+	var live_ui = UI.new()
+	viewport.add_child(live_ui)
+	await process_frame
+	check(live_ui.metrics.safe_rect == BuildMetrics.safe_area(live_ui) and is_equal_approx(live_ui.metrics.unit, 1.0 / BuildMetrics.phone_scale(live_ui)), "MobileUI reuses BuildMetrics safe-area and phone-scale conversion")
+	var view_all: Button = live_ui.find_child("ViewAllHotel", true, false)
+	check(view_all.custom_minimum_size.x >= 72 * live_ui.metrics.unit, "Live relayout preserves authored button dimensions above the target floor")
+	var shell_size_before: Vector2 = live_ui.header.size
+	var normal_before: StyleBox = live_ui.theme.get_stylebox("normal", "Button")
+	viewport.size = Vector2i(1280, 800)
+	await process_frame
+	await process_frame
+	check(live_ui.metrics.viewport == Vector2(1280, 800) and live_ui.header.size != shell_size_before and live_ui.header.size == live_ui.metrics.safe_rect.size, "1280 by 800 viewport change reflows the existing MobileUI shell")
+	var normal: StyleBoxFlat = live_ui.theme.get_stylebox("normal", "Button")
+	check(normal != normal_before and normal.corner_radius_top_left == roundi(18 * live_ui.metrics.unit), "Viewport change reapplies metric-dependent theme styles")
+	viewport.queue_free()
+	await process_frame
 
 func finish() -> void:
 	print("MOBILE LAYOUT TESTS: %s (%d failures)" % ["PASS" if failures == 0 else "FAIL", failures])

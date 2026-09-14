@@ -179,7 +179,7 @@ func _placement_button(accept: bool) -> Button:
  return button
 
 func _copy(text: String) -> Label:
- var label: Label=ui.canvas_paragraph(text,roundi(15*_font_scale)); content.add_child(label); return label
+ var label: Label=ui.canvas_paragraph(text,roundi(16*_font_scale)); content.add_child(label); return label
 
 func _rooms_content() -> void:
  _copy("Build anywhere. Tap furniture to move it, or browse for something new.")

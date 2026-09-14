@@ -82,7 +82,7 @@ func run() -> void:
 	check(app.world.actors.size() == 8, "Opening services adds a chef, eating and playing guests")
 	app.world.reset_camera()
 	await capture("02-hotel")
-	check(app.ui.quick_bar.get_global_rect().end.y <= 118, "The compact header uses at most 118 logical pixels")
+	check(app.ui.quick_bar.get_global_rect().end.y <= 120, "The compact header preserves a 48-unit target within 120 logical pixels")
 	for x in [-5.9, 5.9]:
 		for z in [-17.2, 5.0]:
 			var point: Vector2 = app.world.camera.unproject_position(Vector3(x,0.2,z))
