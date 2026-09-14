@@ -19,6 +19,8 @@ func _initialize() -> void:
 
 func click(control: Control) -> void:
 	for frame in range(6): await process_frame
+	app.ui.sheet.scroll.ensure_control_visible(control)
+	for frame in range(6): await process_frame
 	for down in [true, false]:
 		var event := InputEventMouseButton.new()
 		event.button_index = MOUSE_BUTTON_LEFT
@@ -77,7 +79,8 @@ func run() -> void:
 	await capture("22-hotel-life")
 	app.perform_action("train",{"staff":1})
 	app.perform_action("skill",{"staff":1,"skill":1})
-	app.ui._navigate("Staff")
+	app.world.staff_selected.emit(1)
+	check(app.ui.get("selected_staff") == 1,"World worker index selects the matching staff card")
 	await capture("23-staff")
 	app.ui._navigate("Events")
 	app.perform_action("event",{"id":"nap"})
@@ -87,6 +90,11 @@ func run() -> void:
 	app._update_ui()
 	app.world.apply_life(app.model)
 	check(not app.world.event_active and app.model.life.state.hotels[0].trophies.has("nap"),"Event completion clears the gathering and awards a trophy")
+	var rewarded: float = app.model.coins
+	app.ui._navigate("Events")
+	app.ui._navigate("Life")
+	app.ui._navigate("Events")
+	check(app.model.coins == rewarded,"Reopening event results does not reward twice")
 	app.ui._navigate("Discoveries")
 	app.perform_action("inspect")
 	app.model.advance(13)
@@ -121,7 +129,9 @@ func run() -> void:
 	check(not app.ui.toast_label.visible,"Watch mode remains quiet across frames")
 	app.change_setting("watch",false)
 	if DisplayServer.get_name() != "headless":
-		await app.take_photo()
+		app.ui._navigate("Journal")
+		await click(app.ui.sheet.find_child("TakeHotelPhoto",true,false))
+		for frame in range(8): await process_frame
 		var photo: String = app.model.life.state.memories[-1].get("photo","")
 		check(photo != "" and FileAccess.file_exists(photo),"Photo mode saves an actual image and album entry")
 		check(app.ui.visible,"Photo mode restores the controls")

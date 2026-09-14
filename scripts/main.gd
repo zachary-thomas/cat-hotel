@@ -101,7 +101,10 @@ func _ready() -> void:
 	ui.restore_requested.connect(func(): commerce.restore_purchases())
 	ui.photo_requested.connect(take_photo)
 	ui.privacy_requested.connect(func(): commerce.ad_adapter.open_privacy_options())
-	world.staff_selected.connect(func(_index): ui._navigate("Staff"))
+	world.staff_selected.connect(func(index):
+		ui.selected_staff = clampi(index, 0, 2)
+		ui.open_route("Staff", "Life")
+	)
 	world.zone_selected.connect(func(zone):
 		if model.started:
 			ui.open_upgrades(zone)

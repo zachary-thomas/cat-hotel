@@ -12,6 +12,12 @@ func _draw() -> void:
 	var s: float = minf(size.x, size.y) / 32.0
 	draw_set_transform((size - Vector2.ONE * 32 * s) * 0.5, 0, Vector2.ONE * s)
 	match kind:
+		"camera":
+			draw_style_box(_round(Color("5CC8A1"),5),Rect2(2,8,28,22))
+			draw_style_box(_round(Color("5CC8A1"),2),Rect2(9,3,13,8))
+			draw_circle(Vector2(16,18),8,Color("FFF8E9"))
+			draw_circle(Vector2(16,18),5,Color("24483E"))
+			draw_circle(Vector2(25,12),2,Color("FFCC68"))
 		"coin":
 			draw_circle(Vector2(16, 17), 15, Color("b88530"))
 			draw_circle(Vector2(16, 15), 14, Color("edbd52"))

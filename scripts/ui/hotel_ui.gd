@@ -15,6 +15,9 @@ var job_status: Label
 var maid_status: Label
 var grounds_key: String = ""
 const Content = preload("res://scripts/core/game_content.gd")
+const LifeViews = preload("res://scripts/ui/views/life_views.gd")
+const GroundsViews = preload("res://scripts/ui/views/grounds_views.gd")
+var selected_staff: int = 0
 const CatViews = preload("res://scripts/ui/views/cat_views.gd")
 const PetView = preload("res://scripts/ui/cat_interaction.gd")
 var selected_cat: int = 0
@@ -93,12 +96,10 @@ func render(data: Dictionary) -> void:
 		if favorite != null: favorite.text = "♥  Hotel favorite" if data.life.favorite == selected_cat else "♡  Make hotel favorite"
 		if is_instance_valid(preference_label):
 			preference_label.text = "Loves " + Content.PREFERENCE_COPY[Content.PREFERENCES[selected_cat]] + "." if cat.preference else "Spend time together to learn a favorite comfort."
-	if is_instance_valid(event_label):
-		var active_event: Dictionary = data.life.hotels[data.hotel].event
-		event_label.text = "Your guests are ready for another gathering." if active_event.is_empty() else "%s · %ds remaining" % [Content.find_event(active_event.id).name,maxi(0,int(ceil(active_event.ends-data.life.seconds)))]
+	LifeViews.update(self)
 	if last_life_revision != int(data.life.revision):
 		last_life_revision = int(data.life.revision)
-		if tab in ["Life","Events","Journal","Staff","Discoveries","Shop"] and is_instance_valid(sheet):
+		if tab in ["Life","Journal","Staff","Discoveries","Shop"] and is_instance_valid(sheet):
 			_refresh_sheet()
 
 func _refresh_sheet() -> void:
@@ -119,21 +120,7 @@ func _refresh_sheet() -> void:
 		_: super._refresh_sheet()
 
 func _life() -> void:
-	var col = _base_sheet("Life at " + snapshot.hotel_name,620)
-	var h: Dictionary = snapshot.life.hotels[snapshot.hotel]
-	col.add_child(paragraph(Content.HOTEL_MECHANICS[snapshot.hotel]))
-	col.add_child(paragraph(h.review,15,INK))
-	for item in [["Amenities & garden","Grounds"],["Manager & housekeeping","Manager"],["Visit Paw Mart","Kiosk"],["Decorate rooms","Decorate"],["Host an event","Events"],["Train your cat staff","Staff"],["Scrapbook & photos","Journal"],["Discoveries & hotel stars","Discoveries"]]:
-		col.add_child(button(item[0]+"  →",func(): _navigate(item[1])))
-	col.add_child(button("Watch your favorite cat",func(): close_sheet(); setting_changed.emit("watch",true)))
-	col.add_child(label("Your hotel specialty",21))
-	for option in Content.SPECIALTIES:
-		var b = button(("✓ " if h.specialty == option.id else "") + option.name,func(): command("specialty",{"id":option.id}))
-		b.disabled = snapshot.hotel_level < 3
-		col.add_child(b)
-		col.add_child(paragraph(option.copy,13))
-	if snapshot.hotel_level < 3:
-		col.add_child(paragraph("Specialties open at hotel level 3."))
+	LifeViews.hub(self)
 
 func _decorate() -> void:
 	close_sheet()
@@ -160,90 +147,19 @@ func _invitations() -> void:
 func relayout() -> void:
 	super.relayout()
 	CatViews.relayout(self)
+	LifeViews.relayout(self)
 
 func _events() -> void:
-	var col = _base_sheet("Something to look forward to",630)
-	var h: Dictionary = snapshot.life.hotels[snapshot.hotel]
-	event_label = paragraph("",16,GREEN)
-	col.add_child(event_label)
-	col.add_child(paragraph("Prepare rooms before starting. Each event awards a trophy; your first win earns 250 coins. Events finish while you are away, too.",14))
-	for item in Content.EVENTS:
-		if item.hotel >= 0 and item.hotel != snapshot.hotel:
-			continue
-		col.add_child(label(item.name,20))
-		col.add_child(paragraph(item.copy,14))
-		col.add_child(paragraph("Ready score: %d/100 · %ds · %s" % [snapshot.event_scores[item.id],item.seconds,"Trophy earned" if h.trophies.has(item.id) else "New trophy"],13,GREEN))
-		var b = button("Host this event",func(): command("event",{"id":item.id}),true)
-		b.name = "Event_"+item.id
-		b.disabled = not h.event.is_empty() or snapshot.life.seconds-h.last_event < 60
-		col.add_child(b)
-	col.add_child(button("Ring the dinner bell",func(): command("interact",{"cat":snapshot.life.favorite,"kind":"bell"})))
+	LifeViews.events(self)
 
 func _staff() -> void:
-	var col = _base_sheet("The cats behind the comfort",630)
-	var h: Dictionary = snapshot.life.hotels[snapshot.hotel]
-	for i in range(3):
-		var member: Dictionary = Content.STAFF[i]
-		col.add_child(label(member.name+" · "+member.job,21))
-		col.add_child(paragraph(member.copy,14))
-		var b = button("Training complete" if h.staff[i]>=3 else "Train · %s coins" % number(250*(h.staff[i]+1)),func(): command("train",{"staff":i}),true)
-		b.disabled = h.staff[i]>=3 or snapshot.coins<250*(h.staff[i]+1) or snapshot.levels[member.zone]==0
-		col.add_child(b)
-		col.add_child(paragraph("Training %d/3 · +%d coins/min" % [h.staff[i],h.staff[i]*2],13))
-		for skill in range(2):
-			var option = button(("✓ " if h.skills[i]==skill else "")+member.skills[skill],func(): command("skill",{"staff":i,"skill":skill}))
-			option.disabled = h.staff[i]==0
-			col.add_child(option)
+	LifeViews.staff(self)
 
 func _discoveries() -> void:
-	var col = _base_sheet("Little discoveries, big dreams",650)
-	col.add_child(label("The Whisker Guide",23))
-	col.add_child(paragraph(snapshot.life.hotels[snapshot.hotel].review,14))
-	for item in snapshot.star_checks:
-		col.add_child(paragraph(("✓ " if item.ready else "○ ")+item.name,14,GREEN if item.ready else MUTED))
-	var inspect = button("Invite Inspector Whiskers",func(): command("inspect"),true)
-	inspect.name = "InviteInspector"
-	inspect.disabled = snapshot.life.hotels[snapshot.hotel].inspection >= 0
-	col.add_child(inspect)
-	col.add_child(label("Furniture combinations",23))
-	for combo in Content.COMBOS:
-		var found: bool = snapshot.life.combos.has(combo.id)
-		col.add_child(label(("✓ " if found else "? ")+combo.name,19))
-		col.add_child(paragraph((" + ".join(combo.items.map(func(id): return Content.find_item(id).name))+" · +%d/min" % combo.bonus) if found else combo.clue,14))
-		col.add_child(button("Pinned" if snapshot.life.pinned==combo.id else "Pin discovery",func(): command("pin",{"id":combo.id})))
+	LifeViews.discoveries(self)
 
 func _journal() -> void:
-	var col = _base_sheet("The Purrington scrapbook",650)
-	col.add_child(paragraph("Little moments saved automatically. Your cats keep their stories even when you visit another hotel."))
-	col.add_child(button("Take a hotel photo",func(): photo_requested.emit(),true))
-	if snapshot.life.memories.is_empty():
-		col.add_child(paragraph("Your first memory is waiting. Pet a cat or discover a room combination."))
-	var entries: Array = snapshot.life.memories.duplicate()
-	entries.reverse()
-	for entry in entries.slice(0,80):
-		var card = PanelContainer.new()
-		card.add_theme_stylebox_override("panel",style(Color("e8ecd9"),16))
-		col.add_child(card)
-		var box = VBoxContainer.new()
-		box.add_theme_constant_override("separation",6)
-		card.add_child(box)
-		if entry.has("photo") and FileAccess.file_exists(entry.photo):
-			var photo = TextureRect.new()
-			photo.texture = ImageTexture.create_from_image(Image.load_from_file(entry.photo))
-			photo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			photo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			photo.custom_minimum_size.y = 220
-			box.add_child(photo)
-		else:
-			var portrait = Badge.new()
-			portrait.cat_index = entry.cat
-			portrait.locked = not snapshot.life.cats[entry.cat].known
-			portrait.custom_minimum_size.y = 95
-			box.add_child(portrait)
-		box.add_child(paragraph(entry.title,19,INK))
-		box.add_child(paragraph(entry.text,14))
-		box.add_child(paragraph("Day %d · %s" % [entry.day,snapshot.hotel_names[entry.hotel]],12))
-		box.add_child(button("Visit "+Content.CAT_NAMES[entry.cat],func(): open_cat(entry.cat)))
+	LifeViews.journal(self)
 
 func _map() -> void:
 	if not snapshot.has("life"):
@@ -340,6 +256,7 @@ func open_amenity(id: String) -> void:
 
 func grounds_button(text: String, action: String, payload: Dictionary = {}, primary: bool = false) -> Button:
 	var b = button(text,func(): grounds_requested.emit(action,payload),primary)
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	b.name = "Grounds_"+action+str(payload.get("id",payload.get("index","")))
 	grounds_buttons.append({"button":b,"action":action,"payload":payload})
 	return b
@@ -377,73 +294,13 @@ func _update_grounds(data: Dictionary) -> void:
 			_refresh_sheet()
 
 func _grounds() -> void:
-	grounds_buttons.clear()
-	var col = _base_sheet("The garden & neighborhood",560)
-	col.add_child(paragraph("Create favorite places for your guests. Every open amenity adds income at this hotel. Repair each room wing to open another fenced garden plot."))
-	var state: Dictionary = snapshot.grounds.hotels[snapshot.hotel]
-	for item in Grounds.AMENITIES:
-		var owned: bool = state.amenities.has(item.id)
-		col.add_child(button(item.name+ (" · Open" if owned else " · %d coins" % item.cost),func(): open_amenity(item.id)))
-		col.add_child(paragraph("+%d coins/min · Level %d" % [item.rate,item.level],13))
-	col.add_child(button("Explore as the manager",func(): manager_mode_requested.emit(true),true))
-	col.add_child(button("Visit Paw Mart",func(): _navigate("Kiosk")))
-	render(snapshot)
+	GroundsViews.garden(self)
 
 func _amenity() -> void:
-	grounds_buttons.clear()
-	var item: Dictionary = Grounds.amenity(selected_amenity)
-	var col = _base_sheet(item.name,335)
-	var state: Dictionary = snapshot.grounds.hotels[snapshot.hotel]
-	col.add_child(paragraph(item.copy,17))
-	col.add_child(label("+%d Cat Coins / min" % item.rate,24,GREEN))
-	if state.amenities.has(item.id):
-		col.add_child(paragraph("Open for guests. Watch the cats make themselves at home."))
-	else:
-		col.add_child(paragraph("%d coins · Hotel level %d required" % [item.cost,item.level]))
-		col.add_child(grounds_button("Open amenity · %d coins" % item.cost,"amenity",{"id":item.id},true))
-	col.add_child(button("All amenities",func(): _navigate("Grounds")))
-	render(snapshot)
+	GroundsViews.amenity(self)
 
 func _manager() -> void:
-	grounds_buttons.clear()
-	var col = _base_sheet("Your shift as hotel manager",575)
-	var state: Dictionary = snapshot.grounds.hotels[snapshot.hotel]
-	col.add_child(paragraph("You are the cat in the coral vest. Tap a bush, mouse or untidy room to walk over and help. Jobs reward coins when the work is done."))
-	job_status = label("",17,GREEN)
-	col.add_child(job_status)
-	col.add_child(button("Stop directing the manager" if manager_mode else "Control the manager",func(): manager_mode_requested.emit(not manager_mode),true))
-	col.add_child(label("Little jobs around the hotel",21))
-	for index in range(2):
-		col.add_child(grounds_button("Trim %s bush · +15 coins" % ("front" if index == 0 else "poolside"),"trim",{"index":index}))
-	col.add_child(grounds_button("Chase the mouse · +12 coins","chase"))
-	var dirty: int = 0
-	for room in range(snapshot.rooms):
-		if state.dirty[room]:
-			dirty += 1
-			col.add_child(grounds_button("Tidy room %d · +10 coins" % (room+1),"clean",{"index":room}))
-	col.add_child(paragraph("%d rooms need tidying. %d rooms cleaned so far." % [dirty,state.cleaned],13))
-	col.add_child(label("A helping paw",21))
-	if state.maid:
-		maid_status = label("",15,GREEN)
-		col.add_child(maid_status)
-		col.add_child(paragraph("Daisy visits untidy rooms and sweeps automatically, leaving you free to manage the garden.",14))
-	else:
-		col.add_child(paragraph("Unlock housekeeping at hotel level 3. Hire Daisy once for 600 coins; she handles room cleaning from then on.",14))
-		col.add_child(grounds_button("Hire Daisy · 600 coins","hire_maid"))
-	col.add_child(button("Garden amenities",func(): _navigate("Grounds")))
-	render(snapshot)
+	GroundsViews.manager(self)
 
 func _kiosk() -> void:
-	grounds_buttons.clear()
-	var col = _base_sheet("Paw Mart",460)
-	col.add_child(paragraph("A little shop on your doorstep. Everything here uses earned Cat Coins."))
-	col.add_child(label("Invite the neighbors for treats",22))
-	col.add_child(paragraph("Passing cats stop for a 25-second picnic. Your favorite gains 3 friendship. Available every two minutes.",15))
-	col.add_child(grounds_button("Share treats · 30 coins","treats",{},true))
-	col.add_child(button("Shop garden amenities",func(): _navigate("Grounds")))
-	col.add_child(button("Hire a housekeeping cat",func(): _navigate("Manager")))
-	col.add_child(label("Found any loose yarn?",20))
-	col.add_child(paragraph("Tap the colorful yarn balls around the grounds for 5 coins each. More appear after 35 seconds.",14))
-	for index in range(3):
-		col.add_child(grounds_button("Collect %s yarn · +5 coins" % ["pink","purple","gold"][index],"yarn",{"index":index}))
-	render(snapshot)
+	GroundsViews.kiosk(self)

@@ -27,6 +27,9 @@ func capture(name: String) -> void:
 		check(app.ui.get_global_rect().encloses(app.ui.sheet.get_global_rect()),"Neighborhood menus fit the phone")
 
 func click(control: Control) -> void:
+	for frame in range(6): await process_frame
+	app.ui.sheet.scroll.ensure_control_visible(control)
+	for frame in range(6): await process_frame
 	await process_frame
 	var point: Vector2 = control.get_global_rect().get_center()
 	for pressed in [true,false]:
@@ -154,6 +157,8 @@ func run() -> void:
 	await capture("41-neighborhood-open")
 	var real_store = app.store
 	app.store = BrokenStore.new()
+	# Exclude wall-clock income from the isolated rollback assertion.
+	app.ticks = 0
 	var prior: float = app.model.coins
 	app.perform_grounds("yarn",{"index":1})
 	check(is_equal_approx(app.model.coins,prior) and app.model.grounds.hotels[0].yarn_ready[1] == 0,"A failed save rolls back both yarn reward and cooldown")

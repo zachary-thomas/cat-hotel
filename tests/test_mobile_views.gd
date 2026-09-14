@@ -40,6 +40,16 @@ func run() -> void:
 	app.ui.action_requested.connect(func(action, payload):
 		if action == "interact": care_actions.append(payload.kind)
 	)
+	app.ui._navigate("Life")
+	for route in ["Grounds","Manager","Staff","Journal","Discoveries","Kiosk"]:
+		var tile = app.ui.sheet.find_child("Life_"+route,true,false)
+		check(tile != null, "Life exposes " + route)
+		if tile == null: continue
+		await click(tile)
+		check(app.ui.tab == route, "Tile opens existing route")
+		app.ui.go_back()
+		check(app.ui.tab == "Life", "Detail returns to hub")
+	app.ui.close_sheet()
 	app.ui.open_cat(0)
 	await settle()
 	var stage = app.ui.pet_view
@@ -148,6 +158,7 @@ func run() -> void:
 		check(not app.ui.sheet.find_child("Playdate_2", true, false).disabled, "Lounge and both bonds enable a playdate")
 		await click(app.ui.sheet.find_child("Playdate_2", true, false))
 		check(app.model.life.state.cats[1].friend == 2 and app.model.life.state.cats[2].friend == 1, "Playdate button creates the selected real friendship pair")
+	await life_coverage()
 	app.queue_free()
 	await process_frame
 	await create_timer(0.1).timeout
@@ -155,3 +166,176 @@ func run() -> void:
 		if FileAccess.file_exists(key + suffix): DirAccess.remove_absolute(key + suffix)
 	print("MOBILE VIEWS TESTS: ", "PASS" if failures == 0 else "FAIL", " (", failures, " failures)")
 	quit(1 if failures else 0)
+
+func life_capture(title: String, target: Control = null) -> void:
+	app.ui.toast_timer = 0
+	app.ui.toast_label.hide()
+	await settle()
+	if target != null:
+		app.ui.sheet.scroll.ensure_control_visible(target)
+		if str(target.name).begins_with("EventArt_"):
+			app.ui.sheet.scroll.scroll_vertical += roundi(target.global_position.y-app.ui.sheet.scroll.global_position.y)
+	else: app.ui.sheet.scroll.scroll_vertical = 0
+	await settle()
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://tmp/task6-"+title+"-"+str(DisplayServer.window_get_size().x)+"x"+str(DisplayServer.window_get_size().y)+".png")
+
+func life_coverage() -> void:
+	app.set_process(false)
+	app.ui.close_sheet()
+	app.model.current_hotel = 0
+	app.model.coins = 20000
+	app.model.hotels[0].purchases = 6
+	app.model.hotels[0].zones = [3,2,2,2]
+	app.model.life.state.hotels[0].staff = [0,0,0]
+	app.model.life.state.memories.clear()
+	app._rebuild_world()
+	app._update_ui()
+	for scale in [1.0,1.5]:
+		app.change_setting("ui_text_scale",scale)
+		var tag: String = str(roundi(scale*100))
+		app.ui._navigate("Life")
+		await life_capture("life-"+tag)
+		check(app.ui.sheet.find_child("grid",true,false).columns == (1 if scale == 1.5 else 2),"Life grid follows text size")
+		check(app.ui.sheet.find_children("Specialty_*","Button",true,false).size()==4,"All four specialties are available")
+		for route in ["Grounds","Manager","Staff","Journal","Discoveries","Kiosk"]:
+			await click(app.ui.sheet.find_child("Life_"+route,true,false))
+			check(app.ui.tab==route,"Life tile works at text size "+tag+": "+route)
+			app.ui.go_back()
+			await settle()
+		app.ui._navigate("Journal")
+		app.model.life.state.memories.clear()
+		app._update_ui()
+		app.ui._journal()
+		check(app.ui.sheet.find_child("TakeHotelPhoto",true,false)!=null,"Empty Journal keeps photo action")
+		await life_capture("journal-empty-"+tag)
+		app.model.life.memory("task6-cat","Mochi found a quiet corner","A soft cushion and a very happy cat.",3,0)
+		app.model.life.state.cats[3].known = true
+		app._update_ui()
+		app.ui._journal()
+		var badges = app.ui.sheet.find_children("*","Control",true,false).filter(func(node): return node.get_script() == preload("res://scripts/ui/cat_badge.gd"))
+		check(badges.size()==1 and badges[0].cat_index==3,"Journal uses the actual indexed guest portrait")
+		await life_capture("journal-populated-"+tag)
+		app.model.life.state.hotels[0].staff[1] = 0
+		app.world.staff_selected.emit(1)
+		await settle()
+		check(app.ui.selected_staff == 1 and app.ui.tab == "Staff","World staff index opens the selected card")
+		await click(app.ui.sheet.find_child("StaffSelect_2",true,false))
+		check(app.ui.selected_staff==2,"Staff selector opens Buttons")
+		await click(app.ui.sheet.find_child("StaffSelect_1",true,false))
+		await life_capture("staff-0-"+tag,app.ui.sheet.find_child("StaffTrain",true,false))
+		check(not app.ui.sheet.find_child("StaffTrain",true,false).disabled,"Open service enables training")
+		await click(app.ui.sheet.find_child("StaffSkill_0",true,false))
+		check(app.model.life.state.hotels[0].skills[1] == -1,"Untrained skill is disabled")
+		await click(app.ui.sheet.find_child("StaffTrain",true,false))
+		check(app.model.life.state.hotels[0].staff[1]==1,"Training acts on selected worker")
+		await settle()
+		await click(app.ui.sheet.find_child("StaffSkill_1",true,false))
+		check(app.model.life.state.hotels[0].skills[1]==1,"Skill acts on selected worker")
+		app.ui.sheet.scroll.scroll_vertical = 9999
+		await settle()
+		var scroll_before: int = app.ui.sheet.scroll.scroll_vertical
+		app.model.life.touch()
+		app._update_ui()
+		await settle()
+		check(app.ui.selected_staff == 1 and app.ui.sheet.scroll.scroll_vertical==scroll_before,"Revision keeps staff selection and scroll")
+		app.model.life.state.hotels[0].staff[1] = 3
+		app._update_ui()
+		app.ui._staff()
+		await life_capture("staff-3-"+tag,app.ui.sheet.find_child("StaffTrain",true,false))
+		check(app.ui.sheet.find_child("StaffTrain",true,false).disabled,"Maximum training remains disabled")
+		app.model.life.state.hotels[0].staff[1] = 0
+		app.model.hotels[0].zones[1] = 0
+		app._update_ui()
+		check(app.ui.sheet.find_child("StaffTrain",true,false).disabled,"Closed service disables training")
+		app.model.hotels[0].zones[1] = 2
+		app.model.life.state.hotels[0].staff[1] = 0
+		app.model.life.state.hotels[0].skills[1] = -1
+		app.model.life.state.hotels[0].event = {}
+		app.model.life.state.hotels[0].trophies.clear()
+		app.model.life.state.hotels[0].last_event = -1000
+		app._update_ui()
+		app.ui._navigate("Events")
+		await life_capture("event-ready-"+tag)
+		var event_status = app.ui.event_label
+		await click(app.ui.sheet.find_child("Event_nap",true,false))
+		await life_capture("event-running-"+tag)
+		event_status = app.ui.event_label
+		app.model.advance(10)
+		app._update_ui()
+		check(app.ui.event_label==event_status and app.ui.event_label.text.contains("35s"),"Countdown updates in place")
+		app.model.advance(36)
+		app._update_ui()
+		check(app.ui.event_label==event_status,"Completion updates in place")
+		check(app.ui.sheet.find_child("EventReward_nap",true,false).text.contains("earned"),"Completion displays earned trophy")
+		await life_capture("event-complete-"+tag,app.ui.sheet.find_child("Event_nap",true,false))
+		var rewarded: float = app.model.coins
+		app.ui._navigate("Life")
+		app.ui._navigate("Events")
+		check(app.model.coins==rewarded,"Reopening result cannot award twice")
+		app.model.advance(61)
+		app._update_ui()
+		check(not app.ui.sheet.find_child("Event_nap",true,false).disabled,"Cooldown expires in place")
+		app.model.life.state.combos.clear()
+		app._update_ui()
+		app.ui._navigate("Discoveries")
+		await life_capture("combo-unknown-"+tag,app.ui.sheet.find_child("Combo_sunbeam",true,false))
+		await click(app.ui.sheet.find_child("Combo_sunbeam",true,false))
+		check(app.model.life.state.pinned=="sunbeam","Pin retains actual command")
+		app.model.life.state.combos.append("sunbeam")
+		app._update_ui()
+		app.ui._discoveries()
+		await life_capture("combo-found-"+tag,app.ui.sheet.find_child("Combo_sunbeam",true,false))
+		app.model.grounds.hotels[0].amenities.clear()
+		app.model.hotels[0].purchases = 0
+		app._update_ui()
+		app.ui.open_amenity("picnic")
+		await life_capture("amenity-locked-"+tag)
+		check(app.ui.sheet.find_child("Grounds_amenitypicnic",true,false).disabled,"Amenity level gate is preserved")
+		app.model.hotels[0].purchases = 6
+		app._update_ui()
+		await click(app.ui.sheet.find_child("Grounds_amenitypicnic",true,false))
+		check(app.model.grounds.hotels[0].amenities.has("picnic"),"Amenity card buys the actual amenity")
+		await life_capture("amenity-owned-"+tag)
+		app.model.grounds.hotels[0].maid = false
+		app._update_ui()
+		app.ui._navigate("Manager")
+		await life_capture("daisy-before-"+tag,app.ui.sheet.find_child("Grounds_hire_maid",true,false))
+		await click(app.ui.sheet.find_child("Grounds_hire_maid",true,false))
+		check(app.model.grounds.hotels[0].maid,"Daisy card hires actual housekeeping")
+		await life_capture("daisy-after-"+tag,app.ui.maid_status)
+		app.ui._navigate("Kiosk")
+		await life_capture("paw-mart-"+tag,app.ui.sheet.find_child("Grounds_treats",true,false))
+		app.ui._navigate("Life")
+		await click(app.ui.sheet.find_child("Life_Watch",true,false))
+		check(app.model.settings.watch and not is_instance_valid(app.ui.sheet),"Watch closes the sheet and changes real setting")
+		app.change_setting("watch",false)
+	app.change_setting("ui_text_scale",1.0)
+	for hotel in range(4):
+		app.model.hotels[hotel].owned = true
+		app.model.current_hotel = hotel
+		app._update_ui()
+		app.ui._navigate("Events")
+		for item in app.ui.Content.EVENTS:
+			if item.hotel >= 0 and item.hotel != hotel: continue
+			var art = app.ui.sheet.find_child("EventArt_"+item.id,true,false)
+			check(art != null and art.kind==item.id,"Gathering uses distinct scene: "+item.id)
+			if hotel == 0 or item.hotel == hotel: await life_capture("scene-"+item.id,art)
+	app.model.current_hotel = 0
+	app._rebuild_world()
+	app._update_ui()
+	if DisplayServer.get_name() != "headless":
+		app.change_setting("ui_text_scale",1.0)
+		app.ui._navigate("Journal")
+		await click(app.ui.sheet.find_child("TakeHotelPhoto",true,false))
+		await settle()
+		var photo: String = app.model.life.state.memories[-1].get("photo","")
+		check(photo!="" and FileAccess.file_exists(photo),"Real Journal photo signal saves current hotel locally")
+		app.ui._navigate("Journal")
+		var image = app.ui.sheet.find_child("JournalPhoto",true,false)
+		check(image!=null and maxi(image.texture.get_width(),image.texture.get_height())<=640,"Album caches bounded display-size photo thumbnail")
+		var previous = image.texture
+		app.ui._journal()
+		check(app.ui.sheet.find_child("JournalPhoto",true,false).texture==previous,"Album reuses photo thumbnail on refresh")
+		await life_capture("real-photo-100")
