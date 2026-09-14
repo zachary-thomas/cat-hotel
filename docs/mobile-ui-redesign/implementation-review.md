@@ -1,6 +1,6 @@
 # Mobile overhaul implementation review
 
-Status: implemented, locally verified and independently approved. All nine tasks and all six final review findings are resolved, including the repeated-gathering correction. Reviewed source: `0ab798d40fbe7bffe7c77a12e0a277421d9f439d` on `codex/playful-mobile-ui` in `.worktrees/mobile-ui`. Physical Android validation remains an open release gate. No merge, push or publication has been performed. [Final code-review record](final-code-review.md) and [fix evidence](final-fix-evidence.md) preserve the completed review trail.
+Status: implemented, locally verified and independently approved. All nine tasks and all six final review findings are resolved, including the repeated-gathering correction. Reviewed source: `0ab798d40fbe7bffe7c77a12e0a277421d9f439d`. The overhaul is now merged locally into `main` in `C:/Users/zach7/Repos/Projects/cat-hotel`. Physical Android validation remains an open release gate. No remote push or publication has been performed. [Final code-review record](final-code-review.md) and [fix evidence](final-fix-evidence.md) preserve the completed review trail.
 
 The approved overhaul now has the five Hotel/Cats/Build/Life/Map destinations, live care, immediate saved building, illustrated activities and destinations, native reward recovery and global preferences. The user explicitly authorized a fresh version; normal player profiles were excluded from all automated work. Every hotel worker, guest and resident remains a cat.
 
@@ -56,9 +56,17 @@ The residual I4 regression runs Cardboard, Nap and the same-medal Cardboard comp
 
 Walkthrough saves live only under the test profile's Godot/Purrington Hotel directory with unique `fresh-walkthrough-*` names. They are separate from the user's fresh preview profile and are not distributed. The starting-photo/gallery evidence is explicitly separate from seeded later-game fixtures.
 
+## Local main integration
+
+On 2026-09-14, the user requested a local merge into `main`. No local or remote main branch existed, so main was created from the original `codex/godot-idle-prototype` baseline and fast-forwarded to the approved handoff commit `ff2522280514fe92679685778f45ac45b6918097`. The original baseline branch remains available.
+
+The main checkout imported its resources successfully and passed all 32 behavioral suites. `tmp/local-main-import.log` ends with `MAIN_IMPORT_EXIT=0`; `tmp/local-main-full-suite.log` records 32 suite invocations, 26 explicit PASS markers, successful silent/zero-failure suites, no script/test errors, no ObjectDB/resource warnings, and `MAIN_MERGE_FULL_SUITE_EXIT=0`. The known Windows certificate-store diagnostic remains. This integration changed no gameplay source.
+
+The exact reviewed Windows preview and complete temporary verification evidence were moved into this checkout's `builds/` and `tmp/`; the PCK and ZIP hashes below still match. Prior local builds/evidence and the worktree's generated files are preserved under `.tools/merge-backups/main-integration-20260914/`. After verifying the merged source and preserved artifacts, the temporary worktree and `codex/playful-mobile-ui` branch were removed without force. Nothing was pushed remotely.
+
 ## Windows playable handoff
 
-Outputs in this worktree:
+Outputs in the main project checkout:
 
 - `builds/windows/Play.cmd`
 - `builds/windows/PurringtonHotel.exe`
@@ -87,7 +95,7 @@ All 18 reviewed text-free illustrations are consumed. [Exact prompts](production
 
 ## Chronological implementation rulings
 
-The following 13 lines are copied verbatim, in order, from the controller's completed SDD ledger. The completed review and fix records are preserved in the linked permanent documents before this plan's temporary coordination directory is removed. The implementation, gallery and playable build remain in the worktree pending the user's integration choice.
+The following 13 lines are copied verbatim, in order, from the controller's completed SDD ledger. The completed review and fix records are preserved in the linked permanent documents before this plan's temporary coordination directory is removed. The user selected a local merge into main. The implementation, gallery, playable build and verification evidence now reside in the main project checkout; the merged temporary worktree and feature branch have been removed.
 
 - Ruling: Use an isolated linked worktree from a local baseline commit — the original project had no commits and every source file was untracked — cost if wrong: the extra local baseline/worktree can be removed after preserving finished changes.
 - Ruling: Include all functional affordances shown in the boards, using real game data and separately produced art — user explicitly authorized screenshot features; illustrative prices/signs are not new economy requirements — cost if wrong: art or presentation choices may need revision.
