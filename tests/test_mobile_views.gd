@@ -596,6 +596,7 @@ func home_coverage() -> void:
 		await settle()
 		check(choice.has_focus(),"Resizing preserves settings focus")
 		await home_capture("settings-scale-"+str(int(scale*100)))
+	await settings_bottom_coverage()
 	app.change_setting("ui_text_scale",1.0)
 	app.model.hotels[0].zones[2] = 2
 	app.model.coins = 1000
@@ -624,3 +625,55 @@ func home_coverage() -> void:
 	app._update_ui()
 	app.ui.close_sheet()
 	app.active = true
+
+func settings_bottom_coverage() -> void:
+	check(app.model.started and app.ui.metrics.font_scale==1.5,"Bottom settings fixture uses a started game at 150 percent")
+	# Expose conditional UI only; replace the real consent callback with a local spy.
+	var privacy_connections: Array = app.ui.privacy_requested.get_connections()
+	for connection in privacy_connections: app.ui.privacy_requested.disconnect(connection.callable)
+	var privacy_calls: Array[int] = [0]
+	var privacy_spy := func(): privacy_calls[0] += 1
+	app.ui.privacy_requested.connect(privacy_spy)
+	var snapshot: Dictionary = app.ui.snapshot.duplicate(true)
+	snapshot.privacy_available = true
+	app.ui.render(snapshot)
+	app.ui._settings()
+	await settle()
+	var captions := ["Expansions & restore purchases","Advertising privacy choices","Hotel view"]
+	for caption in captions:
+		var action: Button = settings_action(caption)
+		check(action != null,"Large-text bottom settings exposes "+caption)
+		if action == null: continue
+		action.grab_focus()
+		app.ui.sheet.scroll.ensure_control_visible(action)
+		await settle()
+		check(action.has_focus(),"Bottom settings action accepts keyboard focus: "+caption)
+		check(app.ui.sheet.scroll.get_global_rect().grow(1).encloses(action.get_global_rect()),"Bottom settings action is fully visible after scrolling: "+caption)
+		check(action.size.x>=48*app.ui.metrics.unit and action.size.y>=48*app.ui.metrics.unit,"Bottom settings action retains 48-unit target: "+caption)
+		await click(action)
+		match caption:
+			"Expansions & restore purchases":
+				check(app.ui.tab=="Shop","Settings purchase link opens the real Shop route")
+				check(app.ui.sheet.find_child("RestorePurchases",true,false)!=null,"Shop route exposes restore purchases without invoking commerce")
+				app.ui.go_back()
+				check(app.ui.tab=="Settings","Shop Back returns to Settings")
+			"Advertising privacy choices":
+				check(privacy_calls[0]==1 and app.ui.tab=="Settings","Privacy button emits exactly one local callback and preserves Settings")
+			"Hotel view":
+				check(app.ui.tab=="View","Settings hotel-view link opens view choices")
+				app.ui.go_back()
+				check(app.ui.tab=="Settings","View Back returns to Settings")
+		await settle()
+	app.ui.sheet.scroll.scroll_vertical = 99999
+	await settle()
+	await home_capture("settings-bottom-privacy-150")
+	app.ui.privacy_requested.disconnect(privacy_spy)
+	for connection in privacy_connections: app.ui.privacy_requested.connect(connection.callable,connection.flags)
+	snapshot.privacy_available = false
+	app.ui.render(snapshot)
+	app.ui._settings()
+
+func settings_action(caption: String) -> Button:
+	for action in app.ui.sheet.find_children("*","Button",true,false):
+		if action.text == caption: return action
+	return null
