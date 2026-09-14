@@ -317,7 +317,7 @@ func _process(_delta: float) -> void:
 
 func _update_reserve() -> void:
 	if is_instance_valid(_future_floor):
-		_future_floor.visible = world.build_mode or world.overview
+		_future_floor.visible = is_instance_valid(world) and (world.build_mode or world.overview)
 		_future_garden.visible = not _future_floor.visible
 
 func _make_room(data: Dictionary, index: int, ghost: bool = false) -> Node3D:

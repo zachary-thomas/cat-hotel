@@ -8,6 +8,8 @@ const Session=preload("res://scripts/core/build_session.gd")
 const Shared=preload("res://scripts/core/shared_layout.gd")
 const Blueprint=preload("res://scripts/core/room_blueprint.gd")
 const Metrics=preload("res://scripts/ui/build_metrics.gd")
+const Thumbnail=preload("res://scripts/ui/furniture_thumbnail.gd")
+const PlayfulTheme=preload("res://scripts/ui/playful_theme.gd")
 static var _placement_icons: Dictionary={}
 var app
 var ui
@@ -17,6 +19,8 @@ var actions: HBoxContainer
 var wallet: Label
 var status: Label
 var confirm_button: Button
+var catalogue_view
+var placement_tools: HBoxContainer
 var session
 var selected_room: int=-1
 var selected_item: String=""
@@ -39,6 +43,8 @@ var clipboard: Dictionary={}
 var blueprint_placing: bool=false
 var blueprint_cost: int=0
 var tools_open: bool=false
+var filter_panel_visible: bool=false
+var adjust_open: bool=false
 var metrics: Dictionary={}
 var chooser: Array=[]
 var _last_balance: int=-1
@@ -57,7 +63,7 @@ func open(room: int=-1) -> void:
  ui.close_sheet(); ui.tab="Build"
  app.world.build_mode=true; app.world.follow_cat=-1; app.world.set_exterior_view(false)
  show(); ui.header.hide(); ui.toast_label.hide(); app.build_input.reset()
- review=""; ghost={}; placing=false; tools_open=false; transaction_error=""
+ review=""; ghost={}; placing=false; tools_open=false; transaction_error=""; adjust_open=false
  selected_room=-1; session=null; browse=room<0
  if room>=0: _select_room(room)
  _refresh(); restore_preview(); focus_room()
@@ -67,7 +73,7 @@ func _select_room(room: int) -> void:
  _clear_ghost()
  selected_room=room
  _reset_session()
- review=""; browse=false; ghost={}; selected_item=""; selected_uid=""; chooser=[]; tools_open=false
+ review=""; browse=false; ghost={}; selected_item=""; selected_uid=""; chooser=[]; tools_open=false; adjust_open=false
  app.world.edited_room=room
  _refresh(); restore_preview()
 
@@ -86,7 +92,7 @@ func _finish_close() -> void:
  app.world.room_builder.clear_preview(); app.world.room_builder.clear_draft(); app.world.room_builder.select_room(-1)
  app.world.edited_room=-1; app.world.build_mode=false
  app.world.set_exterior_view(app.model.settings.exterior); app.build_input.reset()
- placing=false; blueprint_placing=false; ghost={}; selected_item=""; review=""; session=null; selected_room=-1
+ placing=false; blueprint_placing=false; ghost={}; selected_item=""; review=""; session=null; selected_room=-1; adjust_open=false
  hide(); ui.tab="Hotel"; app.world.apply_life(app.model); app._update_ui(); app.world.focus_hotel()
 
 func dismiss_for_menu() -> void:
@@ -99,7 +105,10 @@ func _process(_delta: float) -> void:
  if not visible: return
  ui.header.hide(); ui.footer.hide(); ui.quick_bar.hide(); ui.toast_label.hide()
  if is_instance_valid(wallet): wallet.text=_wallet_copy()
- if _last_balance!=int(app.model.coins): _last_balance=int(app.model.coins); _update_action()
+ if _last_balance!=int(app.model.coins):
+  _last_balance=int(app.model.coins)
+  if is_instance_valid(catalogue_view): catalogue_view.update_availability(app.model.coins)
+  _update_action()
 
 func _resize() -> void:
  app.build_input.reset()
@@ -110,25 +119,40 @@ func _refresh() -> void:
  metrics=Metrics.measure(get_viewport_rect().size,Metrics.safe_area(self),Metrics.phone_scale(self),app.model.settings.build_text_scale)
  _target=metrics.min_target; _font_scale=app.model.settings.build_text_scale*metrics.unit
  for child in get_children(): remove_child(child); child.queue_free()
- confirm_button=null; status=null
- var header=HBoxContainer.new(); header.name="BuildHeader"; add_child(header)
- header.position=metrics.header_rect.position; header.size=metrics.header_rect.size
- var title=ui.canvas_label("BUILD",roundi(17*_font_scale))
+ confirm_button=null; status=null; catalogue_view=null; placement_tools=null
+ var header_surface=Panel.new(); header_surface.name="BuildHeaderSurface"; add_child(header_surface)
+ header_surface.position=metrics.header_rect.position; header_surface.size=metrics.header_rect.size; header_surface.mouse_filter=Control.MOUSE_FILTER_IGNORE
+ var header_style=PlayfulTheme.panel(PlayfulTheme.CREAM,metrics.unit,20)
+ header_style.content_margin_top=4*metrics.unit; header_style.content_margin_bottom=4*metrics.unit
+ header_style.content_margin_left=12*metrics.unit; header_style.content_margin_right=6*metrics.unit
+ header_surface.add_theme_stylebox_override("panel",header_style)
+ var header=HBoxContainer.new(); header.name="BuildHeader"; header.add_theme_constant_override("separation",roundi(6*metrics.unit)); add_child(header)
+ header.position=metrics.header_rect.position+Vector2(12,4)*metrics.unit; header.size=metrics.header_rect.size-Vector2(18,8)*metrics.unit
+ var title=ui.canvas_label("BUILD",roundi(17*_font_scale),PlayfulTheme.INK)
  title.size_flags_horizontal=Control.SIZE_EXPAND_FILL; header.add_child(title)
- wallet=ui.canvas_label(_wallet_copy(),roundi(14*_font_scale)); header.add_child(wallet)
- var close_button: Button=_button("Play",close,true,"CloseBuilder",header)
+ wallet=ui.canvas_label(_wallet_copy(),roundi(14*_font_scale),PlayfulTheme.INK); header.add_child(wallet)
+ var close_button: Button=_button("▶  Play",close,true,"CloseBuilder",header)
  close_button.size_flags_horizontal=Control.SIZE_SHRINK_END
  close_button.autowrap_mode=TextServer.AUTOWRAP_OFF
- close_button.custom_minimum_size.x=80*metrics.unit
+ close_button.custom_minimum_size.x=104*metrics.unit
  close_button.add_theme_font_size_override("font_size",roundi(14*_font_scale))
+ var history_panel=PanelContainer.new(); history_panel.name="BuildHistory"; add_child(history_panel)
+ history_panel.position=metrics.history_rect.position; history_panel.size=metrics.history_rect.size
+ var history_style=PlayfulTheme.panel(PlayfulTheme.CREAM,metrics.unit,16)
+ history_style.content_margin_top=0; history_style.content_margin_bottom=0
+ history_style.content_margin_left=6*metrics.unit; history_style.content_margin_right=6*metrics.unit
+ history_panel.add_theme_stylebox_override("panel",history_style)
+ var history_row=HBoxContainer.new(); history_row.add_theme_constant_override("separation",roundi(8*metrics.unit)); history_panel.add_child(history_row)
+ _history_actions(history_row)
  panel=PanelContainer.new(); panel.name="BuildPanel"; add_child(panel)
- panel.add_theme_stylebox_override("panel",ui.style(Color("faf3e2"),12))
+ panel.add_theme_stylebox_override("panel",PlayfulTheme.panel(PlayfulTheme.CREAM,metrics.unit,20))
  var bounds: Rect2=metrics.browse_rect if browse or tools_open else metrics.panel_rect
  panel.position=bounds.position; panel.size=bounds.size
  var scroll=ScrollContainer.new(); scroll.name="BuildScroll"; scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED; panel.add_child(scroll)
  content=VBoxContainer.new(); content.size_flags_horizontal=Control.SIZE_EXPAND_FILL; content.add_theme_constant_override("separation",roundi(8*metrics.unit)); scroll.add_child(content)
  actions=HBoxContainer.new(); actions.name="BuildActions"; add_child(actions)
  actions.position=metrics.actions_rect.position; actions.size=metrics.actions_rect.size
+ actions.add_theme_constant_override("separation",roundi(6*metrics.unit))
  if placing: _room_placement()
  elif tools_open: _rooms_content()
  elif not chooser.is_empty():
@@ -138,7 +162,7 @@ func _refresh() -> void:
  elif browse: _catalogue_content()
  elif not ghost.is_empty() or session!=null: _makeover_content()
  else: _rooms_content()
- if transaction_error!="": status=_copy(transaction_error)
+ if transaction_error!="" and not is_instance_valid(status): status=_copy(transaction_error,PlayfulTheme.ERROR_INK)
  _update_action()
  queue_redraw()
 
@@ -160,26 +184,26 @@ func _wallet_copy() -> String:
  return "%s coins" % ui.number(coins)
 
 func _placement_button(accept: bool) -> Button:
- var button: Button=_button("",confirm if accept else cancel,accept,"PlaceFurniture" if accept else "CancelFurniture",actions)
+ var button: Button=_button("Place" if accept else "Cancel",confirm if accept else cancel,accept,"PlaceFurniture" if accept else "CancelFurniture",actions)
  if not _placement_icons.has(accept):
   var path: String="M5 17 L13 25 L29 7" if accept else "M8 8 L24 24 M24 8 L8 24"
   var picture=Image.new()
   picture.load_svg_from_string('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="'+path+'" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>',3.0)
   _placement_icons[accept]=ImageTexture.create_from_image(picture)
  button.icon=_placement_icons[accept]
- if not accept: button.icon_alignment=HORIZONTAL_ALIGNMENT_CENTER
- button.add_theme_constant_override("icon_max_width",roundi(32*metrics.unit))
+ button.icon_alignment=HORIZONTAL_ALIGNMENT_LEFT
+ button.add_theme_constant_override("icon_max_width",roundi(24*metrics.unit))
  button.add_theme_constant_override("h_separation",roundi(8*metrics.unit))
  button.autowrap_mode=TextServer.AUTOWRAP_OFF
- var color: Color=Color("faf3e2") if accept else Color("a53e36")
+ var color: Color=PlayfulTheme.INK
  for key in ["icon_normal_color","icon_hover_color","icon_pressed_color","icon_focus_color"]: button.add_theme_color_override(key,color)
  button.add_theme_color_override("icon_disabled_color",Color(color,0.35))
  button.accessibility_name="Place furniture" if accept else "Cancel placement"
  button.tooltip_text=button.accessibility_name
  return button
 
-func _copy(text: String) -> Label:
- var label: Label=ui.canvas_paragraph(text,roundi(16*_font_scale)); content.add_child(label); return label
+func _copy(text: String, color: Color=PlayfulTheme.SECONDARY_INK, parent: Node=null, size: int=16) -> Label:
+ var label: Label=ui.canvas_paragraph(text,roundi(size*_font_scale),color); (parent if parent!=null else content).add_child(label); return label
 
 func _rooms_content() -> void:
  _copy("Build anywhere. Tap furniture to move it, or browse for something new.")
@@ -195,7 +219,6 @@ func _rooms_content() -> void:
   _button("Restore previous makeover · %d" % int(old_quote.cost_coins),_resume,false,"ResumeDraft")
  var sizes=HBoxContainer.new(); content.add_child(sizes)
  for scale in [1.0,1.25,1.5]: _button("%d%%" % int(scale*100),func(): app.change_setting("build_text_scale",scale); _resize(),false,"BuildText%d" % int(scale*100),sizes)
- _history_actions()
 
 func _makeover_content() -> void:
  if session==null: return
@@ -203,12 +226,21 @@ func _makeover_content() -> void:
  var after: Dictionary=before
  if not ghost.is_empty():
   var definition: Dictionary=Catalog.item(ghost.item)
-  _copy(definition.name)
-  status=_copy(validity.get("message","Tap any floor to position."))
-  var row=HBoxContainer.new(); content.add_child(row)
-  _button("↻",rotate,false,"RotateFurniture",row)
-  for direction in [["←",Vector2i.LEFT],["↑",Vector2i.UP],["↓",Vector2i.DOWN],["→",Vector2i.RIGHT]]:
-   _button(direction[0],func(): nudge(direction[1]),false,"Nudge"+str(direction[1]),row)
+  status=_copy(transaction_error if transaction_error!="" else validity.get("message","Tap any floor to position."),PlayfulTheme.ERROR_INK if transaction_error!="" or not validity.get("ok",false) else PlayfulTheme.INK)
+  var tray=HBoxContainer.new(); tray.name="SelectedFurnitureTray"; tray.add_theme_constant_override("separation",roundi(10*metrics.unit)); content.add_child(tray)
+  var thumbnail=Thumbnail.new(); thumbnail.name="SelectedFurnitureArt"; thumbnail.item_id=definition.id; thumbnail.custom_minimum_size=Vector2.ONE*72*metrics.unit; tray.add_child(thumbnail)
+  var details=VBoxContainer.new(); details.size_flags_horizontal=Control.SIZE_EXPAND_FILL; details.add_theme_constant_override("separation",roundi(2*metrics.unit)); tray.add_child(details)
+  _copy(definition.name,PlayfulTheme.INK,details,18)
+  _copy(_preference_hint(definition),PlayfulTheme.SECONDARY_INK,details,14)
+  _copy("%d × %d footprint" % [definition.footprint.x,definition.footprint.y],PlayfulTheme.SECONDARY_INK,details,14)
+  placement_tools=HBoxContainer.new(); placement_tools.name="BuildPlacementTools"; placement_tools.add_theme_constant_override("separation",roundi(6*metrics.unit)); add_child(placement_tools)
+  placement_tools.position=Vector2(panel.position.x,panel.position.y+panel.size.y-_target); placement_tools.size=Vector2(panel.size.x,_target)
+  _button("↻  Rotate",rotate,false,"RotateFurniture",placement_tools)
+  _button("✥  Adjust",func(): adjust_open=not adjust_open; _refresh(),false,"AdjustFurniture",placement_tools)
+  if adjust_open:
+   var nudges=GridContainer.new(); nudges.columns=4; nudges.name="FurnitureNudges"; content.add_child(nudges)
+   for direction in [["←",Vector2i.LEFT],["↑",Vector2i.UP],["↓",Vector2i.DOWN],["→",Vector2i.RIGHT]]:
+    _button(direction[0],func(): nudge(direction[1]),false,"Nudge"+str(direction[1]),nudges)
   if ghost_intent=="move": _button("Store object · Free",store_selected,false,"StoreFurniture")
   if validity.get("ok",false): after=Quality.summarize(_ghost_instances())
   _placement_button(false)
@@ -218,7 +250,6 @@ func _makeover_content() -> void:
   var row=HBoxContainer.new(); content.add_child(row)
   _button("Furniture",func(): browse=true; _refresh(),true,"OpenCatalogue",row)
   _button("Rooms",func(): tools_open=true; _refresh(),false,"RoomTools",row)
-  _history_actions()
  var stats=preload("res://scripts/ui/build_room_stats.gd").new(); content.add_child(stats); stats.populate(ui,before,after,_font_scale,true)
  _copy("%s quality %d/100 · +%d coins/min" % ["Shared space" if selected_room==-2 else "Room",after.quality,after.income])
  if ghost.is_empty():
@@ -231,13 +262,22 @@ func _makeover_content() -> void:
   _copy("Objects here")
   for instance in session.instances: _button(Catalog.item(instance.item).name,func(): _select_object(instance.uid),false,"Select_"+str(instance.uid))
  else: _copy("Mix sleep, play and decoration. Repeated furniture adds less.")
+ if not ghost.is_empty():
+  var tool_space=Control.new(); tool_space.custom_minimum_size.y=_target+metrics.gap; content.add_child(tool_space)
 
 func _space_name(room: int) -> String:
  return "Lobby & shared floor" if room==-2 else ("Room %02d" % (room+1) if room>=0 else "Hotel")
 
-func _history_actions() -> void:
- _button("Undo",func(): _history(false),false,"UndoBuild",actions).disabled=app.build_history.undo_steps==0
- _button("Redo",func(): _history(true),false,"RedoBuild",actions).disabled=app.build_history.redo_steps==0
+func _preference_hint(definition: Dictionary) -> String:
+ for cat in range(app.Content.CAT_NAMES.size()):
+  var preference: String=app.Content.PREFERENCES[cat]
+  if app.model.life.known(cat) and definition.tags.has(preference):
+   return "%s loves %s." % [app.Content.CAT_NAMES[cat],app.Content.PREFERENCE_COPY[preference]]
+ return "Learn cat favorites to find the perfect guest match."
+
+func _history_actions(parent: Node) -> void:
+ _button("↶  Undo",func(): _history(false),false,"UndoBuild",parent).disabled=app.build_history.undo_steps==0
+ _button("↷  Redo",func(): _history(true),false,"RedoBuild",parent).disabled=app.build_history.redo_steps==0
 
 func _history(redo: bool) -> void:
  var result: Dictionary=app.undo_build(redo)
@@ -248,21 +288,27 @@ func _other_rooms() -> void:
  cancel(); selected_room=-1; session=null; tools_open=true; _refresh(); focus_room()
 
 func _catalogue_content() -> void:
- _copy("Choose furniture, then tap any room or shared floor.")
- var row=GridContainer.new(); row.columns=2; content.add_child(row)
- for key in ["sleep","play","decor","storage"]: _button(key.capitalize(),func(): category=key; _refresh(),category==key,"Category_"+key,row)
- var filters=HBoxContainer.new(); content.add_child(filters)
- _button("Affordable ✓" if affordable else "All prices",func(): affordable=not affordable; _refresh(),false,"AffordableFilter",filters)
- var sort_control=OptionButton.new(); sort_control.custom_minimum_size.y=_target; sort_control.add_theme_font_size_override("font_size",roundi(16*_font_scale))
- var sorts=["price","comfort","entertainment","atmosphere"]
- for key in sorts: sort_control.add_item(key.capitalize())
- sort_control.size_flags_horizontal=Control.SIZE_EXPAND_FILL
- sort_control.select(sorts.find(sort_by)); sort_control.item_selected.connect(func(index): sort_by=sorts[index]; _refresh()); filters.add_child(sort_control)
- var catalogue=preload("res://scripts/ui/build_catalogue.gd").new(); content.add_child(catalogue)
- catalogue.item_selected.connect(func(item,uid): preview_item(item,uid))
- catalogue.populate(ui,app.model,app.model.current_hotel,category,_target,_font_scale,affordable,sort_by,app.model.coins)
+ _copy("Pick a cozy piece, then tap any room or shared floor.",PlayfulTheme.INK)
+ var tabs=GridContainer.new(); tabs.name="BuildCategoryGrid"; tabs.columns=2; tabs.add_theme_constant_override("h_separation",roundi(6*metrics.unit)); tabs.add_theme_constant_override("v_separation",roundi(6*metrics.unit)); content.add_child(tabs)
+ for key in ["sleep","play","decor","storage"]: _button(key.capitalize(),func(): category=key; _refresh(),category==key,"Category_"+key,tabs)
+ _button("Filters"+(" · On" if affordable or sort_by!="price" else ""),func(): set_filter_panel_visible(not filter_panel_visible),false,"ToggleBuildFilters")
+ if filter_panel_visible:
+  var filters=HBoxContainer.new(); filters.name="BuildFilters"; content.add_child(filters)
+  _button("Affordable ✓" if affordable else "All prices",func(): affordable=not affordable; _refresh(),false,"AffordableFilter",filters)
+  var sort_control=OptionButton.new(); sort_control.name="BuildSort"; sort_control.custom_minimum_size.y=_target; sort_control.add_theme_font_size_override("font_size",roundi(16*_font_scale))
+  var sorts=["price","comfort","entertainment","atmosphere"]
+  for key in sorts: sort_control.add_item(key.capitalize())
+  sort_control.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+  sort_control.select(sorts.find(sort_by)); sort_control.item_selected.connect(func(index): sort_by=sorts[index]; _refresh()); filters.add_child(sort_control)
+ catalogue_view=preload("res://scripts/ui/build_catalogue.gd").new(); content.add_child(catalogue_view)
+ catalogue_view.item_selected.connect(func(item,uid): preview_item(item,uid))
+ catalogue_view.populate(ui,app.model,app.model.current_hotel,category,_target,_font_scale,affordable,sort_by,app.model.coins)
  _button("Rooms",func(): browse=false; tools_open=true; _refresh(),false,"RoomTools",actions)
  _button("Back",func(): browse=false; _refresh(),true,"CloseCatalogue",actions)
+
+func set_filter_panel_visible(visible_value: bool) -> void:
+ filter_panel_visible=visible_value
+ if visible: _refresh()
 
 func _review_content() -> void:
  pass # Kept only for compatibility with older saved draft callers.
@@ -313,7 +359,7 @@ func preview_item(id: String, uid: String="") -> void:
  if session==null:
   selected_room=_space_at(app.world.camera_target)
   _reset_session()
- selected_item=id; selected_uid=uid; browse=false; tools_open=false; review=""; transaction_error=""
+ selected_item=id; selected_uid=uid; browse=false; tools_open=false; review=""; transaction_error=""; adjust_open=false
  ghost_intent="add" if uid.is_empty() else "place_stored"; source_room=-1
  ghost={"item":id,"uid":"draft:preview:0" if uid.is_empty() else uid,"hotel":session.hotel,"room":session.room,"x":0,"y":0,"rotation":0}
  var center: Vector2=Interior.world_to_local(_room(),app.world.camera_target)
@@ -337,7 +383,7 @@ func _space_at(point: Vector3) -> int:
 func _select_object(uid: String) -> void:
  ghost=_instance(uid)
  if ghost.is_empty(): return
- selected_item=ghost.item; selected_uid=uid; ghost_intent="move"; source_room=selected_room; browse=false; tools_open=false
+ selected_item=ghost.item; selected_uid=uid; ghost_intent="move"; source_room=selected_room; browse=false; tools_open=false; adjust_open=false
  _check_ghost(); _refresh()
 
 func _ghost_instances() -> Array:
@@ -357,7 +403,7 @@ func _check_ghost() -> void:
   if app.model.hotel_level(session.hotel)<definition.level or (definition.bond>0 and not app.model.furniture.state.legacy_reuse.has(ghost.item)):
    validity={"ok":false,"message":"Friendship 20 gift" if definition.bond>0 else "Available at hotel level %d." % definition.level,"blocked":[]}
   elif app.model.coins_units<_ghost_cost()*app.model.UNIT:
-   validity={"ok":false,"message":"You need %d coins." % _ghost_cost(),"blocked":[]}
+   validity={"ok":false,"message":"Need %d more coins." % ceili(_ghost_cost()-app.model.coins),"blocked":[]}
  if validity.ok: validity.message="Ready to place · "+_space_name(selected_room)
  var renderer=app.world.room_builder.renderer(selected_room)
  if renderer!=null: renderer.show_ghost(_room(),ghost,validity)
@@ -383,13 +429,13 @@ func store_selected() -> void:
 
 func _edited() -> void:
  _clear_ghost()
- ghost={}; selected_item=""; selected_uid=""; transaction_error=""; chooser=[]
+ ghost={}; selected_item=""; selected_uid=""; transaction_error=""; chooser=[]; adjust_open=false
  _reset_session(); _refresh(); restore_preview()
 
 func cancel() -> void:
  transaction_error=""
  if placing: placing=false; blueprint_placing=false; app.world.room_builder.clear_preview()
- _clear_ghost(); ghost={}; selected_item=""; selected_uid=""; review=""
+ _clear_ghost(); ghost={}; selected_item=""; selected_uid=""; review=""; adjust_open=false
  _refresh(); restore_preview()
 
 func _clear_ghost() -> void:
@@ -426,12 +472,17 @@ func _update_action() -> void:
  if not is_instance_valid(confirm_button): return
  if placing:
   var price: int=blueprint_cost if blueprint_placing else (0 if moving>=0 else Layout.cost(candidate.kind))
+  var room_caption: String="Paste · %s" % ui.number(price) if blueprint_placing else ("Move · Free" if moving>=0 else "Place · %s" % ui.number(price))
+  confirm_button.text=room_caption
+  confirm_button.accessibility_name=room_caption+" Cat Coins" if price>0 else room_caption
   confirm_button.disabled=not validity.get("ok",false) or app.model.coins<price
  elif not ghost.is_empty():
   _check_ghost()
+  var cost: int=_ghost_cost()
+  var caption: String="Move · Free" if ghost_intent=="move" else ("Place · Free" if cost==0 else "Place · %s" % ui.number(cost))
+  confirm_button.text=caption
+  confirm_button.accessibility_name=caption+" Cat Coins" if cost>0 else caption
   confirm_button.disabled=not validity.get("ok",false)
-  confirm_button.text="%d coins" % _ghost_cost() if _ghost_cost()>0 else "Free"
-  confirm_button.accessibility_name=("Move furniture" if ghost_intent=="move" else "Place furniture")+" · "+confirm_button.text
   confirm_button.accessibility_description="Saves this placement immediately." if validity.get("ok",false) else validity.get("message","Choose a valid position.")
   confirm_button.tooltip_text=confirm_button.accessibility_name if validity.get("ok",false) else confirm_button.accessibility_description
 
@@ -441,7 +492,7 @@ func show_error(message: String) -> void:
 
 func begin_place(kind: String, room: int=-1) -> void:
  _clear_ghost(); app.world.room_builder.clear_draft(); app.world.edited_room=-1
- ghost={}; selected_item=""; moving=room; placing=true; browse=false; tools_open=false; blueprint_placing=false
+ ghost={}; selected_item=""; moving=room; placing=true; browse=false; tools_open=false; blueprint_placing=false; adjust_open=false
  candidate=Layout.entries(app.model,app.model.current_hotel)[room].duplicate(true) if room>=0 else {"kind":kind,"x":0,"y":9,"rotation":0}
  if room<0:
   var found: bool=false

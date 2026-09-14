@@ -119,6 +119,7 @@ func test_shared_conflict_rejects_quote_and_preview_is_exact() -> void:
 	var builder = RoomBuilder.new()
 	get_root().add_child(builder)
 	builder.sync(model)
+	check(not builder._future_floor.visible,"Standalone blueprint rendering keeps reserved floors hidden without a world controller")
 	var ghost_room := candidate("regular",0,6,0)
 	builder.preview_blueprint(ghost_room,clipboard.items,false)
 	var preview = builder.get_node_or_null("RoomBlueprintFurniturePreview")

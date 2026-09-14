@@ -4,9 +4,11 @@ var item_id: String = "mat":
 	set(value):
 		item_id = value
 		queue_redraw()
-const WOOD = Color("ad8058")
-const GREEN = Color("91a47f")
-const LINEN = Color("f7eed8")
+const WOOD = Color("c98957")
+const GREEN = Color("5cc8a1")
+const LINEN = Color("fff8e9")
+const CORAL = Color("f5a18f")
+const GOLD = Color("ffcc68")
 
 func _init() -> void:
 	custom_minimum_size = Vector2(56, 56)
@@ -17,8 +19,9 @@ func _draw() -> void:
 	if factor <= 0:
 		return
 	draw_set_transform((size - Vector2.ONE * 56.0 * factor) / 2.0, 0, Vector2.ONE * factor)
-	draw_circle(Vector2(28, 28), 25, Color("eee7d3"))
-	_poly([Vector2(9, 39), Vector2(28, 49), Vector2(48, 39), Vector2(28, 30)], Color("d8d0b6"))
+	draw_circle(Vector2(28, 28), 25, Color("fff8e9"))
+	draw_circle(Vector2(42, 14), 4, GOLD)
+	_poly([Vector2(9, 39), Vector2(28, 49), Vector2(48, 39), Vector2(28, 30)], Color("dcd2f3"))
 	match item_id:
 		"mat", "sun_cushion", "cave", "heated", "blanket": _bed()
 		"box":
@@ -30,11 +33,14 @@ func _draw() -> void:
 			_cube(Vector3(-1.53, 1.68, 0), Vector3(0.70, 0.06, 2.0), Color("cda674"))
 			_cube(Vector3(0.25, 0.69, 1.025), Vector3(0.88, 0.52, 0.025), LINEN)
 		"perch":
-			_cube(Vector3.ZERO, Vector3(2.4, 0.18, 1.8), WOOD)
+			_cube(Vector3.ZERO, Vector3(2.5, 0.18, 1.8), WOOD.darkened(0.08))
 			for x in [-0.72, 0.72]:
-				_cube(Vector3(x, 0.18, 0), Vector3(0.26, 2.30, 0.30), Color("c5b28c"))
-			_cube(Vector3(0, 2.4, 0), Vector3(2.8, 0.18, 1.95), WOOD)
-			_cube(Vector3(0, 2.58, 0), Vector3(2.5, 0.25, 1.65), Color("e4c987"))
+				_cube(Vector3(x, 0.18, 0), Vector3(0.28, 2.05, 0.32), WOOD)
+			_cube(Vector3(0, 2.23, 0), Vector3(2.8, 0.20, 1.95), WOOD)
+			_cube(Vector3(0, 2.43, -0.03), Vector3(2.5, 0.28, 1.65), GREEN)
+			for x in [-1.02, 1.02]: _cube(Vector3(x, 2.40, 0.64), Vector3(0.18, 1.15, 0.20), WOOD)
+			_cube(Vector3(0, 3.45, 0.64), Vector3(2.25, 0.20, 0.22), WOOD)
+			_cube(Vector3(0.56, 2.76, -0.05), Vector3(0.72, 0.34, 0.62), CORAL)
 		"tower":
 			_cube(Vector3.ZERO, Vector3(2.6, 0.18, 2.1), GREEN)
 			_cube(Vector3(0.62, 0.18, -0.3), Vector3(0.28, 2.85, 0.30), Color("c3b08c"))
@@ -58,8 +64,8 @@ func _draw() -> void:
 			_cube(Vector3(0.45, 1.69, 0.12), Vector3(0.65, 0.10, 0.65), LINEN)
 		"plant": _plant(Vector3.ZERO)
 		"rug":
-			_cube(Vector3.ZERO, Vector3(3.3, 0.08, 2.8), Color("7f9a8b"))
-			_cube(Vector3(0, 0.08, 0), Vector3(2.95, 0.04, 2.45), Color("b3c2ad"))
+			_cube(Vector3.ZERO, Vector3(3.3, 0.08, 2.8), CORAL)
+			_cube(Vector3(0, 0.08, 0), Vector3(2.95, 0.04, 2.45), Color("ffd7ca"))
 			for z in [-0.90, 0.90]:
 				_cube(Vector3(0, 0.12, z), Vector3(2.75, 0.025, 0.10), LINEN)
 			for x in [-1.30, -0.65, 0, 0.65, 1.30]:
@@ -83,7 +89,7 @@ func _draw() -> void:
 				var p: Vector3 = Vector3((i % 3 - 1) * 0.45, 1.6, float(i / 3) * 0.55 - 0.25)
 				_cube(p, Vector3(0.07, 1.05, 0.07), GREEN)
 				p.y += 0.75 + (i % 2) * 0.26
-				_cube(p, Vector3(0.60, 0.36, 0.58), Color("dca391") if i % 2 else Color("ebc96f"))
+				_cube(p, Vector3(0.60, 0.36, 0.58), CORAL if i % 2 else GOLD)
 		"cloud_sofa", "suite_sofa": _sofa(item_id == "cloud_sofa")
 		"adventure_tree": _adventure_tree()
 		"canopy_bed": _canopy_bed()
@@ -126,10 +132,10 @@ func _canopy_bed() -> void:
 func _bed() -> void:
 	var color: Color = Color("c6c6a7")
 	match item_id:
-		"sun_cushion": color = Color("e7bc62")
+		"sun_cushion": color = GOLD
 		"cave": color = Color("ac9696")
-		"heated": color = Color("e7bfa1")
-		"blanket": color = Color("8ca7a1")
+		"heated": color = CORAL
+		"blanket": color = GREEN
 	_cube(Vector3(0, 0.08, 0), Vector3(2.4, 0.36, 3.05), WOOD)
 	_cube(Vector3(0, 0.25, -1.47), Vector3(2.45, 1.55, 0.20), Color("b8956c"))
 	_cube(Vector3(0, 0.46, 0), Vector3(2.28, 0.38, 2.85), LINEN)

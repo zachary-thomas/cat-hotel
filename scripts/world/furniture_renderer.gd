@@ -74,6 +74,15 @@ func _prepare_prototype(id: String) -> void:
 				for z in [-0.9,0.9]: builder._box(node,Vector3(x,1.2,z),Vector3(0.09,2.2,0.09),Color("a97758"))
 			builder._box(node,Vector3(0,2.28,0),Vector3(1.65,0.14,2.0),Color("dbc5ad"))
 			for x in [-0.78,0.78]: builder._box(node,Vector3(x,1.64,-0.68),Vector3(0.07,1.1,0.38),Color("f0dfcc"))
+	elif id=="perch":
+		# A raised window bench: warm timber frame, mint upholstery and a cozy pillow.
+		builder._box(node,Vector3(0,0.07,0),Vector3(1.02,0.14,0.74),Color("a96f45"))
+		for x in [-0.38,0.38]: builder._box(node,Vector3(x,0.43,0),Vector3(0.13,0.72,0.16),Color("c98957"))
+		builder._box(node,Vector3(0,0.82,0),Vector3(1.12,0.16,0.80),Color("b97949"))
+		builder._box(node,Vector3(0,0.96,-0.03),Vector3(1.02,0.18,0.68),Color("5cc8a1"))
+		for x in [-0.45,0.45]: builder._box(node,Vector3(x,1.18,0.30),Vector3(0.11,0.58,0.12),Color("c98957"))
+		builder._box(node,Vector3(0,1.46,0.30),Vector3(1.02,0.13,0.13),Color("c98957"))
+		builder._box(node,Vector3(0.27,1.11,-0.08),Vector3(0.32,0.28,0.30),Color("f5a18f"))
 	elif id in ["cloud_sofa","suite_sofa"]:
 		# Face the approach edge at local north; this also fits the 3x2 footprint.
 		builder._box(node,Vector3(0,0.25,0),Vector3(1.5,0.35,0.84),Color("9aafa0"))

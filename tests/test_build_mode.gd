@@ -2,6 +2,7 @@ extends SceneTree
 const Catalog = preload("res://scripts/core/furniture_catalog.gd")
 const Layout = preload("res://scripts/core/furniture_layout.gd")
 const F = preload("res://tests/fixtures/build_mode_fixtures.gd")
+const Metrics = preload("res://scripts/ui/build_metrics.gd")
 var failures: int = 0
 class FailingStore:
 	extends RefCounted
@@ -73,7 +74,7 @@ func test_makeover_flow() -> void:
 	var before: Dictionary = app.model.serialize()
 	panel.preview_item("scratch")
 	check(panel.confirm_button.icon!=null and panel.get_node("BuildActions/CancelFurniture").icon!=null,"Furniture placement has check and cancel icons")
-	check(panel.confirm_button.text=="140 coins","The checkmark keeps the exact purchase price visible")
+	check(panel.confirm_button.text=="Place · 140","Place keeps the exact purchase price visible")
 	check(panel.confirm_button.accessibility_name.contains("Place") and panel.get_node("BuildActions/CancelFurniture").accessibility_name.contains("Cancel"),"Icon actions retain readable accessibility names")
 	if DisplayServer.get_name()!="headless":
 		root.size=Vector2i(360,640); app.model.settings.build_text_scale=1.5; panel._resize()
@@ -102,6 +103,10 @@ func test_makeover_flow() -> void:
 	panel.confirm()
 	check(app.model.serialize()==failure_before,"A failed immediate save rolls back wallet and instances atomically")
 	check(not panel.ghost.is_empty() and str(panel.ghost.uid)==failed_uid and is_instance_valid(app.world.room_builder.renderer(0)._ghost),"A failed save keeps the positioned ghost available to retry")
+	check(not panel.confirm_button.disabled and panel.confirm_button.text=="Place · 160","A valid preview can retry the same quoted Place after a save failure")
+	if DisplayServer.get_name()!="headless":
+		await process_frame; await process_frame; await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://tmp/task4-build-save-failure-360x640-150.png")
 	app.store=real_store; app.save_error=""; panel.cancel()
 	var earned_units: int=77*int(app.model.UNIT)
 	app.model.coins_units+=earned_units
@@ -109,6 +114,7 @@ func test_makeover_flow() -> void:
 	check(app.model.coins_units==before.coins_units+earned_units and not app.model.furniture.room_items(0,0).any(func(value): return value.item=="scratch"),"Undo refunds the saved purchase while preserving later earnings")
 	panel._history(true)
 	check(app.model.coins_units==after_place.coins_units+earned_units and app.model.furniture.room_items(0,0).any(func(value): return value.item=="scratch"),"Redo reapplies the same purchase without losing later earnings")
+	await test_phone_catalogue_and_placement(app,panel)
 	for resolution in [Vector2i(360,640),Vector2i(360,800),Vector2i(390,844),Vector2i(430,932),Vector2i(768,1024),Vector2i(1280,800)]:
 		root.size=resolution
 		app.model.settings.build_text_scale=1.5
@@ -150,6 +156,78 @@ func test_makeover_flow() -> void:
 	app.queue_free(); await process_frame; await create_timer(0.1).timeout
 	preload("res://scripts/core/save_journal.gd").new(path).clear()
 	preload("res://scripts/core/build_draft_store.gd").new(path).clear()
+
+func test_phone_catalogue_and_placement(app, panel) -> void:
+	root.size=Vector2i(360,640)
+	for text_scale in [1.0,1.5]:
+		app.model.settings.build_text_scale=text_scale
+		panel.cancel(); panel.browse=true; panel._refresh()
+		await process_frame; await process_frame
+		var grid: GridContainer=panel.find_child("FurnitureGrid",true,false)
+		check(grid!=null,"Furniture uses one whole-card grid at %.0f%%" % (text_scale*100.0))
+		var cards: Array[Node]=panel.find_children("FurnitureCard_*","Button",true,false)
+		check(cards.size()>=3,"Expanded browse exposes every matching furniture card")
+		if text_scale==1.0:
+			check(panel.metrics.browse_rect.position.y<=panel.metrics.history_rect.end.y+panel.metrics.gap+1,"Normal browse expands below history so the first complete card row is visible")
+		if grid!=null:
+			check(grid.columns==(2 if text_scale<1.5 else 1),"Furniture cards reflow for %.0f%% text" % (text_scale*100.0))
+		if not cards.is_empty():
+			var card: Button=cards[0]
+			check(card.custom_minimum_size.y>=148.0*panel.metrics.unit,"Furniture art and copy share a large whole-card target")
+			check(card.find_child("FurnitureArt",true,false)!=null,"Furniture thumbnail is inside the tappable card")
+			var scroll: ScrollContainer=panel.find_child("BuildScroll",true,false)
+			scroll.scroll_vertical=roundi(scroll.get_v_scroll_bar().max_value)
+			await process_frame; await process_frame
+			check(scroll.get_global_rect().grow(1).intersects(cards[-1].get_global_rect()),"Expanded browse can scroll to the final furniture card")
+			scroll.scroll_vertical=0
+			await process_frame; await process_frame
+			if text_scale==1.0:
+				for index in range(mini(2,cards.size())):
+					var price: Control=cards[index].find_child("FurniturePrice",true,false)
+					check(price!=null and scroll.get_global_rect().end.y-cards[index].get_global_rect().end.y>=8*panel.metrics.unit,"Initial normal browse shows the complete first furniture row including prices")
+		if DisplayServer.get_name()!="headless":
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://tmp/task4-build-catalogue-360x640-%d.png" % int(text_scale*100.0))
+		var before: Dictionary=app.model.serialize()
+		panel.preview_item("perch")
+		await process_frame; await process_frame
+		check(app.model.serialize()==before,"Selecting a catalogue card never purchases")
+		check(not panel.browse,"Selection collapses browse into placement")
+		check(panel.confirm_button.text.contains("150"),"Place displays the actual perch quote")
+		check(panel.confirm_button.text.begins_with("Place ·"),"Furniture purchase action is labelled Place")
+		check(panel.confirm_button.accessibility_name.contains("150 Cat Coins"),"Paid placement names the exact Cat Coin cost")
+		var tray: Control=panel.find_child("SelectedFurnitureTray",true,false)
+		var tray_copy: String=""
+		if tray!=null:
+			for label in tray.find_children("*","Label",true,false): tray_copy+=label.text+"\n"
+		check(tray_copy.contains("Miso loves"),"Selected tray prioritizes a known cat preference hint")
+		check(not tray_copy.contains("Place · 150"),"Selected metadata does not duplicate the pinned Place price")
+		var safe: Rect2=scaled_rect(Metrics.safe_area(panel),Metrics.phone_scale(panel))
+		for name in ["CloseBuilder","UndoBuild","RedoBuild","RotateFurniture","AdjustFurniture","CancelFurniture","PlaceFurniture"]:
+			var control: Control=panel.find_child(name,true,false)
+			check(control!=null,"%s is available during placement" % name)
+			if control!=null: check(safe.grow(1).encloses(scaled_rect(control.get_global_rect(),Metrics.phone_scale(panel))),"%s remains visible at %.0f%% text" % [name,text_scale*100.0])
+		var rotate: Button=panel.find_child("RotateFurniture",true,false)
+		var adjust: Button=panel.find_child("AdjustFurniture",true,false)
+		var cancel_button: Button=panel.find_child("CancelFurniture",true,false)
+		check(rotate!=null and rotate.text.contains("Rotate"),"Rotate uses a readable label")
+		check(adjust!=null and adjust.text.contains("Adjust"),"Nudge controls open from a readable Adjust label")
+		check(cancel_button!=null and cancel_button.text.contains("Cancel"),"Cancel uses a readable label")
+		var world: Rect2=scaled_rect(panel.input_context().world_rect,Metrics.phone_scale(panel))
+		check(world.size.y>=safe.size.y*0.5-1,"Placement world keeps at least half the physical safe height at %.0f%% text" % (text_scale*100.0))
+		if DisplayServer.get_name()!="headless":
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://tmp/task4-build-placement-360x640-%d.png" % int(text_scale*100.0))
+	var wallet_units: int=app.model.coins_units
+	app.model.coins_units=0; panel._check_ghost(); panel._refresh()
+	check(panel.confirm_button.disabled and panel.validity.message.contains("150"),"Unaffordable selection stays positioned and reports the exact shortfall")
+	if DisplayServer.get_name()!="headless":
+		await process_frame; await process_frame; await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://tmp/task4-build-unaffordable-360x640-150.png")
+	app.model.coins_units=wallet_units; panel.cancel()
+
+func scaled_rect(rect: Rect2, scale: float) -> Rect2:
+	return Rect2(rect.position*scale,rect.size*scale)
 
 func check_guarded_segments(routine: Array) -> void:
 	for index in range(1,routine.size()):

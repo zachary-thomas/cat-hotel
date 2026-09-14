@@ -6,6 +6,7 @@ static func measure(viewport: Vector2, safe: Rect2, ui_scale: float = 1.0, text_
 	var target: float = 48.0*unit
 	var gap: float = 8.0*unit
 	var header: float = ceilf(56.0*unit)
+	var history: float = ceilf(48.0*unit)
 	var actions: float = ceilf(56.0*unit)
 	var panel_width: float = 336.0*unit
 	var wide: bool = safe.size.x >= panel_width+480.0*unit+gap*2
@@ -13,21 +14,25 @@ static func measure(viewport: Vector2, safe: Rect2, ui_scale: float = 1.0, text_
 	var panel_rect: Rect2
 	var world_rect: Rect2
 	var browse_rect: Rect2
+	var history_rect: Rect2
 	if wide:
 		var x: float = safe.end.x-panel_width
 		action_rect = Rect2(x,safe.end.y-actions,panel_width,actions)
-		panel_rect = Rect2(x,safe.position.y+header+gap,panel_width,maxf(0,safe.size.y-header-actions-gap*2))
+		history_rect = Rect2(x,safe.position.y+header,panel_width,history)
+		panel_rect = Rect2(x,history_rect.end.y+gap,panel_width,maxf(0,safe.size.y-header-history-actions-gap*2))
 		world_rect = Rect2(safe.position.x,safe.position.y+header,safe.size.x-panel_width-gap,maxf(0,safe.size.y-header))
 		browse_rect = panel_rect
 	else:
-		var maximum: float = maxf(0,safe.size.y*0.5-header-actions-gap*2)
-		var panel_height: float = minf(176.0*clampf(text_scale,1.0,1.5)*unit,minf(safe.size.y*0.3,maximum))
+		history_rect = Rect2(safe.position.x,safe.position.y+header,safe.size.x,history)
+		var world_start: float = history_rect.end.y+gap
+		var maximum: float = maxf(0,safe.size.y-header-history-actions-gap*3-safe.size.y*0.5)
+		var panel_height: float = minf(176.0*clampf(text_scale,1.0,1.5)*unit,maximum)
 		action_rect = Rect2(safe.position.x,safe.end.y-actions,safe.size.x,actions)
 		panel_rect = Rect2(safe.position.x,action_rect.position.y-gap-panel_height,safe.size.x,panel_height)
-		world_rect = Rect2(safe.position.x,safe.position.y+header,safe.size.x,maxf(0,panel_rect.position.y-gap-safe.position.y-header))
-		var browse_height: float = minf(safe.size.y*0.45,maxf(panel_height,safe.size.y-header-actions-gap*2-target))
+		world_rect = Rect2(safe.position.x,world_start,safe.size.x,maxf(0,panel_rect.position.y-gap-world_start))
+		var browse_height: float = maxf(panel_height,action_rect.position.y-gap-world_start)
 		browse_rect = Rect2(safe.position.x,action_rect.position.y-gap-browse_height,safe.size.x,browse_height)
-	return {"wide":wide,"world_rect":world_rect,"panel_rect":panel_rect,"browse_rect":browse_rect,"actions_rect":action_rect,"header_rect":Rect2(safe.position,Vector2(safe.size.x,header)),"min_target":target,"unit":unit,"gap":gap,"viewport":viewport}
+	return {"wide":wide,"world_rect":world_rect,"panel_rect":panel_rect,"browse_rect":browse_rect,"actions_rect":action_rect,"header_rect":Rect2(safe.position,Vector2(safe.size.x,header)),"history_rect":history_rect,"min_target":target,"unit":unit,"gap":gap,"viewport":viewport}
 
 static func safe_area(control: Control) -> Rect2:
 	var viewport: Vector2 = control.get_viewport_rect().size

@@ -3,9 +3,13 @@ extends VBoxContainer
 signal item_selected(item: String, uid: String)
 const Catalog = preload("res://scripts/core/furniture_catalog.gd")
 const Thumbnail = preload("res://scripts/ui/furniture_thumbnail.gd")
+const PlayfulTheme = preload("res://scripts/ui/playful_theme.gd")
+var _entries: Array = []
 
 func populate(ui, model, hotel: int, category: String, target: float, text_scale: float, affordable: bool = false, sort_by: String = "price", available: float = -1) -> void:
 	for child in get_children(): child.queue_free()
+	name = "FurnitureCatalogue"
+	_entries.clear()
 	var items: Array = []
 	if category=="storage":
 		for instance in model.furniture.stored_items():
@@ -25,6 +29,14 @@ func populate(ui, model, hotel: int, category: String, target: float, text_scale
 		if int(a.cost)!=int(b.cost): return int(a.cost)<int(b.cost)
 		return str(a.name)<str(b.name)
 	)
+	var unit: float = target/48.0
+	var grid = GridContainer.new()
+	grid.name = "FurnitureGrid"
+	grid.columns = 1 if text_scale/unit>=1.5 else 2
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation",roundi(10*unit))
+	grid.add_theme_constant_override("v_separation",roundi(10*unit))
+	add_child(grid)
 	var count: int = 0
 	for definition in items:
 		var uid: String = definition.get("uid","")
@@ -33,25 +45,59 @@ func populate(ui, model, hotel: int, category: String, target: float, text_scale
 		var locked: bool = model.hotel_level(hotel)<definition.level or (definition.bond>0 and not free)
 		if affordable and (price>balance or locked): continue
 		count += 1
-		var row = HBoxContainer.new()
-		row.add_theme_constant_override("separation",8)
-		add_child(row)
+		var item_id: String = str(definition.id)
+		var stored_uid: String = uid
+		var card: Button = ui.button("",func(): item_selected.emit(item_id,stored_uid))
+		card.name = "FurnitureCard_"+(uid if uid!="" else item_id)
+		card.custom_minimum_size = Vector2(126*unit,(172 if grid.columns==1 else 156)*unit)
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.add_theme_stylebox_override("normal",PlayfulTheme.button_style(PlayfulTheme.CREAM,unit))
+		card.add_theme_stylebox_override("hover",PlayfulTheme.button_style(PlayfulTheme.CREAM.lightened(0.04),unit))
+		card.add_theme_stylebox_override("pressed",PlayfulTheme.button_style(PlayfulTheme.MINT,unit,true))
+		card.add_theme_stylebox_override("focus",PlayfulTheme.focus_style(unit))
+		card.tooltip_text = "Comfort %d · Entertainment %d · Atmosphere %d" % [definition.stats.comfort,definition.stats.entertainment,definition.stats.atmosphere]
+		grid.add_child(card)
+		var body = VBoxContainer.new()
+		body.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		body.offset_left=8*unit; body.offset_top=8*unit; body.offset_right=-8*unit; body.offset_bottom=-8*unit
+		body.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		body.add_theme_constant_override("separation",roundi(3*unit))
+		card.add_child(body)
+		var art_center = CenterContainer.new()
+		art_center.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		art_center.size_flags_vertical=Control.SIZE_EXPAND_FILL
+		body.add_child(art_center)
 		var thumbnail = Thumbnail.new()
+		thumbnail.name = "FurnitureArt"
 		thumbnail.item_id = definition.id
-		thumbnail.custom_minimum_size = Vector2(target,target)
-		row.add_child(thumbnail)
+		thumbnail.custom_minimum_size = Vector2.ONE*(84 if grid.columns==1 else 76)*unit
+		art_center.add_child(thumbnail)
 		var price_copy: String = "Stored · Free" if uid!="" else ("Free reuse" if free else "%d coins each" % price)
 		if locked: price_copy = "Friendship 20 gift" if definition.bond>0 else "Hotel level %d" % definition.level
-		var label: String = "%s\n%s · %d × %d" % [definition.name,price_copy,definition.footprint.x,definition.footprint.y]
-		var button: Button = ui.button(label,func(): item_selected.emit(definition.id,uid))
-		button.name = "FurnitureCard_"+(uid if uid!="" else str(definition.id))
-		button.custom_minimum_size = Vector2(target,target+16*text_scale)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.add_theme_font_size_override("font_size",roundi(16*text_scale))
-		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		button.tooltip_text = "Comfort %d · Entertainment %d · Atmosphere %d" % [definition.stats.comfort,definition.stats.entertainment,definition.stats.atmosphere]
-		row.add_child(button)
-		var effects: Label = ui.canvas_paragraph("Comfort %d · Play %d · Atmosphere %d" % [definition.stats.comfort,definition.stats.entertainment,definition.stats.atmosphere],roundi(14*text_scale))
-		add_child(effects)
+		var title: Label = ui.canvas_paragraph(str(definition.name),roundi(16*text_scale),PlayfulTheme.INK)
+		title.name="FurnitureName"; title.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER; title.max_lines_visible=2
+		body.add_child(title)
+		var price_label: Label = ui.canvas_paragraph(price_copy,roundi(14*text_scale),PlayfulTheme.SECONDARY_INK)
+		price_label.name="FurniturePrice"; price_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER; price_label.max_lines_visible=2
+		body.add_child(price_label)
+		_entries.append({"button":card,"price_label":price_label,"definition":definition,"uid":uid,"free":free,"locked":locked,"price":price})
 	if count==0:
+		grid.queue_free()
 		add_child(ui.canvas_paragraph("No stored furniture yet. Store an object from a room to reuse it here." if category=="storage" else "No items match this filter. Try showing all items.",roundi(16*text_scale)))
+	update_availability(balance)
+
+func update_availability(available: float) -> void:
+	for entry in _entries:
+		if not is_instance_valid(entry.price_label): continue
+		var definition: Dictionary=entry.definition
+		var copy: String
+		if entry.locked:
+			copy="Friendship 20 gift" if int(definition.bond)>0 else "Hotel level %d" % int(definition.level)
+		elif entry.uid!="": copy="Stored · Free"
+		elif entry.free: copy="Free reuse"
+		elif float(entry.price)>available: copy="Need %d more · %d coins" % [ceili(float(entry.price)-available),int(entry.price)]
+		else: copy="%d coins" % int(entry.price)
+		entry.price_label.text=copy
+		entry.price_label.add_theme_color_override("font_color",PlayfulTheme.ERROR_INK if entry.locked or (not entry.free and entry.uid=="" and float(entry.price)>available) else PlayfulTheme.SECONDARY_INK)
+		entry.button.accessibility_description=copy
+		entry.button.modulate=Color(1,1,1,0.78) if entry.locked or (not entry.free and entry.uid=="" and float(entry.price)>available) else Color.WHITE

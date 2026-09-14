@@ -24,6 +24,16 @@ func run() -> void:
 	var renderer = Renderer.new()
 	renderer.builder = builder
 	root.add_child(renderer)
+	var perch = renderer._make_item("perch")
+	var has_mint_cushion := false
+	var has_coral_pillow := false
+	for mesh in perch.get_children():
+		var color: Color=mesh.material_override.albedo_color
+		if color.g>0.65 and color.r<0.50 and color.b>0.45: has_mint_cushion=true
+		if color.r>0.85 and color.g>0.45 and color.g<0.75: has_coral_pillow=true
+	check(has_mint_cushion,"Window perch has a recognizable mint upholstered seat in live geometry")
+	check(has_coral_pillow and perch.get_child_count()>=5,"Window perch has a distinct cozy pillow and timber bench structure")
+	perch.free()
 	renderer.sync(room(),[item("f1",1,1)])
 	var committed = renderer.objects.f1
 	var committed_color: Color = committed.get_child(0).material_override.albedo_color
