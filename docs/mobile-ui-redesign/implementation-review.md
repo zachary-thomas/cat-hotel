@@ -1,6 +1,6 @@
 # Mobile overhaul implementation review
 
-Status: implemented and locally verified through the consolidated final fix wave and residual I4 correction; the controller's narrow re-review remains pending. Physical Android validation is an open release gate, not a passed check. Work is on `codex/playful-mobile-ui` in `.worktrees/mobile-ui`; the residual correction base is `b57d364f678aad383f13834adc745da345f0542b`.
+Status: implemented, locally verified and independently approved. All nine tasks and all six final review findings are resolved, including the repeated-gathering correction. Reviewed source: `0ab798d40fbe7bffe7c77a12e0a277421d9f439d` on `codex/playful-mobile-ui` in `.worktrees/mobile-ui`. Physical Android validation remains an open release gate. No merge, push or publication has been performed. [Final code-review record](final-code-review.md) and [fix evidence](final-fix-evidence.md) preserve the completed review trail.
 
 The approved overhaul now has the five Hotel/Cats/Build/Life/Map destinations, live care, immediate saved building, illustrated activities and destinations, native reward recovery and global preferences. The user explicitly authorized a fresh version; normal player profiles were excluded from all automated work. Every hotel worker, guest and resident remains a cat.
 
@@ -33,6 +33,8 @@ Life's featured gathering card now binds its art, title, status and Events capti
 World annotations and compact/full Build room-stat labels now round font conversion upward, including fractional390px phone scaling. Scrapbook Visit actions use a deterministic hash of the memory entry id, so multiple memories for the same cat have distinct stable focus targets through life-revision rebuilds.
 
 ## Verification
+
+The final committed source `0ab798d40fbe7bffe7c77a12e0a277421d9f439d` passed a fresh complete `./tools/test.ps1` run after the shared save-restore correction. `tmp/final-head-full-suite.log` contains all 32 suite invocations, 26 explicit PASS markers, no test failures, no script errors, no ObjectDB/resource warnings, and `FINAL_HEAD_FULL_SUITE_EXIT=0`. The remaining six suites exit successfully with silent or zero-failure summaries. The known Windows certificate-store diagnostic appears once per invocation. This final-source pass supplements the staged responsive, pointer, targeted persistence and extracted-package verification below.
 
 One complete `./tools/test.ps1` pass ran all 32 registered behavioral suites and exited0: `tmp/task9-full-suite.log`. It covers economy/save/model/life/commerce test fixtures, audio, collision, app/experience/grounds/views/layout, all three mobile suites plus the walkthrough, building/rewards, and all 14 Build transaction/input/history/layout/preview suites. Tests use isolated APPDATA/LOCALAPPDATA and unique saves; no normal save or live commerce adapter operation was used.
 
@@ -73,7 +75,7 @@ The runner is the bundled Godot 4.7.2 editor-capable Windows binary because desk
 
 ## Diagnostics and release gates
 
-The full pass contained the known Windows root-certificate-store diagnostic. It also exposed two actual intermittent teardown warnings that were investigated separately: Experience retained 12 AudioStreamWAV/AudioStreamPlaybackWAV instances referencing ui_tap.wav, hotel_open.wav and cat_purr.wav; Building retained an unnamed AudioStreamWAV/Playback pair. Verbose evidence is in `tmp/task9-experience-diagnostic-3.log`/`-4.log` and `tmp/task9-building-diagnostic-3.log`. Both fixtures now shut down their soundscape and drain queued audio before freeing the app. Their focused final verbose runs passed without ObjectDB/resource warnings: `tmp/task9-experience-final.log` and `tmp/task9-building-final.log`. The earlier Task8 mobile-views warning was not assumed to explain these; the actual final diagnostics established the audio-only references.
+The initial Task9 full pass contained the known Windows root-certificate-store diagnostic. It also exposed two actual intermittent teardown warnings that were investigated separately: Experience retained 12 AudioStreamWAV/AudioStreamPlaybackWAV instances referencing ui_tap.wav, hotel_open.wav and cat_purr.wav; Building retained an unnamed AudioStreamWAV/Playback pair. Verbose evidence is in `tmp/task9-experience-diagnostic-3.log`/`-4.log` and `tmp/task9-building-diagnostic-3.log`. Both fixtures now shut down their soundscape and drain queued audio before freeing the app. Their focused final verbose runs passed without ObjectDB/resource warnings: `tmp/task9-experience-final.log` and `tmp/task9-building-final.log`. The earlier Task8 mobile-views warning was not assumed to explain these; the actual final diagnostics established the audio-only references.
 
 One initial pack-smoke attempt used the source working directory, allowing FileAccess to see excluded source docs; rerunning from the extracted package proved the export exclusion. A following smoke found the obsolete furniture field and was stopped, corrected and rerun. Failed attempts are retained in tmp and are not presented as passing evidence. The export also prints its editor-embedded ICU text-server notice; the shipped runner is the same Godot version.
 
@@ -85,7 +87,7 @@ All 18 reviewed text-free illustrations are consumed. [Exact prompts](production
 
 ## Chronological implementation rulings
 
-The following lines are copied verbatim from the controller's final SDD ledger. The ledger and every task report remain in place for independent Task9 and whole-branch review.
+The following 13 lines are copied verbatim, in order, from the controller's completed SDD ledger. The completed review and fix records are preserved in the linked permanent documents before this plan's temporary coordination directory is removed. The implementation, gallery and playable build remain in the worktree pending the user's integration choice.
 
 - Ruling: Use an isolated linked worktree from a local baseline commit — the original project had no commits and every source file was untracked — cost if wrong: the extra local baseline/worktree can be removed after preserving finished changes.
 - Ruling: Include all functional affordances shown in the boards, using real game data and separately produced art — user explicitly authorized screenshot features; illustrative prices/signs are not new economy requirements — cost if wrong: art or presentation choices may need revision.
