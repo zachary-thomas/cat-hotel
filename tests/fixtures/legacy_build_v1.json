@@ -1,0 +1,73 @@
+{
+	"away_seconds": 0,
+	"coins_units": 1000000000,
+	"current_hotel": 0,
+	"fraction": 0.0,
+	"hotels": [
+		{
+			"layout": [
+				{
+					"kind": "regular",
+					"rotation": 0,
+					"x": 0,
+					"y": 9
+				},
+				{
+					"kind": "regular",
+					"rotation": 2,
+					"x": 6,
+					"y": 9
+				}
+			],
+			"owned": true,
+			"purchases": 0,
+			"wings": 0,
+			"zones": [
+				1,
+				0,
+				0,
+				0
+			]
+		},
+		{
+			"layout": [
+				{
+					"kind": "regular",
+					"rotation": 0,
+					"x": 0,
+					"y": 9
+				},
+				{
+					"kind": "regular",
+					"rotation": 2,
+					"x": 6,
+					"y": 9
+				}
+			],
+			"owned": false,
+			"purchases": 0,
+			"wings": 0,
+			"zones": [
+				1,
+				0,
+				0,
+				0
+			]
+		}
+	],
+	"last_seen": 1000,
+	"pending_seconds": 0,
+	"pending_units": 0,
+	"settings": {
+		"evening": false,
+		"exterior": false,
+		"haptics": true,
+		"motion": true,
+		"music": true,
+		"sound": true,
+		"watch": false,
+		"weather": true
+	},
+	"started": true,
+	"version": 1
+}

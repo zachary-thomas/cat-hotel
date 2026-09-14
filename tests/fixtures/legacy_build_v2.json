@@ -1,0 +1,910 @@
+{
+	"away_seconds": 360,
+	"coins_units": 17980000000,
+	"current_hotel": 0,
+	"fraction": 0.0,
+	"grounds": {
+		"hotels": [
+			{
+				"amenities": [],
+				"bush_ready": [
+					0.0,
+					25.0
+				],
+				"chores": 0,
+				"cleaned": 0,
+				"dirt_clock": 0.0,
+				"dirt_cursor": 0,
+				"dirty": [
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false
+				],
+				"job": {},
+				"maid": false,
+				"maid_job": {},
+				"maid_position": [
+					0.0,
+					3.5
+				],
+				"manager": [
+					0.0,
+					6.0
+				],
+				"mouse_ready": 0.0,
+				"treat_ready": 0.0,
+				"treat_until": 0.0,
+				"yarn_ready": [
+					0.0,
+					0.0,
+					0.0
+				]
+			},
+			{
+				"amenities": [],
+				"bush_ready": [
+					0.0,
+					25.0
+				],
+				"chores": 0,
+				"cleaned": 0,
+				"dirt_clock": 0.0,
+				"dirt_cursor": 0,
+				"dirty": [
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false
+				],
+				"job": {},
+				"maid": false,
+				"maid_job": {},
+				"maid_position": [
+					0.0,
+					3.5
+				],
+				"manager": [
+					0.0,
+					6.0
+				],
+				"mouse_ready": 0.0,
+				"treat_ready": 0.0,
+				"treat_until": 0.0,
+				"yarn_ready": [
+					0.0,
+					0.0,
+					0.0
+				]
+			},
+			{
+				"amenities": [],
+				"bush_ready": [
+					0.0,
+					25.0
+				],
+				"chores": 0,
+				"cleaned": 0,
+				"dirt_clock": 0.0,
+				"dirt_cursor": 0,
+				"dirty": [
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false
+				],
+				"job": {},
+				"maid": false,
+				"maid_job": {},
+				"maid_position": [
+					0.0,
+					3.5
+				],
+				"manager": [
+					0.0,
+					6.0
+				],
+				"mouse_ready": 0.0,
+				"treat_ready": 0.0,
+				"treat_until": 0.0,
+				"yarn_ready": [
+					0.0,
+					0.0,
+					0.0
+				]
+			},
+			{
+				"amenities": [],
+				"bush_ready": [
+					0.0,
+					25.0
+				],
+				"chores": 0,
+				"cleaned": 0,
+				"dirt_clock": 0.0,
+				"dirt_cursor": 0,
+				"dirty": [
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false
+				],
+				"job": {},
+				"maid": false,
+				"maid_job": {},
+				"maid_position": [
+					0.0,
+					3.5
+				],
+				"manager": [
+					0.0,
+					6.0
+				],
+				"mouse_ready": 0.0,
+				"treat_ready": 0.0,
+				"treat_until": 0.0,
+				"yarn_ready": [
+					0.0,
+					0.0,
+					0.0
+				]
+			}
+		],
+		"seconds": 0.0
+	},
+	"hotels": [
+		{
+			"layout": [
+				{
+					"kind": "regular",
+					"rotation": 0,
+					"x": 0,
+					"y": 9
+				},
+				{
+					"kind": "regular",
+					"rotation": 2,
+					"x": 6,
+					"y": 9
+				},
+				{
+					"kind": "suite",
+					"rotation": 0,
+					"x": 0,
+					"y": 4
+				}
+			],
+			"owned": true,
+			"purchases": 9,
+			"wings": 3,
+			"zones": [
+				1,
+				0,
+				0,
+				0
+			]
+		},
+		{
+			"layout": [
+				{
+					"kind": "regular",
+					"rotation": 0,
+					"x": 0,
+					"y": 9
+				},
+				{
+					"kind": "regular",
+					"rotation": 2,
+					"x": 6,
+					"y": 9
+				}
+			],
+			"owned": true,
+			"purchases": 0,
+			"wings": 0,
+			"zones": [
+				1,
+				0,
+				0,
+				0
+			]
+		},
+		{
+			"layout": [
+				{
+					"kind": "regular",
+					"rotation": 0,
+					"x": 0,
+					"y": 9
+				},
+				{
+					"kind": "regular",
+					"rotation": 2,
+					"x": 6,
+					"y": 9
+				}
+			],
+			"owned": true,
+			"purchases": 0,
+			"wings": 0,
+			"zones": [
+				1,
+				0,
+				0,
+				0
+			]
+		},
+		{
+			"layout": [
+				{
+					"kind": "regular",
+					"rotation": 0,
+					"x": 0,
+					"y": 9
+				},
+				{
+					"kind": "regular",
+					"rotation": 2,
+					"x": 6,
+					"y": 9
+				}
+			],
+			"owned": true,
+			"purchases": 0,
+			"wings": 0,
+			"zones": [
+				1,
+				0,
+				0,
+				0
+			]
+		}
+	],
+	"last_seen": 1000,
+	"life": {
+		"cats": [
+			{
+				"bond": 20,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": false,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": false,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": false,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			},
+			{
+				"bond": 0,
+				"friend": -1,
+				"interactions": 0,
+				"known": true,
+				"last_touch": -100.0,
+				"locations": [],
+				"preference": false,
+				"visits": 0
+			}
+		],
+		"combos": [
+			"cloud",
+			"sunbeam"
+		],
+		"entitlements": [
+			"purrington.forest_lodge",
+			"purrington.snowcap_spa"
+		],
+		"favorite": 0,
+		"furniture": [
+			"mat",
+			"box",
+			"plant",
+			"heated",
+			"lamp",
+			"sun_cushion",
+			"perch",
+			"blanket"
+		],
+		"hotels": [
+			{
+				"event": {},
+				"happy": 0,
+				"inspection": -1.0,
+				"last_event": -1000.0,
+				"review": "Your first guests are settling in.",
+				"rooms": [
+					[
+						"heated",
+						"box",
+						"lamp"
+					],
+					[
+						"sun_cushion",
+						"perch",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					]
+				],
+				"skills": [
+					-1,
+					-1,
+					-1
+				],
+				"specialty": "balanced",
+				"staff": [
+					0,
+					0,
+					0
+				],
+				"stars": 0,
+				"trophies": [],
+				"visit_clock": 0.0,
+				"visits": 0
+			},
+			{
+				"event": {},
+				"happy": 0,
+				"inspection": -1.0,
+				"last_event": -1000.0,
+				"review": "Your first guests are settling in.",
+				"rooms": [
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					]
+				],
+				"skills": [
+					-1,
+					-1,
+					-1
+				],
+				"specialty": "balanced",
+				"staff": [
+					0,
+					0,
+					0
+				],
+				"stars": 0,
+				"trophies": [],
+				"visit_clock": 0.0,
+				"visits": 0
+			},
+			{
+				"event": {},
+				"happy": 0,
+				"inspection": -1.0,
+				"last_event": -1000.0,
+				"review": "Your first guests are settling in.",
+				"rooms": [
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					]
+				],
+				"skills": [
+					-1,
+					-1,
+					-1
+				],
+				"specialty": "balanced",
+				"staff": [
+					0,
+					0,
+					0
+				],
+				"stars": 0,
+				"trophies": [],
+				"visit_clock": 0.0,
+				"visits": 0
+			},
+			{
+				"event": {},
+				"happy": 0,
+				"inspection": -1.0,
+				"last_event": -1000.0,
+				"review": "Your first guests are settling in.",
+				"rooms": [
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					],
+					[
+						"mat",
+						"box",
+						"plant"
+					]
+				],
+				"skills": [
+					-1,
+					-1,
+					-1
+				],
+				"specialty": "balanced",
+				"staff": [
+					0,
+					0,
+					0
+				],
+				"stars": 0,
+				"trophies": [],
+				"visit_clock": 0.0,
+				"visits": 0
+			}
+		],
+		"memories": [
+			{
+				"buddy": -1,
+				"cat": 16,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_16",
+				"pose": "greet",
+				"text": "Woodland wanderer. A new regular with a story to tell.",
+				"title": "Meet Juniper"
+			},
+			{
+				"buddy": -1,
+				"cat": 15,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_15",
+				"pose": "greet",
+				"text": "Snowflake collector. A new regular with a story to tell.",
+				"title": "Meet Flurry"
+			},
+			{
+				"buddy": -1,
+				"cat": 17,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_17",
+				"pose": "greet",
+				"text": "Spa connoisseur. A new regular with a story to tell.",
+				"title": "Meet Pearl"
+			},
+			{
+				"buddy": -1,
+				"cat": 3,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_3",
+				"pose": "greet",
+				"text": "Professional napper. A new regular with a story to tell.",
+				"title": "Meet Mochi"
+			},
+			{
+				"buddy": -1,
+				"cat": 4,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_4",
+				"pose": "greet",
+				"text": "Quiet observer. A new regular with a story to tell.",
+				"title": "Meet Olive"
+			},
+			{
+				"buddy": -1,
+				"cat": 5,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_5",
+				"pose": "greet",
+				"text": "Snack enthusiast. A new regular with a story to tell.",
+				"title": "Meet Biscuit"
+			},
+			{
+				"buddy": -1,
+				"cat": 6,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_6",
+				"pose": "greet",
+				"text": "Window watcher. A new regular with a story to tell.",
+				"title": "Meet Pebble"
+			},
+			{
+				"buddy": -1,
+				"cat": 7,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_7",
+				"pose": "greet",
+				"text": "Friendly traveler. A new regular with a story to tell.",
+				"title": "Meet Maple"
+			},
+			{
+				"buddy": -1,
+				"cat": 8,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_8",
+				"pose": "greet",
+				"text": "Night owl. A new regular with a story to tell.",
+				"title": "Meet Nori"
+			},
+			{
+				"buddy": -1,
+				"cat": 9,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_9",
+				"pose": "greet",
+				"text": "Little adventurer. A new regular with a story to tell.",
+				"title": "Meet Pip"
+			},
+			{
+				"buddy": -1,
+				"cat": 10,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_10",
+				"pose": "greet",
+				"text": "Lounge lover. A new regular with a story to tell.",
+				"title": "Meet Coco"
+			},
+			{
+				"buddy": -1,
+				"cat": 11,
+				"day": 1,
+				"hotel": 0,
+				"id": "meet_11",
+				"pose": "greet",
+				"text": "Gentle dreamer. A new regular with a story to tell.",
+				"title": "Meet Tofu"
+			},
+			{
+				"buddy": -1,
+				"cat": 0,
+				"day": 1,
+				"hotel": 0,
+				"id": "combo_cloud",
+				"pose": "sniff",
+				"text": "+8 coins/min in each room using this combination. Warm cats feel at home.",
+				"title": "Discovered: Cloud Nine"
+			},
+			{
+				"buddy": -1,
+				"cat": 0,
+				"day": 1,
+				"hotel": 0,
+				"id": "combo_sunbeam",
+				"pose": "sniff",
+				"text": "+8 coins/min in each room using this combination. Sunny cats feel at home.",
+				"title": "Discovered: Sunbeam Suite"
+			},
+			{
+				"buddy": -1,
+				"cat": 0,
+				"day": 1,
+				"hotel": 0,
+				"id": "bond_0_20",
+				"pose": "head_bump",
+				"text": "A friendship blanket recipe, and a greeting just for you.",
+				"title": "Miso: A familiar face"
+			}
+		],
+		"pinned": "sunbeam",
+		"revision": 35,
+		"seconds": 0.0
+	},
+	"pending_seconds": 360,
+	"pending_units": 123000000,
+	"settings": {
+		"evening": false,
+		"exterior": false,
+		"haptics": true,
+		"motion": true,
+		"music": true,
+		"sound": true,
+		"watch": false,
+		"weather": true
+	},
+	"started": true,
+	"version": 2
+}

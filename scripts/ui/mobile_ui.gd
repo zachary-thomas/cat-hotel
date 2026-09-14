@@ -1,0 +1,667 @@
+extends Control
+
+signal play_requested
+signal expansion_requested
+signal ui_sound_requested
+signal upgrade_requested(zone: int)
+signal hotel_requested(index: int)
+signal claim_requested
+signal setting_changed(key: String, value: Variant)
+signal zone_focus_requested(zone: int)
+signal reset_camera_requested
+
+const Badge = preload("res://scripts/ui/cat_badge.gd")
+const Icon = preload("res://scripts/ui/game_icon.gd")
+const Art = preload("res://scripts/ui/menu_art.gd")
+const DISPLAY_FONT = preload("res://assets/fonts/Fredoka.ttf")
+const BODY_FONT = preload("res://assets/fonts/Nunito.ttf")
+const INK = Color("294638")
+const MUTED = Color("63735d")
+const CREAM = Color("faf6ea")
+const GREEN = Color("54775b")
+const GOLD = Color("b78d3e")
+
+var snapshot: Dictionary = {}
+var header: Control
+var footer: Control
+var welcome: Control
+var sheet: PanelContainer
+var shade: ColorRect
+var sheet_content: VBoxContainer
+var coins_label: Label
+var rate_label: Label
+var title_label: Label
+var level_label: Label
+var objective_label: Label
+var progress_label: Label
+var pending_button: Button
+var toast_label: Label
+var toast_timer: float = 0.0
+var tab: String = "Hotel"
+var selected_zone: int = 0
+var selected_wing: int = -1
+var repair_status: Label
+var repair_progress: ProgressBar
+var state_key: String = ""
+var live_buttons: Array = []
+var nav_buttons: Dictionary = {}
+var objective_progress: ProgressBar
+var activity_label: Label
+
+func _ready() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var theme_resource = Theme.new()
+	theme_resource.default_font_size = 16
+	var body_font = FontVariation.new()
+	body_font.base_font = BODY_FONT
+	body_font.variation_opentype = {2003265652: 650.0}
+	theme_resource.default_font = body_font
+	theme_resource.set_color("font_color", "Label", INK)
+	theme_resource.set_color("font_color", "Button", INK)
+	theme_resource.set_color("font_hover_color", "Button", INK)
+	theme_resource.set_color("font_pressed_color", "Button", INK)
+	theme_resource.set_color("font_disabled_color", "Button", Color("909589"))
+	theme_resource.set_stylebox("normal", "Button", style(Color("edeedb"), 14))
+	theme_resource.set_stylebox("hover", "Button", style(Color("e0e7cf"), 14))
+	theme_resource.set_stylebox("pressed", "Button", style(Color("ccd9bf"), 14))
+	theme_resource.set_stylebox("disabled", "Button", style(Color("e7e6da"), 14))
+	theme_resource.set_stylebox("focus", "Button", style(Color(0,0,0,0), 14, Color("b68d41"), 2))
+	theme = theme_resource
+	if OS.has_feature("mobile"):
+		var safe: Rect2i = DisplayServer.get_display_safe_area()
+		var screen: Vector2i = DisplayServer.screen_get_size()
+		if screen.y > 0 and safe.size.y > 0:
+			var ratio: float = get_viewport_rect().size.y / float(screen.y)
+			offset_top = maxf(0, safe.position.y * ratio)
+			offset_bottom = -maxf(0, (screen.y - safe.end.y) * ratio)
+	_build_chrome()
+
+func style(color: Color, radius: int = 18, border: Color = Color.TRANSPARENT, width: int = 0) -> StyleBoxFlat:
+	var s = StyleBoxFlat.new()
+	s.bg_color = color
+	s.shadow_color = Color(0.23, 0.27, 0.13, 0.12 if color.a > 0 else 0)
+	s.shadow_size = 5
+	s.shadow_offset = Vector2(0, 3)
+	s.set_corner_radius_all(radius)
+	s.border_color = border
+	s.set_border_width_all(width)
+	s.content_margin_left = 16
+	s.content_margin_right = 16
+	s.content_margin_top = 12
+	s.content_margin_bottom = 12
+	return s
+
+func label(text: String, font_size: int = 16, color: Color = INK) -> Label:
+	var item = Label.new()
+	item.text = text
+	if font_size >= 17:
+		var display = FontVariation.new()
+		display.base_font = DISPLAY_FONT
+		display.variation_opentype = {2003265652: 620.0}
+		item.add_theme_font_override("font", display)
+	item.add_theme_font_size_override("font_size", font_size)
+	item.add_theme_color_override("font_color", color)
+	return item
+
+func paragraph(text: String, font_size: int = 15, color: Color = MUTED) -> Label:
+	var item = label(text, font_size, color)
+	item.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return item
+
+func button(text: String, action: Callable, primary: bool = false) -> Button:
+	var item = Button.new()
+	item.text = text
+	item.clip_text = true
+	item.custom_minimum_size.y = 52
+	var display = FontVariation.new()
+	display.base_font = DISPLAY_FONT
+	display.variation_opentype = {2003265652: 550.0}
+	item.add_theme_font_override("font", display)
+	item.add_theme_font_size_override("font_size", 19)
+	item.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	item.pressed.connect(func():
+		ui_sound_requested.emit()
+		action.call()
+	)
+	if primary:
+		item.add_theme_stylebox_override("normal", style(GREEN, 14))
+		item.add_theme_stylebox_override("hover", style(GREEN.lightened(0.10), 14))
+		item.add_theme_stylebox_override("pressed", style(GREEN.darkened(0.10), 14))
+		item.add_theme_color_override("font_color", CREAM)
+		item.add_theme_color_override("font_hover_color", CREAM)
+		item.add_theme_color_override("font_pressed_color", CREAM)
+	return item
+
+func panel_at(parent: Node, top: float, bottom: float, from_bottom: bool = false) -> PanelContainer:
+	var panel = PanelContainer.new()
+	parent.add_child(panel)
+	panel.anchor_left = 0
+	panel.anchor_right = 1
+	panel.anchor_top = 1 if from_bottom else 0
+	panel.anchor_bottom = panel.anchor_top
+	panel.offset_left = 16
+	panel.offset_right = -16
+	panel.offset_top = top
+	panel.offset_bottom = bottom
+	panel.add_theme_stylebox_override("panel", style(CREAM))
+	return panel
+
+func icon(kind: String, dimensions: Vector2 = Vector2(32, 32)) -> Control:
+	var item = Icon.new()
+	item.kind = kind
+	item.custom_minimum_size = dimensions
+	item.size = dimensions
+	return item
+
+func art(kind: String, height: float = 138, seaside: bool = false) -> Control:
+	var item = Art.new()
+	item.kind = kind
+	item.seaside = seaside
+	item.custom_minimum_size.y = height
+	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return item
+
+func _build_chrome() -> void:
+	header = Control.new()
+	add_child(header)
+	header.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Compact status strip keeps the hotel in view.
+	var bar = panel_at(header, 10, 66)
+	bar.name = "HotelStatus"
+	var chrome_style = style(CREAM, 18)
+	chrome_style.content_margin_top = 6
+	chrome_style.content_margin_bottom = 6
+	chrome_style.content_margin_left = 12
+	chrome_style.content_margin_right = 8
+	bar.add_theme_stylebox_override("panel", chrome_style)
+	var row = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	bar.add_child(row)
+	var identity = VBoxContainer.new()
+	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity.add_theme_constant_override("separation", 0)
+	row.add_child(identity)
+	title_label = label("Meadow House", 19)
+	title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	identity.add_child(title_label)
+	level_label = label("Level 1 · 2 rooms", 12, MUTED)
+	identity.add_child(level_label)
+	var wallet = VBoxContainer.new()
+	wallet.add_theme_constant_override("separation", 0)
+	row.add_child(wallet)
+	var balance = HBoxContainer.new()
+	wallet.add_child(balance)
+	balance.add_child(icon("coin", Vector2(23,23)))
+	coins_label = label("1,000", 21)
+	balance.add_child(coins_label)
+	rate_label = label("+10 / min", 11, GREEN)
+	rate_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	wallet.add_child(rate_label)
+	var settings = button("", func(): _open_settings())
+	settings.name = "SettingsButton"
+	settings.tooltip_text = "Settings"
+	settings.custom_minimum_size = Vector2(44,44)
+	row.add_child(settings)
+	var cog = icon("settings", Vector2(24,24))
+	settings.add_child(cog)
+	cog.position = Vector2(10,10)
+	activity_label = label("", 12, GREEN)
+	header.add_child(activity_label)
+	activity_label.hide()
+	pending_button = button("Collect away earnings", func(): show_offline())
+	header.add_child(pending_button)
+	pending_button.position = Vector2(16, 118)
+	pending_button.custom_minimum_size.y = 44
+	pending_button.add_theme_font_size_override("font_size", 14)
+	pending_button.visible = false
+	footer = Control.new()
+	add_child(footer)
+	footer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	footer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var objective = panel_at(footer, -146, -99, true)
+	var objective_style = style(CREAM, 14)
+	objective_style.content_margin_top = 5
+	objective_style.content_margin_bottom = 5
+	objective_style.content_margin_left = 10
+	objective_style.content_margin_right = 8
+	objective.add_theme_stylebox_override("panel", objective_style)
+	var objective_row = HBoxContainer.new()
+	objective.add_child(objective_row)
+	var texts = VBoxContainer.new()
+	texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	texts.add_theme_constant_override("separation", 0)
+	objective_row.add_child(texts)
+	objective_label = label("Tap a boarded wing to repair", 15)
+	texts.add_child(objective_label)
+	progress_label = label("Drag to explore · Pinch to zoom", 11, MUTED)
+	texts.add_child(progress_label)
+	objective_progress = ProgressBar.new()
+	objective_progress.max_value = 2
+	objective_progress.hide()
+	texts.add_child(objective_progress)
+	var next = button("Fit all", func(): reset_camera_requested.emit())
+	next.name = "ViewAllHotel"
+	next.tooltip_text = "Fit the full hotel on screen"
+	next.custom_minimum_size = Vector2(72,44)
+	next.add_theme_font_size_override("font_size", 13)
+	objective_row.add_child(next)
+	var navigation = panel_at(footer, -90, -12, true)
+	navigation.add_theme_stylebox_override("panel", style(CREAM, 24, Color("fffced"), 2))
+	var nav = HBoxContainer.new()
+	nav.add_theme_constant_override("separation", 6)
+	navigation.add_child(nav)
+	for name in ["Hotel", "Upgrades", "Rooms", "Map", "Cats"]:
+		var n = button("", func(): _navigate(name))
+		n.tooltip_text = name
+		n.custom_minimum_size.y = 57
+		n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		nav.add_child(n)
+		var col = VBoxContainer.new()
+		n.add_child(col)
+		col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		col.offset_top = 3
+		col.offset_bottom = -2
+		col.add_theme_constant_override("separation", 2)
+		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var drawing = icon(name, Vector2(29, 29))
+		drawing.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		col.add_child(drawing)
+		var caption = label(name, 13)
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(caption)
+		nav_buttons[name] = n
+	toast_label = label("", 15, CREAM)
+	add_child(toast_label)
+	toast_label.add_theme_stylebox_override("normal", style(INK, 18))
+	toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	toast_label.anchor_right = 1
+	toast_label.anchor_top = 1
+	toast_label.anchor_bottom = 1
+	toast_label.offset_left = 24
+	toast_label.offset_right = -24
+	toast_label.offset_top = -207
+	toast_label.offset_bottom = -155
+	toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	toast_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	toast_label.visible = false
+	_build_welcome()
+	_update_nav()
+
+func _build_welcome() -> void:
+	welcome = Control.new()
+	add_child(welcome)
+	welcome.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	welcome.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var title = label("PURRINGTON\nH O T E L", 46)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	welcome.add_child(title)
+	title.anchor_right = 1
+	title.offset_top = 38
+	title.offset_bottom = 157
+	var subtitle = label("A little hotel. A world of cats.", 16, MUTED)
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	welcome.add_child(subtitle)
+	subtitle.anchor_right = 1
+	subtitle.offset_top = 160
+	subtitle.offset_bottom = 194
+	var start = panel_at(welcome, -211, -29, true)
+	var box = VBoxContainer.new()
+	box.add_theme_constant_override("separation", 12)
+	start.add_child(box)
+	var copy = paragraph("Build cozy stays. Meet your guests.\nYour hotels earn while you're away.", 15)
+	copy.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(copy)
+	var play = button("Open your hotel  →", func(): play_requested.emit(), true)
+	play.name = "PlayButton"
+	box.add_child(play)
+	var small = label("CAT-RUN  ·  CAT-APPROVED", 11, MUTED)
+	small.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(small)
+
+func render(data: Dictionary) -> void:
+	snapshot = data
+	if not is_node_ready():
+		return
+	var started: bool = bool(data.get("started", false))
+	header.visible = started and tab != "Build"
+	footer.visible = started
+	welcome.visible = not started
+	if not started:
+		return
+	coins_label.text = number(float(data.coins))
+	rate_label.text = "+%s / min" % number(float(data.rate))
+	title_label.text = data.hotel_name
+	level_label.text = "Hotel level %d  ·  %s" % [data.hotel_level, "Garden retreat" if data.hotel == 0 else "Coastal escape"]
+	pending_button.visible = data.pending > 0
+	var remaining: float = data.get("repair_remaining", 0)
+	objective_label.text = "Construction cats at work · %ds" % ceili(remaining) if remaining > 0 else ("Tap a boarded wing to repair" if data.wings < 3 else "Every room is open. Welcome home!")
+	progress_label.text = "More building space on the way" if remaining > 0 else "Tap a room to furnish · Drag to explore"
+	if is_instance_valid(repair_status):
+		repair_status.text = "Construction cats at work · %ds left" % ceili(remaining)
+	if is_instance_valid(repair_progress) and data.wings < 3:
+		repair_progress.value = 100 * (1 - remaining / data.repair_seconds[data.wings])
+	activity_label.text = "%d guest rooms  ·  %d / 3 wings built" % [data.rooms, data.wings]
+	var new_key: String = str(data.get("repair_remaining", 0) > 0) + str(data.hotel) + str(data.wings) + str(data.levels) + str(data.owned) + str(data.cats_unlocked) + str(data.settings)
+	if new_key != state_key:
+		state_key = new_key
+		if sheet != null and is_instance_valid(sheet) and tab in ["Upgrades", "Rooms", "Map", "Cats", "Settings"]:
+			_refresh_sheet()
+	for item in live_buttons:
+		if not is_instance_valid(item.button):
+			continue
+		if item.kind == "upgrade":
+			var zone: int = item.zone
+			var cost: int = int(data.costs[zone])
+			item.button.disabled = cost <= 0 or data.coins < cost or data.save_error != ""
+			item.button.text = "Fully upgraded" if cost <= 0 else ("Upgrade  ·  ● %s" % number(cost) if data.coins >= cost else "Need %s more coins" % number(ceil(cost - data.coins)))
+		elif item.kind == "expansion":
+			var n: int = item.get("wing", data.wings)
+			item.button.disabled = n != data.wings or not data.can_expand or data.save_error != ""
+			if n < data.wings:
+				item.button.text = "Open for guests"
+			elif remaining > 0:
+				item.button.text = "Repair in progress" if n == data.wings else "Finish the current repair first"
+			elif n != data.wings:
+				item.button.text = "Repair %s first" % data.wing_names[data.wings]
+			elif data.hotel_level < data.wing_levels[n]:
+				item.button.text = "Hotel level %d required" % data.wing_levels[n]
+			elif data.coins < data.wing_costs[n]:
+				item.button.text = "Save %s more coins" % number(ceil(data.wing_costs[n] - data.coins))
+			else:
+				item.button.text = "Repair · %s coins" % number(data.wing_costs[n])
+		elif item.kind == "unlock":
+			item.button.disabled = not data.can_unlock or data.save_error != ""
+			item.button.text = "Open Seaside  ·  ● 10,000" if data.can_unlock else "Keep growing to unlock"
+
+func number(value: float) -> String:
+	var raw: String = str(int(floor(value)))
+	var result: String = ""
+	for i in range(raw.length()):
+		if i > 0 and (raw.length() - i) % 3 == 0:
+			result += ","
+		result += raw[i]
+	return result
+
+func _navigate(name: String) -> void:
+	if name == "Rooms":
+		selected_wing = -1
+	if name == "Hotel":
+		close_sheet()
+		reset_camera_requested.emit()
+		return
+	tab = name
+	_refresh_sheet()
+	_update_nav()
+
+func _update_nav() -> void:
+	for name in nav_buttons:
+		nav_buttons[name].add_theme_stylebox_override("normal", style(Color("dce5ce") if tab == name else CREAM, 12))
+
+func open_upgrades(zone: int = 0) -> void:
+	selected_zone = clampi(zone, 0, 3)
+	tab = "Upgrades"
+	zone_focus_requested.emit(selected_zone)
+	_refresh_sheet()
+	_update_nav()
+
+func close_sheet() -> void:
+	if is_instance_valid(shade):
+		remove_child(shade)
+		shade.queue_free()
+	if is_instance_valid(sheet):
+		remove_child(sheet)
+		sheet.queue_free()
+	shade = null
+	sheet = null
+	live_buttons.clear()
+	tab = "Hotel"
+	_update_nav()
+
+func _base_sheet(title: String, height: float = 525) -> VBoxContainer:
+	if is_instance_valid(shade):
+		remove_child(shade)
+		shade.queue_free()
+	if is_instance_valid(sheet):
+		remove_child(sheet)
+		sheet.queue_free()
+	live_buttons.clear()
+	shade = ColorRect.new()
+	shade.color = Color(0.13, 0.20, 0.15, 0.27)
+	add_child(shade)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.offset_bottom = -90
+	shade.gui_input.connect(func(event):
+		if event is InputEventMouseButton and event.pressed:
+			close_sheet()
+	)
+	sheet = panel_at(self, -minf(height + 90, size.y - 50), -90, true)
+	sheet.name = "ActiveSheet"
+	sheet.add_theme_stylebox_override("panel", style(CREAM, 26, Color("fff9e9"), 2))
+	var column = VBoxContainer.new()
+	column.add_theme_constant_override("separation", 12)
+	sheet.add_child(column)
+	var heading = HBoxContainer.new()
+	column.add_child(heading)
+	var title_item = label(title, 24)
+	title_item.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	title_item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.add_child(title_item)
+	var close = button("×", close_sheet)
+	close.custom_minimum_size = Vector2(48, 48)
+	heading.add_child(close)
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	column.add_child(scroll)
+	sheet_content = VBoxContainer.new()
+	sheet_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sheet_content.add_theme_constant_override("separation", 12)
+	scroll.add_child(sheet_content)
+	return sheet_content
+
+func _refresh_sheet() -> void:
+	if snapshot.is_empty():
+		return
+	match tab:
+		"Upgrades": _upgrades()
+		"Map": _map()
+		"Rooms": _expansions()
+		"Cats": _cats()
+		"Settings": _settings()
+
+func _upgrades() -> void:
+	var content = _base_sheet("A little more lovely", 587)
+	var selector = HBoxContainer.new()
+	selector.add_theme_constant_override("separation", 6)
+	content.add_child(selector)
+	var names = ["Suites", "Kitchen", "Lounge", "Desk"]
+	for i in range(4):
+		var b = button(names[i], func(): open_upgrades(i))
+		b.add_theme_font_size_override("font_size", 13)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if selected_zone == i:
+			b.add_theme_stylebox_override("normal", style(Color("d7e3cc"), 12))
+		selector.add_child(b)
+	content.add_child(art(["suite", "kitchen", "lounge", "desk"][selected_zone], 150, snapshot.hotel == 1))
+	var level: int = snapshot.levels[selected_zone]
+	content.add_child(label(snapshot.zone_names[selected_zone], 27))
+	content.add_child(paragraph(snapshot.zone_descriptions[selected_zone]))
+	var preview = PanelContainer.new()
+	preview.add_theme_stylebox_override("panel", style(Color("e7ecda"), 16))
+	content.add_child(preview)
+	var statbox = VBoxContainer.new()
+	preview.add_child(statbox)
+	statbox.add_child(label("LEVEL %d  →  %d" % [level, mini(10, level + 1)] if level > 0 else "READY FOR A NEW SERVICE", 12, MUTED))
+	statbox.add_child(label("+%d  →  +%d / min" % [level * 10, mini(10, level + 1) * 10], 27))
+	
+	var purchase = button("Upgrade", func(): upgrade_requested.emit(selected_zone), true)
+	purchase.name = "PurchaseUpgrade"
+	content.add_child(purchase)
+	live_buttons.append({"button": purchase, "kind": "upgrade", "zone": selected_zone})
+	
+	content.add_child(paragraph("Visual makeovers at levels 4 and 7.", 12, MUTED))
+	if selected_zone == 0:
+		content.add_child(button("Need more space? Add rooms  →", open_expansions))
+	render(snapshot)
+
+func _map() -> void:
+	var content = _base_sheet("Your hotel journey", 650)
+	content.add_child(paragraph("New places. Familiar paws. Every hotel you open keeps earning for you."))
+	var subtitles = ["A garden full of small beginnings", "Salt air and sunlit window seats", "An autumn hideaway", "A cozy mountain escape"]
+	for i in range(4):
+		var card = PanelContainer.new()
+		card.add_theme_stylebox_override("panel", style(Color("e8ecdc") if i == 0 else Color("e0ecea") if i == 1 else Color("ebe7de"), 16))
+		content.add_child(card)
+		var col = VBoxContainer.new()
+		col.add_theme_constant_override("separation", 7)
+		card.add_child(col)
+		col.add_child(art("hotel", 126, i == 1))
+		col.add_child(label("%02d  %s" % [i + 1, snapshot.hotel_names[i]], 21))
+		col.add_child(paragraph(subtitles[i], 13))
+		if i < 2 and snapshot.owned[i]:
+			col.add_child(label("OPEN  ·  +%d Cat Coins / min" % snapshot.hotel_rates[i], 12, GREEN))
+			col.add_child(button("You're here" if i == snapshot.hotel else "Visit hotel  →", func():
+				hotel_requested.emit(i)
+				close_sheet()
+			))
+		elif i == 1:
+			col.add_child(label("Meadow House level %d / 10" % snapshot.meadow_level, 13))
+			col.add_child(label("Opening cost: 10,000 Cat Coins", 13, GOLD))
+			var unlock = button("Keep growing to unlock", func(): hotel_requested.emit(1), true)
+			unlock.name = "UnlockHotel"
+			col.add_child(unlock)
+			live_buttons.append({"button": unlock, "kind": "unlock"})
+		else:
+			col.add_child(label("COMING LATER", 12, MUTED))
+	render(snapshot)
+
+func _cats() -> void:
+	var content = _base_sheet("Your little regulars", 620)
+	content.add_child(paragraph("%d / 12 guests discovered. Improve your hotels to meet more travelers." % snapshot.cats_unlocked))
+	var grid = GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 12)
+	content.add_child(grid)
+	for i in range(12):
+		var card = VBoxContainer.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(card)
+		var portrait = Badge.new()
+		portrait.custom_minimum_size = Vector2(140, 105)
+		portrait.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		portrait.locked = i >= snapshot.cats_unlocked
+		portrait.coat = [Color("d99c51"), Color("999e93"), Color("343e35"), Color("e3d5b9")][i % 4]
+		card.add_child(portrait)
+		card.add_child(label(snapshot.cat_names[i] if not portrait.locked else "A future friend", 16))
+		card.add_child(label(snapshot.cat_traits[i] if not portrait.locked else "Keep upgrading", 12, MUTED))
+
+func _open_settings() -> void:
+	tab = "Settings"
+	_update_nav()
+	_settings()
+
+func _settings() -> void:
+	var content = _base_sheet("Make yourself comfortable", 555)
+	for option in [["music", "Background music"], ["sound", "Coins, cats & sound effects"], ["evening", "Evening lighting"], ["motion", "Gentle animations"], ["haptics", "Touch feedback"]]:
+		var toggle = CheckButton.new()
+		toggle.text = option[1]
+		toggle.name = "Setting_" + option[0]
+		toggle.custom_minimum_size.y = 54
+		toggle.button_pressed = snapshot.settings[option[0]]
+		toggle.toggled.connect(func(value): setting_changed.emit(option[0], value))
+		content.add_child(toggle)
+	content.add_child(paragraph("Your hotel saves automatically. Offline earnings are collected for up to 8 hours. All hotel staff and guests are cats.", 14))
+	content.add_child(paragraph(snapshot.save_error if snapshot.save_error != "" else "Progress saved on this device.", 13, GOLD if snapshot.save_error != "" else GREEN))
+	content.add_child(label("PURRINGTON HOTEL  ·  PLAYABLE PROTOTYPE", 10, MUTED))
+
+func show_offline() -> void:
+	if snapshot.get("pending", 0) <= 0:
+		return
+	tab = "Offline"
+	var content = _base_sheet("Welcome back!", 475)
+	content.add_child(paragraph("Your cats kept things cozy."))
+	var portrait = Badge.new()
+	portrait.custom_minimum_size = Vector2(120, 125)
+	content.add_child(portrait)
+	var reward = label(number(snapshot.pending), 44, GOLD)
+	reward.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	content.add_child(reward)
+	var earned = label("Cat Coins earned", 18)
+	earned.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	content.add_child(earned)
+	content.add_child(paragraph("Away for %s  ·  Credited %s\nOffline earnings are capped at 8 hours." % [duration(snapshot.away_seconds), duration(snapshot.pending_seconds)], 14))
+	var collect = button("Collect " + number(snapshot.pending), func():
+		claim_requested.emit()
+		close_sheet()
+	, true)
+	collect.name = "CollectEarnings"
+	collect.disabled = snapshot.save_error != ""
+	content.add_child(collect)
+
+func duration(seconds: int) -> String:
+	return "%dh %dm" % [int(seconds / 3600), int(seconds / 60) % 60] if seconds >= 3600 else "%dm" % maxi(1, int(seconds / 60))
+
+func show_toast(message: String) -> void:
+	toast_label.text = message
+	toast_label.visible = true
+	toast_label.move_to_front()
+	toast_timer = 3.5
+
+func _process(delta: float) -> void:
+	if toast_timer > 0:
+		toast_timer -= delta
+		toast_label.visible = toast_timer > 0
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		close_sheet()
+
+
+
+func open_expansions(wing: int = -1) -> void:
+	selected_wing = wing
+	tab = "Rooms"
+	_refresh_sheet()
+	_update_nav()
+
+func _expansions() -> void:
+	var n: int = clampi(selected_wing if selected_wing >= 0 else snapshot.wings, 0, 2)
+	var content = _base_sheet(snapshot.wing_names[n], 365)
+	content.add_child(paragraph("Restore this part of your hotel with a little help from the construction cats."))
+	content.add_child(label("30 building tiles · +%d coins / min" % snapshot.wing_rates[n], 21, GREEN))
+	if n < snapshot.wings:
+		content.add_child(paragraph("Repaired and ready to design. Open Build to place regular rooms or suites on this floor."))
+	elif n == snapshot.wings and snapshot.get("repair_remaining", 0) > 0:
+		repair_status = label("Construction cats at work", 18)
+		content.add_child(repair_status)
+		repair_progress = ProgressBar.new()
+		repair_progress.custom_minimum_size.y = 16
+		repair_progress.show_percentage = false
+		content.add_child(repair_progress)
+		content.add_child(paragraph("You can keep playing or close the game. Your builders will finish the job.", 14))
+	else:
+		content.add_child(paragraph("%s Cat Coins · %ds repair · Hotel level %d" % [number(snapshot.wing_costs[n]), snapshot.repair_seconds[n], snapshot.wing_levels[n]], 14))
+		var build = button("Repair wing", func(): expansion_requested.emit(), true)
+		build.name = "BuildExpansion"
+		content.add_child(build)
+		live_buttons.append({"button":build, "kind":"expansion", "wing":n})
+		if snapshot.hotel_level < snapshot.wing_levels[n]:
+			content.add_child(button("Improve services to level up", func(): open_upgrades(0)))
+	var chooser = HBoxContainer.new()
+	chooser.add_theme_constant_override("separation", 6)
+	content.add_child(chooser)
+	for i in range(3):
+		var choice = button(["Garden", "Courtyard", "Skyview"][i], func(): open_expansions(i))
+		choice.custom_minimum_size.y = 44
+		choice.add_theme_font_size_override("font_size", 14)
+		choice.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		chooser.add_child(choice)
+	render(snapshot)
+
+func world_input_contains(point: Vector2) -> bool:
+	return point.y >= global_position.y + 118 and point.y < global_position.y + size.y - 150
