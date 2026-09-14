@@ -29,6 +29,14 @@ func capture(title: String) -> void:
 	if DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/task5-" + title + "-" + str(DisplayServer.window_get_size().x) + "x" + str(DisplayServer.window_get_size().y) + ".png")
+
+func travel_capture(title: String) -> void:
+	app.ui.toast_timer = 0
+	app.ui.toast_label.hide()
+	await settle()
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://tmp/task7-" + title + "-" + str(DisplayServer.window_get_size().x) + "x" + str(DisplayServer.window_get_size().y) + ".png")
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute("res://tmp")
 	var key := "res://tmp/mobile-views-" + str(Time.get_ticks_usec())
@@ -37,6 +45,7 @@ func run() -> void:
 	root.add_child(app)
 	await process_frame
 	app.start_game()
+	await travel_shop_coverage()
 	app.ui.action_requested.connect(func(action, payload):
 		if action == "interact": care_actions.append(payload.kind)
 	)
@@ -166,6 +175,120 @@ func run() -> void:
 		if FileAccess.file_exists(key + suffix): DirAccess.remove_absolute(key + suffix)
 	print("MOBILE VIEWS TESTS: ", "PASS" if failures == 0 else "FAIL", " (", failures, " failures)")
 	quit(1 if failures else 0)
+
+func travel_shop_coverage() -> void:
+	app.set_process(false)
+	app.model.current_hotel = 0
+	app.model.coins = 1000
+	app.model.hotels[0].purchases = 0
+	app._update_ui()
+	app.ui._navigate("Map")
+	await settle()
+	check(app.ui.sheet.find_child("Destination_0",true,false) != null, "Meadow is navigable")
+	check(app.ui.sheet.find_child("Destination_3",true,false) != null, "Snowcap is discoverable")
+	var unlock: Button = app.ui.sheet.find_child("UnlockHotel",true,false)
+	check(unlock != null and unlock.disabled, "Seaside keeps its gate")
+	check(app.ui.sheet.find_child("MapArt",true,false) != null, "Journey uses the illustrated world map")
+	check(app.ui.sheet.find_child("RequirementLevel",true,false) != null and app.ui.sheet.find_child("RequirementCoins",true,false) != null, "Seaside keeps both live requirements visible")
+	check(unlock.text == "Reach Meadow level 10", "Seaside names the unmet level requirement")
+	await travel_capture("map-normal-100")
+	app.model.hotels[0].purchases = 18
+	app._update_ui()
+	await settle()
+	unlock = app.ui.sheet.find_child("UnlockHotel",true,false)
+	check(unlock.text == "Save 9,000 more coins" and unlock.disabled, "Seaside names the unmet coin requirement")
+	await travel_capture("map-level-only-100")
+	var unlock_before := unlock
+	app.model.coins = 10000
+	app._update_ui()
+	await settle()
+	unlock = app.ui.sheet.find_child("UnlockHotel",true,false)
+	var seaside_pin: Button = app.ui.sheet.find_child("Destination_1",true,false)
+	check(unlock == unlock_before and unlock.text == "Open Seaside · 10,000" and not unlock.disabled and seaside_pin.text.contains("Ready"), "Live balance enables Seaside in place when both requirements are met")
+	await travel_capture("map-ready-100")
+	app.model.coins = 1000
+	app.model.hotels[0].purchases = 0
+	app._update_ui()
+	app.ui._navigate("Shop")
+	await settle()
+	check(app.ui.purchase_buttons.all(func(b): return b.disabled), "Unavailable store cannot buy")
+	await travel_capture("shop-unavailable-100")
+
+	var ready_partial := {"ready":true,"can_restore":true,"busy":false,"prices":{"purrington.cat_club":"$3.49"},"message":"One-time expansions. Any purchase removes every ad.","preview":false}
+	app.ui.update_commerce(ready_partial)
+	await settle()
+	var club: Button = app.ui.sheet.find_child("Purchase_purrington_cat_club",true,false)
+	var forest: Button = app.ui.sheet.find_child("Purchase_purrington_forest_lodge",true,false)
+	check(club != null and club.text == "Buy · $3.49" and not club.disabled, "Shop displays the exact localized catalogue price")
+	check(forest != null and forest.text == "Store unavailable" and forest.disabled, "A partial catalogue cannot enable an unpriced expansion")
+	club.grab_focus()
+	var focused_before := club
+	app.ui.update_commerce({"ready":true,"can_restore":true,"busy":true,"prices":{"purrington.cat_club":"$3.49"},"message":"Waiting for the store…","preview":false})
+	await settle()
+	var current_club: Button = app.ui.sheet.find_child("Purchase_purrington_cat_club",true,false)
+	check(current_club == focused_before and is_instance_valid(focused_before) and focused_before.has_focus() and focused_before.disabled, "Pending purchase updates in place and preserves focus")
+	await travel_capture("shop-pending-100")
+	app.ui.update_commerce(ready_partial.merged({"message":"Purchase cancelled."},true))
+	await settle()
+	var status: Label = app.ui.sheet.find_child("ShopStatus",true,false)
+	current_club = app.ui.sheet.find_child("Purchase_purrington_cat_club",true,false)
+	check(status != null and status.text == "Purchase cancelled." and current_club != null and not current_club.disabled, "Cancelled purchase restores the available action")
+	app.ui.update_commerce(ready_partial.merged({"message":"Purchase failed. Please try again."},true))
+	await settle()
+	status = app.ui.sheet.find_child("ShopStatus",true,false)
+	current_club = app.ui.sheet.find_child("Purchase_purrington_cat_club",true,false)
+	check(status != null and status.text == "Purchase failed. Please try again." and current_club != null and not current_club.disabled, "Failed purchase leaves the priced expansion retryable")
+	app.ui._navigate("Map")
+	await settle()
+	var paid_destination: Button = app.ui.sheet.find_child("Destination_2",true,false)
+	await click(paid_destination)
+	var paid_action: Button = app.ui.sheet.find_child("SheetPrimary",true,false)
+	check(paid_action.text == "View expansion" and not paid_action.disabled, "Locked paid hotel offers its expansion")
+	paid_action.pressed.emit()
+	await settle()
+	forest = app.ui.sheet.find_child("Purchase_purrington_forest_lodge",true,false)
+	check(app.ui.tab == "Shop" and forest != null and forest.has_focus(), "Paid destination opens Shop focused on its matching product")
+
+	app.model.life.grant_product(app.model,"purrington.forest_lodge")
+	app._update_ui()
+	app.ui._shop()
+	await settle()
+	forest = app.ui.sheet.find_child("Purchase_purrington_forest_lodge",true,false)
+	check(forest != null and forest.disabled and forest.text == "Owned · Thank you!", "Owned Forest entitlement has a distinct shop state")
+	await travel_capture("shop-owned-100")
+	app.ui._navigate("Map")
+	await settle()
+	var destination: Button = app.ui.sheet.find_child("Destination_2",true,false)
+	if destination != null:
+		await click(destination)
+		var primary: Button = app.ui.sheet.find_child("SheetPrimary",true,false)
+		check(primary != null and primary.text == "Visit hotel" and not primary.disabled, "Owned Forest can be visited from its details card")
+		primary.pressed.emit()
+		await settle()
+		check(app.model.current_hotel == 2, "Owned Forest action visits the real hotel")
+	else:
+		check(false,"Forest destination remains selectable")
+
+	app.model.current_hotel = 0
+	app.model.hotels[2].owned = false
+	app.model.life.state.entitlements.erase("purrington.forest_lodge")
+	app._update_ui()
+	app.change_setting("ui_text_scale",1.5)
+	app.ui._navigate("Map")
+	await settle()
+	check(app.ui.sheet.find_child("DestinationList",true,false) != null, "Large text reflows destinations into an illustrated list")
+	await travel_capture("map-150")
+	app.ui.selected_destination = 1
+	app.ui._map()
+	await settle()
+	check(app.ui.sheet.find_child("RequirementLevel",true,false) != null and app.ui.sheet.find_child("RequirementCoins",true,false) != null and app.ui.sheet.find_child("UnlockHotel",true,false) != null, "Large-text Seaside keeps both requirements and its pinned action")
+	await travel_capture("map-seaside-150")
+	app.ui._navigate("Shop")
+	await settle()
+	await travel_capture("shop-150")
+	app.change_setting("ui_text_scale",1.0)
+	app.ui.update_commerce({})
+	app.set_process(true)
 
 func life_capture(title: String, target: Control = null) -> void:
 	app.ui.toast_timer = 0

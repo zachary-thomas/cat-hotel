@@ -97,8 +97,12 @@ func run() -> void:
 	await capture("03-upgrades")
 	app.ui._navigate("Map")
 	await process_frame
+	check(app.ui.sheet.find_child("Destination_0",true,false) != null, "Meadow is navigable")
+	check(app.ui.sheet.find_child("Destination_3",true,false) != null, "Snowcap is discoverable")
 	check(app.ui.sheet.find_child("UnlockHotel", true, false).disabled, "Map shows locked second hotel")
 	await capture("04-map")
+	app.ui._navigate("Shop")
+	check(app.ui.purchase_buttons.all(func(b): return b.disabled), "Unavailable store cannot buy")
 	app.ui._navigate("Cats")
 	await capture("05-cats")
 	app.change_setting("motion", false)

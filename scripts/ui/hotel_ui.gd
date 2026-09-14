@@ -17,6 +17,7 @@ var grounds_key: String = ""
 const Content = preload("res://scripts/core/game_content.gd")
 const LifeViews = preload("res://scripts/ui/views/life_views.gd")
 const GroundsViews = preload("res://scripts/ui/views/grounds_views.gd")
+const TravelViews = preload("res://scripts/ui/views/travel_views.gd")
 var selected_staff: int = 0
 const CatViews = preload("res://scripts/ui/views/cat_views.gd")
 const PetView = preload("res://scripts/ui/cat_interaction.gd")
@@ -33,6 +34,8 @@ var quick_bar: HBoxContainer
 var watch_exit: Button
 var commerce: Dictionary = {}
 var purchase_buttons: Array = []
+var selected_destination: int = 1
+var shop_focus_product: String = ""
 var last_life_revision: int = -1
 
 func _view() -> void:
@@ -97,6 +100,7 @@ func render(data: Dictionary) -> void:
 		if is_instance_valid(preference_label):
 			preference_label.text = "Loves " + Content.PREFERENCE_COPY[Content.PREFERENCES[selected_cat]] + "." if cat.preference else "Spend time together to learn a favorite comfort."
 	LifeViews.update(self)
+	if tab == "Map": TravelViews.update_map(self)
 	if last_life_revision != int(data.life.revision):
 		last_life_revision = int(data.life.revision)
 		if tab in ["Life","Journal","Staff","Discoveries","Shop"] and is_instance_valid(sheet):
@@ -165,54 +169,23 @@ func _map() -> void:
 	if not snapshot.has("life"):
 		super._map()
 		return
-	var col = _base_sheet("Your hotel journey",650)
-	col.add_child(paragraph("Meadow House and Seaside are free. Every purchased expansion also removes all ads."))
-	for i in range(4):
-		col.add_child(art("hotel",110,i==1))
-		col.add_child(label(snapshot.hotel_names[i],24))
-		col.add_child(paragraph(Content.HOTEL_MECHANICS[i],14))
-		if snapshot.owned[i]:
-			col.add_child(paragraph("%d stars · +%d coins/min" % [snapshot.life.hotels[i].stars,snapshot.hotel_rates[i]],14,GREEN))
-			col.add_child(button("You're here" if snapshot.hotel==i else "Visit hotel",func(): hotel_requested.emit(i)))
-		elif i==1:
-			col.add_child(paragraph("Meadow level %d/10 · 10,000 Cat Coins" % snapshot.meadow_level))
-			var b = button("Open Seaside",func(): hotel_requested.emit(1),true)
-			b.name = "UnlockHotel"
-			col.add_child(b)
-			live_buttons.append({"button":b,"kind":"unlock"})
-		else:
-			col.add_child(button("View expansion",func(): _navigate("Shop")))
-	# Update affordability without recursively rebuilding this sheet.
-	for item in live_buttons:
-		if item.kind=="unlock":
-			item.button.disabled = not snapshot.can_unlock
+	TravelViews.map(self)
 
 func _shop() -> void:
-	var col = _base_sheet("More places. More paws.",650)
-	purchase_buttons.clear()
-	var owned: bool = not snapshot.life.entitlements.is_empty()
-	col.add_child(paragraph("Thank you! Your game is permanently ad-free." if owned else "The base game is free. Any expansion purchase removes every ad throughout the app.",16,GREEN))
-	col.add_child(paragraph(commerce.get("message","Connecting to the store…"),13))
-	for product in Content.PRODUCTS:
-		col.add_child(label(product.name,23))
-		col.add_child(paragraph(product.copy,14))
-		var purchased: bool = snapshot.life.entitlements.has(product.id)
-		var price: String = commerce.get("prices",{}).get(product.id,"")
-		var title: String = "Owned · Thank you!" if purchased else ("Try expansion · Test purchase" if commerce.get("preview",false) else ("Buy · "+price if price!="" else "Store unavailable"))
-		var b = button(title,func(): purchase_requested.emit(product.id),not purchased)
-		b.name = "Purchase_"+product.id.replace(".","_")
-		b.disabled = purchased or not commerce.get("ready",false) or commerce.get("busy",false)
-		col.add_child(b)
-		purchase_buttons.append(b)
-	var restore = button("Restore purchases",func(): restore_requested.emit())
-	restore.disabled = not commerce.get("can_restore",false) or commerce.get("busy",false)
-	col.add_child(restore)
-	col.add_child(paragraph("Restoring a purchase also restores ad removal. Cat packs add personalities and stories; your free cats can reach every base-game star.",13))
+	TravelViews.shop(self)
 
 func update_commerce(data: Dictionary) -> void:
 	commerce = data
 	if tab=="Shop" and snapshot.get("started",false):
-		_shop()
+		TravelViews.update_shop(self)
+
+func _focus_shop_product() -> void:
+	if shop_focus_product.is_empty() or not is_instance_valid(sheet): return
+	var target: Button = sheet.find_child("Purchase_" + shop_focus_product.replace(".", "_"), true, false)
+	if target != null:
+		sheet.scroll.ensure_control_visible(target)
+		target.grab_focus()
+	shop_focus_product = ""
 
 func _settings() -> void:
 	super._settings()

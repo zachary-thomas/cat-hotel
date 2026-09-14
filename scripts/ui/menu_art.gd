@@ -2,7 +2,8 @@ extends Control
 ## Original isometric menu illustrations, drawn with the game's palette.
 var kind: String = "suite"
 var seaside: bool = false
-const SCENES = {"grounds":"garden", "staff":"staff", "journal":"scrapbook", "kiosk":"paw-mart", "nap":"nap-gathering", "cardboard":"gatherings", "lantern":"lantern-gathering", "beach":"beach-gathering", "trail":"trail-gathering", "spa":"spa-gathering"}
+const SCENES = {"grounds":"garden", "staff":"staff", "journal":"scrapbook", "kiosk":"paw-mart", "nap":"nap-gathering", "cardboard":"gatherings", "lantern":"lantern-gathering", "beach":"beach-gathering", "trail":"trail-gathering", "spa":"spa-gathering", "world_map":"world-map"}
+const HOTEL_CENTERS = {"hotel_meadow":Vector2(0.27,0.70), "hotel_seaside":Vector2(0.79,0.48), "hotel_forest":Vector2(0.30,0.29), "hotel_snowcap":Vector2(0.74,0.12)}
 static var textures: Dictionary = {}
 static var staff_regions: Dictionary = {}
 static func texture(scene: String) -> Texture2D:
@@ -26,6 +27,20 @@ func _ready() -> void:
 func _draw() -> void:
 	if kind == "manager":
 		_draw_manager()
+		return
+	if HOTEL_CENTERS.has(kind):
+		var hotel_map := texture("world-map")
+		var map_extent := hotel_map.get_size()
+		var aspect := maxf(0.2, size.x / maxf(1.0, size.y))
+		var region_height := map_extent.y * 0.25
+		var region_width := region_height * aspect
+		if region_width > map_extent.x * 0.58:
+			region_width = map_extent.x * 0.58
+			region_height = region_width / aspect
+		var region_size := Vector2(region_width, region_height)
+		var center: Vector2 = HOTEL_CENTERS[kind] * map_extent
+		var origin := Vector2(clampf(center.x-region_size.x/2,0,map_extent.x-region_size.x),clampf(center.y-region_size.y/2,0,map_extent.y-region_size.y))
+		draw_texture_rect_region(hotel_map, Rect2(Vector2.ZERO,size), Rect2(origin,region_size))
 		return
 	if SCENES.has(kind):
 		var scene := texture(SCENES[kind])
