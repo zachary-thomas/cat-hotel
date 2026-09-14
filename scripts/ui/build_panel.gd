@@ -135,6 +135,7 @@ func _refresh() -> void:
  close_button.size_flags_horizontal=Control.SIZE_SHRINK_END
  close_button.autowrap_mode=TextServer.AUTOWRAP_OFF
  close_button.custom_minimum_size.x=104*metrics.unit
+ close_button.custom_minimum_size.y=56*metrics.unit
  close_button.add_theme_font_size_override("font_size",roundi(14*_font_scale))
  var history_panel=PanelContainer.new(); history_panel.name="BuildHistory"; add_child(history_panel)
  history_panel.position=metrics.history_rect.position; history_panel.size=metrics.history_rect.size
@@ -162,7 +163,7 @@ func _refresh() -> void:
  elif browse: _catalogue_content()
  elif not ghost.is_empty() or session!=null: _makeover_content()
  else: _rooms_content()
- if transaction_error!="" and not is_instance_valid(status): status=_copy(transaction_error,PlayfulTheme.ERROR_INK)
+ if transaction_error!="" and not is_instance_valid(status): status=_alert_copy(transaction_error)
  _update_action()
  queue_redraw()
 
@@ -205,6 +206,23 @@ func _placement_button(accept: bool) -> Button:
 func _copy(text: String, color: Color=PlayfulTheme.SECONDARY_INK, parent: Node=null, size: int=16) -> Label:
  var label: Label=ui.canvas_paragraph(text,roundi(size*_font_scale),color); (parent if parent!=null else content).add_child(label); return label
 
+func _alert_copy(text: String, parent: Node=null) -> Label:
+ var alert=PanelContainer.new(); alert.name="BuildAlert"
+ var alert_style=PlayfulTheme.panel(PlayfulTheme.ERROR_FILL,metrics.unit,14)
+ alert_style.shadow_size=0; alert_style.content_margin_left=8*metrics.unit; alert_style.content_margin_right=8*metrics.unit
+ alert_style.content_margin_top=6*metrics.unit; alert_style.content_margin_bottom=6*metrics.unit
+ alert.add_theme_stylebox_override("panel",alert_style)
+ (parent if parent!=null else content).add_child(alert)
+ var row=HBoxContainer.new(); row.add_theme_constant_override("separation",roundi(8*metrics.unit)); alert.add_child(row)
+ var badge=PanelContainer.new(); badge.custom_minimum_size=Vector2.ONE*24*metrics.unit; row.add_child(badge)
+ var badge_style=PlayfulTheme.panel(PlayfulTheme.ERROR_INK,metrics.unit,12); badge_style.shadow_size=0
+ badge_style.content_margin_left=0; badge_style.content_margin_right=0; badge_style.content_margin_top=0; badge_style.content_margin_bottom=0
+ badge.add_theme_stylebox_override("panel",badge_style)
+ var icon=ui.canvas_label("!",roundi(16*_font_scale),Color.WHITE); icon.name="BuildAlertIcon"; icon.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+ icon.vertical_alignment=VERTICAL_ALIGNMENT_CENTER; icon.accessibility_name="Error"; badge.add_child(icon)
+ var label=ui.canvas_paragraph(text,roundi(14*_font_scale),PlayfulTheme.ERROR_INK); label.size_flags_horizontal=Control.SIZE_EXPAND_FILL; row.add_child(label)
+ return label
+
 func _rooms_content() -> void:
  _copy("Build anywhere. Tap furniture to move it, or browse for something new.")
  var row=HBoxContainer.new(); content.add_child(row)
@@ -226,7 +244,8 @@ func _makeover_content() -> void:
  var after: Dictionary=before
  if not ghost.is_empty():
   var definition: Dictionary=Catalog.item(ghost.item)
-  status=_copy(transaction_error if transaction_error!="" else validity.get("message","Tap any floor to position."),PlayfulTheme.ERROR_INK if transaction_error!="" or not validity.get("ok",false) else PlayfulTheme.INK)
+  var status_copy: String=transaction_error if transaction_error!="" else validity.get("message","Tap any floor to position.")
+  status=_alert_copy(status_copy) if transaction_error!="" or not validity.get("ok",false) else _copy(status_copy,PlayfulTheme.INK)
   var tray=HBoxContainer.new(); tray.name="SelectedFurnitureTray"; tray.add_theme_constant_override("separation",roundi(10*metrics.unit)); content.add_child(tray)
   var thumbnail=Thumbnail.new(); thumbnail.name="SelectedFurnitureArt"; thumbnail.item_id=definition.id; thumbnail.custom_minimum_size=Vector2.ONE*72*metrics.unit; tray.add_child(thumbnail)
   var details=VBoxContainer.new(); details.size_flags_horizontal=Control.SIZE_EXPAND_FILL; details.add_theme_constant_override("separation",roundi(2*metrics.unit)); tray.add_child(details)
@@ -520,7 +539,8 @@ func _room_placement() -> void:
  if blueprint_placing:
   var quote: Dictionary=Blueprint.quote(app.model,app.model.current_hotel,clipboard,candidate)
   _copy("Room %d + furniture %d = %d coins" % [quote.get("room_cost",0),quote.get("furniture_cost",0),quote.get("cost_coins",0)])
- _copy(validity.get("message",""))
+ var placement_message: String=transaction_error if transaction_error!="" else validity.get("message","")
+ status=_alert_copy(placement_message) if transaction_error!="" or not validity.get("ok",false) else _copy(placement_message)
  _button("Rotate entrance ↻",rotate,false,"RotateRoom")
  var label: String="Paste · %d" % blueprint_cost if blueprint_placing else ("Move · Free" if moving>=0 else "Build · %d" % Layout.cost(candidate.kind))
  confirm_button=_button(label,confirm,true,"ConfirmRoom",actions)

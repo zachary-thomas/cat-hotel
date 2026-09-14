@@ -85,6 +85,7 @@ func test_makeover_flow() -> void:
 	check(panel.confirm_button.disabled,"Invalid furniture placement disables the checkmark")
 	panel.confirm()
 	check(app.model.coins_units==before.coins_units and app.model.furniture.serialize()==before.furniture,"An invalid checkmark action cannot buy furniture")
+	check_build_alert(panel,str(panel.validity.message),"Invalid placement")
 	if DisplayServer.get_name()!="headless":
 		await process_frame; await process_frame; await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/furniture-check-invalid-360x640.png")
@@ -104,6 +105,7 @@ func test_makeover_flow() -> void:
 	check(app.model.serialize()==failure_before,"A failed immediate save rolls back wallet and instances atomically")
 	check(not panel.ghost.is_empty() and str(panel.ghost.uid)==failed_uid and is_instance_valid(app.world.room_builder.renderer(0)._ghost),"A failed save keeps the positioned ghost available to retry")
 	check(not panel.confirm_button.disabled and panel.confirm_button.text=="Place · 160","A valid preview can retry the same quoted Place after a save failure")
+	check_build_alert(panel,"Simulated furniture save failure","Save failure")
 	if DisplayServer.get_name()!="headless":
 		await process_frame; await process_frame; await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/task4-build-save-failure-360x640-150.png")
@@ -206,7 +208,10 @@ func test_phone_catalogue_and_placement(app, panel) -> void:
 		for name in ["CloseBuilder","UndoBuild","RedoBuild","RotateFurniture","AdjustFurniture","CancelFurniture","PlaceFurniture"]:
 			var control: Control=panel.find_child(name,true,false)
 			check(control!=null,"%s is available during placement" % name)
-			if control!=null: check(safe.grow(1).encloses(scaled_rect(control.get_global_rect(),Metrics.phone_scale(panel))),"%s remains visible at %.0f%% text" % [name,text_scale*100.0])
+			if control!=null:
+				var physical: Rect2=scaled_rect(control.get_global_rect(),Metrics.phone_scale(panel))
+				check(safe.grow(1).encloses(physical),"%s remains visible at %.0f%% text" % [name,text_scale*100.0])
+				if name=="CloseBuilder": check(physical.size.y>=56-1,"Play is at least 56 physical units tall at %.0f%% text" % (text_scale*100.0))
 		var rotate: Button=panel.find_child("RotateFurniture",true,false)
 		var adjust: Button=panel.find_child("AdjustFurniture",true,false)
 		var cancel_button: Button=panel.find_child("CancelFurniture",true,false)
@@ -218,13 +223,55 @@ func test_phone_catalogue_and_placement(app, panel) -> void:
 		if DisplayServer.get_name()!="headless":
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://tmp/task4-build-placement-360x640-%d.png" % int(text_scale*100.0))
+	await test_affordable_wallet_updates(app,panel)
 	var wallet_units: int=app.model.coins_units
 	app.model.coins_units=0; panel._check_ghost(); panel._refresh()
 	check(panel.confirm_button.disabled and panel.validity.message.contains("150"),"Unaffordable selection stays positioned and reports the exact shortfall")
+	check_build_alert(panel,"Need 150 more coins","Unaffordable placement")
 	if DisplayServer.get_name()!="headless":
 		await process_frame; await process_frame; await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/task4-build-unaffordable-360x640-150.png")
 	app.model.coins_units=wallet_units; panel.cancel()
+
+func test_affordable_wallet_updates(app, panel) -> void:
+	var wallet_units: int=app.model.coins_units
+	panel.cancel(); panel.browse=true; panel.category="play"; panel.affordable=true
+	app.model.coins_units=149*app.model.UNIT; panel._refresh()
+	await process_frame; await process_frame
+	var perch: Button=panel.find_child("FurnitureCard_perch",true,false)
+	var art: Control=perch.find_child("FurnitureArt",true,false) if perch!=null else null
+	check(perch!=null and not perch.visible,"Affordable browse initially hides a piece above the wallet")
+	if perch==null:
+		app.model.coins_units=wallet_units; panel.affordable=false; panel.category="sleep"; panel._refresh(); panel.preview_item("perch")
+		return
+	var art_identity: int=art.get_instance_id() if art!=null else -1
+	app.model.coins_units=150*app.model.UNIT; panel._process(0)
+	await process_frame; await process_frame
+	check(perch.visible,"Wallet income reveals a newly affordable cached card without a refresh")
+	check(art!=null and art.get_instance_id()==art_identity,"Wallet income reuses the cached furniture thumbnail")
+	if DisplayServer.get_name()!="headless":
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://tmp/task4-build-affordable-refresh-360x640.png")
+	app.model.coins_units=149*app.model.UNIT; panel._process(0)
+	await process_frame; await process_frame
+	check(not perch.visible,"Wallet spending hides a cached card that no longer passes Affordable")
+	check(art!=null and art.get_instance_id()==art_identity,"Wallet spending does not recreate the cached furniture thumbnail")
+	var empty_state: Label=panel.find_child("FurnitureEmptyState",true,false)
+	var visible_cards: Array[Node]=panel.find_children("FurnitureCard_*","Button",true,false).filter(func(card): return card.visible)
+	check(empty_state!=null and empty_state.visible==visible_cards.is_empty(),"Affordable empty state follows cached card visibility")
+	panel.category="storage"; panel._refresh()
+	await process_frame; await process_frame
+	empty_state=panel.find_child("FurnitureEmptyState",true,false)
+	check(empty_state!=null and empty_state.visible and empty_state.text.contains("No stored furniture"),"Empty storage keeps its specific guidance")
+	app.model.coins_units=wallet_units; panel.affordable=false; panel.category="sleep"; panel._last_balance=-1; panel._refresh(); panel.preview_item("perch")
+
+func check_build_alert(panel, expected_copy: String, context: String) -> void:
+	var alert: PanelContainer=panel.find_child("BuildAlert",true,false)
+	var icon: Label=panel.find_child("BuildAlertIcon",true,false)
+	var style: StyleBoxFlat=alert.get_theme_stylebox("panel") as StyleBoxFlat if alert!=null else null
+	check(alert!=null and panel.status!=null and panel.status.text.contains(expected_copy),context+" uses a dedicated alert with the real reason")
+	check(style!=null and style.bg_color.is_equal_approx(Color("fff0ec")),context+" uses the error surface token")
+	check(icon!=null and icon.text.strip_edges()!="",context+" includes a visible non-color error icon")
 
 func scaled_rect(rect: Rect2, scale: float) -> Rect2:
 	return Rect2(rect.position*scale,rect.size*scale)
