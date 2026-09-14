@@ -43,6 +43,12 @@ func check_shell() -> void:
 	if is_instance_valid(app.ui.sheet):
 		check(safe.encloses(app.ui.sheet.get_global_rect()), "Sheet fits the safe area")
 		check(app.ui.sheet.get_global_rect().end.y <= app.ui.dock_panel.get_global_rect().position.y, "Sheet leaves every dock target accessible")
+func check_tile_art(tile: Button) -> void:
+	var drawing: Control = tile.get_child(0).get_child(0)
+	var phone_size: Vector2 = drawing.get_global_rect().size / float(app.ui.metrics.unit)
+	# Native containers may round the assigned height to a canvas pixel.
+	check(drawing.get_global_rect().size.distance_to(Vector2(80, 80) * float(app.ui.metrics.unit)) <= 1.0, "Tile artwork uses an 80×80 phone-unit slot without horizontal stretching")
+	check(phone_size.x >= 64 and phone_size.x <= 88 and phone_size.y >= 64 and phone_size.y <= 88, "Displayed tile art stays within 64–88 phone units in both dimensions")
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute("res://tmp")
 	var key := "res://tmp/mobile-navigation-" + str(Time.get_ticks_usec())
@@ -71,6 +77,7 @@ func run() -> void:
 	var cat_tile: Button = app.ui.sheet.find_child("Tile_Miso", true, false)
 	check(cat_tile != null, "Cat collection uses a whole-card action")
 	if cat_tile != null:
+		check_tile_art(cat_tile)
 		await click(cat_tile)
 		check(app.ui.tab == "Pet", "Tapping the whole cat card opens its profile")
 		var original_pet = app.ui.pet_view
@@ -155,6 +162,17 @@ func run() -> void:
 	app.active = false
 	app.ui._navigate("Cats")
 	await settle()
+	var existing_tile: Button = app.ui.sheet.find_child("Tile_Miso", true, false)
+	check_tile_art(existing_tile)
+	var drawing: Control = existing_tile.get_child(0).get_child(0)
+	var previous_size := drawing.size
+	app.ui.metrics.unit *= 1.25
+	app.ui._apply_control_metrics(app.ui)
+	await settle()
+	check_tile_art(existing_tile)
+	check(drawing.size.distance_to(previous_size * 1.25) <= 1.5, "Existing artwork resizes with phone metrics without rebuilding its tile")
+	app.ui.relayout()
+	await settle()
 	var unit: float = app.ui.metrics.unit
 	var viewport: Vector2 = app.ui.size
 	var inset_safe := Rect2(Vector2(12, 24) * unit, viewport - Vector2(30, 44) * unit)
@@ -164,6 +182,7 @@ func run() -> void:
 	app.ui.sheet.relayout(app.ui._sheet_bounds())
 	await settle()
 	check_shell()
+	check_tile_art(existing_tile)
 	await capture("task2-safe-150")
 	app.queue_free()
 	await process_frame

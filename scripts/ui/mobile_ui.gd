@@ -208,6 +208,8 @@ func _apply_control_metrics(node: Node) -> void:
 			_apply_primary_button_style(node)
 	for child in node.get_children():
 		_apply_control_metrics(child)
+	if node is GameTile:
+		node.relayout()
 
 func _apply_primary_button_style(item: Button) -> void:
 	var unit: float = float(metrics.get("unit", 1.0))

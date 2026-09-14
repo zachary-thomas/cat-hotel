@@ -203,7 +203,6 @@ func _cats() -> void:
 	col.add_child(grid)
 	for i in range(Content.CAT_NAMES.size()):
 		var portrait = Badge.new()
-		portrait.custom_minimum_size = Vector2(80, 105)
 		portrait.coat = Color(Content.COATS[i])
 		portrait.locked = not snapshot.life.cats[i].known
 		var card = GameTile.new()
