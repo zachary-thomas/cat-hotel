@@ -38,7 +38,7 @@ var pending_seconds: int = 0
 var away_seconds: int = 0
 var last_seen: int = 0
 var started: bool = false
-var settings: Dictionary = {"motion": true, "sound": true, "music": true, "evening": false, "haptics": true, "weather": true, "watch": false, "exterior": false, "build_text_scale":1.0}
+var settings: Dictionary = {"motion": true, "sound": true, "music": true, "evening": false, "haptics": true, "weather": true, "watch": false, "exterior": false, "build_text_scale":1.0, "ui_text_scale":1.0}
 
 func _init() -> void:
 	life.bind(self)
@@ -302,10 +302,14 @@ func _restore_candidate(data: Dictionary) -> bool:
 	last_seen = int(data.last_seen)
 	started = true
 	var saved_settings = data.get("settings", {})
-	if saved_settings is Dictionary and saved_settings.has("build_text_scale"):
-		if saved_settings.build_text_scale not in [1.0,1.25,1.5]: return false
-		settings.build_text_scale = float(saved_settings.build_text_scale)
 	if saved_settings is Dictionary:
+		if saved_settings.has("build_text_scale"):
+			if saved_settings.build_text_scale not in [1.0,1.25,1.5]: return false
+			settings.build_text_scale = float(saved_settings.build_text_scale)
+		var scale_value = saved_settings.get("ui_text_scale", settings.build_text_scale)
+		if not (scale_value is float or scale_value is int) or scale_value not in [1.0,1.25,1.5]:
+			return false
+		settings.ui_text_scale = float(scale_value)
 		# Respect a player's existing mute preference when loading an older save.
 		settings.music = saved_settings.get("music", saved_settings.get("sound", true)) == true
 		for key in settings.keys():

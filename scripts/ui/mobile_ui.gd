@@ -13,13 +13,16 @@ signal reset_camera_requested
 const Badge = preload("res://scripts/ui/cat_badge.gd")
 const Icon = preload("res://scripts/ui/game_icon.gd")
 const Art = preload("res://scripts/ui/menu_art.gd")
+const PhoneLayout = preload("res://scripts/ui/phone_layout.gd")
+const BuildMetrics = preload("res://scripts/ui/build_metrics.gd")
+const PlayfulTheme = preload("res://scripts/ui/playful_theme.gd")
 const DISPLAY_FONT = preload("res://assets/fonts/Fredoka.ttf")
 const BODY_FONT = preload("res://assets/fonts/Nunito.ttf")
-const INK = Color("294638")
-const MUTED = Color("63735d")
-const CREAM = Color("faf6ea")
-const GREEN = Color("54775b")
-const GOLD = Color("b78d3e")
+const INK = PlayfulTheme.INK
+const MUTED = PlayfulTheme.SECONDARY_INK
+const CREAM = PlayfulTheme.CREAM
+const GREEN = PlayfulTheme.MINT
+const GOLD = PlayfulTheme.GOLD
 
 var snapshot: Dictionary = {}
 var header: Control
@@ -47,12 +50,16 @@ var live_buttons: Array = []
 var nav_buttons: Dictionary = {}
 var objective_progress: ProgressBar
 var activity_label: Label
+var metrics: Dictionary = {}
+var _metrics_key: String = ""
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	relayout()
+	get_viewport().size_changed.connect(relayout)
 	var theme_resource = Theme.new()
-	theme_resource.default_font_size = 16
+	theme_resource.default_font_size = _scaled_font_size(16)
 	var body_font = FontVariation.new()
 	body_font.base_font = BODY_FONT
 	body_font.variation_opentype = {2003265652: 650.0}
@@ -62,11 +69,11 @@ func _ready() -> void:
 	theme_resource.set_color("font_hover_color", "Button", INK)
 	theme_resource.set_color("font_pressed_color", "Button", INK)
 	theme_resource.set_color("font_disabled_color", "Button", Color("909589"))
-	theme_resource.set_stylebox("normal", "Button", style(Color("edeedb"), 14))
-	theme_resource.set_stylebox("hover", "Button", style(Color("e0e7cf"), 14))
-	theme_resource.set_stylebox("pressed", "Button", style(Color("ccd9bf"), 14))
-	theme_resource.set_stylebox("disabled", "Button", style(Color("e7e6da"), 14))
-	theme_resource.set_stylebox("focus", "Button", style(Color(0,0,0,0), 14, Color("b68d41"), 2))
+	theme_resource.set_stylebox("normal", "Button", PlayfulTheme.button_style(CREAM, metrics.unit))
+	theme_resource.set_stylebox("hover", "Button", PlayfulTheme.button_style(CREAM.lightened(0.05), metrics.unit))
+	theme_resource.set_stylebox("pressed", "Button", PlayfulTheme.button_style(CREAM.darkened(0.05), metrics.unit, true))
+	theme_resource.set_stylebox("disabled", "Button", PlayfulTheme.button_style(Color("e7e6da"), metrics.unit))
+	theme_resource.set_stylebox("focus", "Button", PlayfulTheme.focus_style(metrics.unit))
 	theme = theme_resource
 	if OS.has_feature("mobile"):
 		var safe: Rect2i = DisplayServer.get_display_safe_area()
@@ -93,19 +100,32 @@ func style(color: Color, radius: int = 18, border: Color = Color.TRANSPARENT, wi
 	return s
 
 func label(text: String, font_size: int = 16, color: Color = INK) -> Label:
+	return _make_label(text, _scaled_font_size(font_size), color, font_size >= 17)
+
+func canvas_label(text: String, pixels: int, color: Color = INK) -> Label:
+	return _make_label(text, pixels, color, pixels >= 17)
+
+func _make_label(text: String, pixels: int, color: Color, display_face: bool) -> Label:
 	var item = Label.new()
 	item.text = text
-	if font_size >= 17:
+	if display_face:
 		var display = FontVariation.new()
 		display.base_font = DISPLAY_FONT
 		display.variation_opentype = {2003265652: 620.0}
 		item.add_theme_font_override("font", display)
-	item.add_theme_font_size_override("font_size", font_size)
+	item.add_theme_font_size_override("font_size", pixels)
 	item.add_theme_color_override("font_color", color)
 	return item
 
 func paragraph(text: String, font_size: int = 15, color: Color = MUTED) -> Label:
-	var item = label(text, font_size, color)
+	return canvas_paragraph(text, _scaled_font_size(font_size), color)
+
+func canvas_paragraph(text: String, pixels: int, color: Color = MUTED) -> Label:
+	var item = _make_label(text, pixels, color, false)
+	var body = FontVariation.new()
+	body.base_font = BODY_FONT
+	body.variation_opentype = {2003265652: 650.0}
+	item.add_theme_font_override("font", body)
 	item.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return item
@@ -114,25 +134,38 @@ func button(text: String, action: Callable, primary: bool = false) -> Button:
 	var item = Button.new()
 	item.text = text
 	item.clip_text = true
-	item.custom_minimum_size.y = 52
+	var unit: float = metrics.get("unit", 1.0)
+	item.custom_minimum_size = Vector2(48, 56 if primary else 48) * unit
+	item.accessibility_name = text.strip_edges() if not text.strip_edges().is_empty() else "Button"
 	var display = FontVariation.new()
 	display.base_font = DISPLAY_FONT
 	display.variation_opentype = {2003265652: 550.0}
 	item.add_theme_font_override("font", display)
-	item.add_theme_font_size_override("font_size", 19)
+	item.add_theme_font_size_override("font_size", _scaled_font_size(19))
 	item.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	item.pressed.connect(func():
 		ui_sound_requested.emit()
 		action.call()
 	)
 	if primary:
-		item.add_theme_stylebox_override("normal", style(GREEN, 14))
-		item.add_theme_stylebox_override("hover", style(GREEN.lightened(0.10), 14))
-		item.add_theme_stylebox_override("pressed", style(GREEN.darkened(0.10), 14))
-		item.add_theme_color_override("font_color", CREAM)
-		item.add_theme_color_override("font_hover_color", CREAM)
-		item.add_theme_color_override("font_pressed_color", CREAM)
+		item.add_theme_stylebox_override("normal", PlayfulTheme.button_style(GREEN, unit))
+		item.add_theme_stylebox_override("hover", PlayfulTheme.button_style(GREEN.lightened(0.07), unit))
+		item.add_theme_stylebox_override("pressed", PlayfulTheme.button_style(GREEN.darkened(0.07), unit, true))
+		item.add_theme_color_override("font_color", INK)
+		item.add_theme_color_override("font_hover_color", INK)
+		item.add_theme_color_override("font_pressed_color", INK)
 	return item
+
+func _scaled_font_size(phone_units: int) -> int:
+	return maxi(1, roundi(phone_units * float(metrics.get("unit", 1.0)) * float(metrics.get("font_scale", 1.0))))
+
+func relayout() -> void:
+	var viewport: Vector2 = get_viewport_rect().size
+	var safe: Rect2 = BuildMetrics.safe_area(self)
+	var phone_scale: float = BuildMetrics.phone_scale(self)
+	var text_scale: float = float(snapshot.get("settings", {}).get("ui_text_scale", 1.0))
+	metrics = PhoneLayout.measure(viewport, safe, phone_scale, text_scale)
+	_metrics_key = str(viewport) + str(safe) + str(phone_scale) + str(text_scale)
 
 func panel_at(parent: Node, top: float, bottom: float, from_bottom: bool = false) -> PanelContainer:
 	var panel = PanelContainer.new()
@@ -161,6 +194,7 @@ func art(kind: String, height: float = 138, seaside: bool = false) -> Control:
 	item.seaside = seaside
 	item.custom_minimum_size.y = height
 	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	item.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return item
 
 func _build_chrome() -> void:
@@ -324,6 +358,7 @@ func _build_welcome() -> void:
 
 func render(data: Dictionary) -> void:
 	snapshot = data
+	relayout()
 	if not is_node_ready():
 		return
 	var started: bool = bool(data.get("started", false))
@@ -613,6 +648,13 @@ func show_toast(message: String) -> void:
 	toast_timer = 3.5
 
 func _process(delta: float) -> void:
+	var viewport: Vector2 = get_viewport_rect().size
+	var safe: Rect2 = BuildMetrics.safe_area(self)
+	var phone_scale: float = BuildMetrics.phone_scale(self)
+	var text_scale: float = float(snapshot.get("settings", {}).get("ui_text_scale", 1.0))
+	var current_key := str(viewport) + str(safe) + str(phone_scale) + str(text_scale)
+	if current_key != _metrics_key:
+		relayout()
 	if toast_timer > 0:
 		toast_timer -= delta
 		toast_label.visible = toast_timer > 0

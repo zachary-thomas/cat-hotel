@@ -113,9 +113,9 @@ func _refresh() -> void:
  confirm_button=null; status=null
  var header=HBoxContainer.new(); header.name="BuildHeader"; add_child(header)
  header.position=metrics.header_rect.position; header.size=metrics.header_rect.size
- var title=ui.label("BUILD",roundi(17*_font_scale))
+ var title=ui.canvas_label("BUILD",roundi(17*_font_scale))
  title.size_flags_horizontal=Control.SIZE_EXPAND_FILL; header.add_child(title)
- wallet=ui.label(_wallet_copy(),roundi(14*_font_scale)); header.add_child(wallet)
+ wallet=ui.canvas_label(_wallet_copy(),roundi(14*_font_scale)); header.add_child(wallet)
  var close_button: Button=_button("Play",close,true,"CloseBuilder",header)
  close_button.size_flags_horizontal=Control.SIZE_SHRINK_END
  close_button.autowrap_mode=TextServer.AUTOWRAP_OFF
@@ -179,7 +179,7 @@ func _placement_button(accept: bool) -> Button:
  return button
 
 func _copy(text: String) -> Label:
- var label: Label=ui.paragraph(text,roundi(15*_font_scale)); content.add_child(label); return label
+ var label: Label=ui.canvas_paragraph(text,roundi(15*_font_scale)); content.add_child(label); return label
 
 func _rooms_content() -> void:
  _copy("Build anywhere. Tap furniture to move it, or browse for something new.")

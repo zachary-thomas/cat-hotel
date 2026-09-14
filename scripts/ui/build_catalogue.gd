@@ -51,7 +51,7 @@ func populate(ui, model, hotel: int, category: String, target: float, text_scale
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.tooltip_text = "Comfort %d · Entertainment %d · Atmosphere %d" % [definition.stats.comfort,definition.stats.entertainment,definition.stats.atmosphere]
 		row.add_child(button)
-		var effects: Label = ui.paragraph("Comfort %d · Play %d · Atmosphere %d" % [definition.stats.comfort,definition.stats.entertainment,definition.stats.atmosphere],roundi(14*text_scale))
+		var effects: Label = ui.canvas_paragraph("Comfort %d · Play %d · Atmosphere %d" % [definition.stats.comfort,definition.stats.entertainment,definition.stats.atmosphere],roundi(14*text_scale))
 		add_child(effects)
 	if count==0:
-		add_child(ui.paragraph("No stored furniture yet. Store an object from a room to reuse it here." if category=="storage" else "No items match this filter. Try showing all items.",roundi(16*text_scale)))
+		add_child(ui.canvas_paragraph("No stored furniture yet. Store an object from a room to reuse it here." if category=="storage" else "No items match this filter. Try showing all items.",roundi(16*text_scale)))

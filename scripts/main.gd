@@ -251,17 +251,22 @@ func collect_earnings() -> void:
 	ui.show_toast("Collected %s Cat Coins. Welcome back!" % ui.number(reward))
 
 func change_setting(key: String, value: Variant) -> void:
-	if not model.settings.has(key) or (key == "build_text_scale" and value not in [1.0,1.25,1.5]) or (key != "build_text_scale" and not value is bool):
+	var numeric_setting: bool = key in ["ui_text_scale", "build_text_scale"]
+	if not model.settings.has(key) or (numeric_setting and (not (value is float or value is int) or value not in [1.0,1.25,1.5])) or (not numeric_setting and not value is bool):
 		return
 	_settle()
 	var before: Dictionary = model.serialize()
-	model.settings[key] = value
+	model.settings[key] = float(value) if numeric_setting else value
+	if key == "ui_text_scale":
+		model.settings.build_text_scale = float(value)
 	if not _commit(before):
 		return
 	world.set_motion_enabled(model.settings.motion)
 	world.set_evening(model.settings.evening)
 	world.apply_life(model)
+	ui.relayout()
 	if build_panel != null and build_panel.visible:
+		build_panel._resize()
 		build_panel.restore_preview()
 	_update_ui()
 

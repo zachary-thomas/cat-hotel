@@ -1,7 +1,7 @@
 param([switch]$Rendered, [ValidatePattern('^\d+x\d+$')][string]$Resolution = '450x900', [string[]]$Suites)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$existingSuites = @('test_model', 'test_store', 'test_life', 'test_commerce', 'test_audio', 'test_cat_collision', 'test_app', 'test_experience', 'test_grounds', 'test_views', 'test_layout', 'test_layout_grounds', 'test_building', 'test_startup_offline')
+$existingSuites = @('test_model', 'test_store', 'test_life', 'test_commerce', 'test_audio', 'test_cat_collision', 'test_app', 'test_experience', 'test_grounds', 'test_views', 'test_layout', 'test_layout_grounds', 'test_mobile_layout', 'test_building', 'test_startup_offline')
 $buildSuites = @('test_furniture_content','test_furniture_layout','test_furniture_inventory','test_build_session','test_build_transactions','test_build_input','test_build_mode','test_build_recovery','test_build_history','test_shared_layout','test_room_blueprint','test_build_flow','test_shared_navigation','test_furniture_preview')
 $knownSuites = $existingSuites + $buildSuites
 if (-not $Suites) {
