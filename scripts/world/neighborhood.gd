@@ -12,6 +12,7 @@ var maid
 var walkers: Array = []
 var amenity_cats: Array = []
 var targets: Array = []
+var selected_target: String = ""
 var detail_key: String = ""
 var current_hotel: int = -1
 var materials: Dictionary = {}
@@ -303,6 +304,7 @@ func select_at(screen_pos: Vector2) -> bool:
 			distance = d
 			nearest = target
 	if not nearest.is_empty():
+		selected_target = str(nearest.action)+str(nearest.payload)
 		selected.emit(nearest.action,nearest.payload)
 		return true
 	if manager_control:

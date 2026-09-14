@@ -87,8 +87,10 @@ func run() -> void:
 		for z in [-17.2, 5.0]:
 			var point: Vector2 = app.world.camera.unproject_position(Vector3(x,0.2,z))
 			check(app.ui.world_input_contains(point) and point.x > 0 and point.x < app.ui.size.x, "The entire hotel fits between the controls")
-	await click(app.activity.repair_markers[2])
-	check(app.ui.tab == "Rooms" and app.ui.selected_wing == 2, "Tapping a future wing opens that wing's repair details")
+	# Label budgeting must never remove the actual wing's world selection.
+	app.world._select(app.world.camera.unproject_position(Vector3(0,0.2,-15.9)))
+	await process_frame
+	check(app.ui.tab == "Rooms" and app.ui.selected_wing == 2, "Tapping an unlabeled future wing opens that wing's repair details")
 	check(app.ui.sheet.find_child("BuildExpansion",true,false).disabled, "Future wings explain their requirements without allowing an out-of-order purchase")
 	app.ui.close_sheet()
 	app.ui.open_upgrades(0)

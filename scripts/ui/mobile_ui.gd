@@ -10,6 +10,8 @@ signal claim_requested
 signal setting_changed(key: String, value: Variant)
 signal zone_focus_requested(zone: int)
 signal reset_camera_requested
+signal world_rect_changed(rect: Rect2)
+signal hotel_focus_requested
 
 const GameSheet = preload("res://scripts/ui/game_sheet.gd")
 const GameTile = preload("res://scripts/ui/game_tile.gd")
@@ -63,6 +65,8 @@ var _sheet_route: String = ""
 var _sheet_height: float = 525
 var dock_panel: PanelContainer
 var objective_panel: PanelContainer
+var objective_button: Button
+var _objective_layout_pending := false
 var _metrics_key: String = ""
 const PHONE_FONT_META := &"phone_font_units"
 const PHONE_BUTTON_META := &"phone_button_primary"
@@ -174,6 +178,7 @@ func relayout() -> void:
 	var phone_scale: float = BuildMetrics.phone_scale(self)
 	var text_scale: float = float(snapshot.get("settings", {}).get("ui_text_scale", 1.0))
 	metrics = PhoneLayout.measure(viewport, safe, phone_scale, text_scale)
+	world_rect_changed.emit(metrics.world_rect)
 	_metrics_key = str(viewport) + str(safe) + str(phone_scale) + str(text_scale)
 	_apply_theme_metrics()
 	_apply_control_metrics(self)
@@ -333,20 +338,30 @@ func _build_chrome() -> void:
 	texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	texts.add_theme_constant_override("separation", 0)
 	objective_row.add_child(texts)
-	objective_label = label("Tap a boarded wing to repair", 15)
+	objective_label = label("A cozier hotel", 16)
+	objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	texts.add_child(objective_label)
-	progress_label = label("Drag to explore · Pinch to zoom", 11, MUTED)
+	progress_label = label("Open your next improvement", 14, MUTED)
+	progress_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	texts.add_child(progress_label)
 	objective_progress = ProgressBar.new()
 	objective_progress.max_value = 2
 	objective_progress.hide()
 	texts.add_child(objective_progress)
-	var next = button("View", func(): open_route("View", "Hotel"))
-	next.name = "ViewAllHotel"
-	next.tooltip_text = "Hotel view options"
-	next.custom_minimum_size = Vector2(72,44)
-	next.add_theme_font_size_override("font_size", 13)
+	var next = button("›", _open_next_action)
+	objective_button = next
+	next.name = "NextHotelAction"
+	next.tooltip_text = "Open your next hotel action"
+	next.custom_minimum_size = Vector2(48,48)
+	next.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	next.focus_mode = Control.FOCUS_NONE
 	objective_row.add_child(next)
+	# The whole card is the action; the chevron is only its visible cue.
+	objective_button = button("",_open_next_action)
+	objective_button.name = "ObjectiveCardAction"
+	for state in ["normal","hover","pressed"]:
+		objective_button.add_theme_stylebox_override(state,StyleBoxEmpty.new())
+	objective.add_child(objective_button)
 	var navigation = panel_at(footer, -90, -12, true)
 	dock_panel = navigation
 	navigation.name = "HotelDock"
@@ -444,8 +459,13 @@ func render(data: Dictionary) -> void:
 	level_label.text = "Hotel level %d  ·  %s" % [data.hotel_level, "Garden retreat" if data.hotel == 0 else "Coastal escape"]
 	pending_button.visible = data.pending > 0
 	var remaining: float = data.get("repair_remaining", 0)
-	objective_label.text = "Construction cats at work · %ds" % ceili(remaining) if remaining > 0 else ("Tap a boarded wing to repair" if data.wings < 3 else "Every room is open. Welcome home!")
-	progress_label.text = "More building space on the way" if remaining > 0 else "Tap a room to furnish · Drag to explore"
+	var action := next_action(data)
+	objective_label.text = action.title
+	progress_label.text = action.detail
+	objective_button.accessibility_name = action.title
+	if not _objective_layout_pending:
+		_objective_layout_pending = true
+		_settle_objective_layout.call_deferred()
 	if is_instance_valid(repair_status):
 		repair_status.text = "Construction cats at work · %ds left" % ceili(remaining)
 	if is_instance_valid(repair_progress) and data.wings < 3:
@@ -563,6 +583,9 @@ func _layout_navigation() -> void:
 	if not is_instance_valid(dock_panel): return
 	var unit: float = metrics.unit
 	var bounds: Rect2 = metrics.footer_rect
+	objective_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	objective_panel.position = metrics.objective_rect.position - footer.position + Vector2(6,0) * unit
+	objective_panel.size = metrics.objective_rect.size - Vector2(12,0) * unit
 	if is_instance_valid(shade): shade.offset_bottom = bounds.position.y - size.y
 	dock_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	dock_panel.position = bounds.position - footer.position + Vector2(6, 2) * unit
@@ -687,6 +710,7 @@ func set_primary_action(text: String, callback: Callable, disabled: bool = false
 
 func _view() -> void:
 	var content = _base_sheet("Your hotel view", 320)
+	content.add_child(button("Hotel view", func(): close_sheet(); hotel_focus_requested.emit()))
 	content.add_child(button("Fit the full hotel", func(): close_sheet(); reset_camera_requested.emit()))
 
 func _refresh_sheet() -> void:
@@ -791,6 +815,7 @@ func _open_settings() -> void:
 
 func _settings() -> void:
 	var content = _base_sheet("Make yourself comfortable", 555)
+	content.add_child(button("Hotel view", func(): open_route("View", "Settings")))
 	for option in [["music", "Background music"], ["sound", "Coins, cats & sound effects"], ["evening", "Evening lighting"], ["motion", "Gentle animations"], ["haptics", "Touch feedback"]]:
 		var toggle = CheckButton.new()
 		toggle.text = option[1]
@@ -895,4 +920,47 @@ func _expansions() -> void:
 	render(snapshot)
 
 func world_input_contains(point: Vector2) -> bool:
-	return point.y >= global_position.y + 118 and point.y < global_position.y + size.y - 150
+	return metrics.get("world_rect",Rect2()).has_point(point)
+
+func _settle_objective_layout() -> void:
+	# Autowrapped labels initially shape at zero width. Refit once the row has its real width.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_objective_layout_pending = false
+	_layout_navigation()
+
+func next_action(data: Dictionary) -> Dictionary:
+	if data.get("pending",0) > 0:
+		return {"title":"Your cats earned coins!","detail":"Collect %s Cat Coins" % number(data.pending),"route":"Offline","payload":{}}
+	var grounds: Dictionary = data.get("grounds",{})
+	if not grounds.is_empty():
+		var job: Dictionary = grounds.hotels[data.hotel].job
+		if not job.is_empty():
+			return {"title":"Your manager is helping","detail":"%s · %ds left" % [str(job.kind).capitalize(),ceili(maxf(0,job.duration-job.elapsed))],"route":"Manager","payload":{}}
+	if data.get("repair_remaining",0) > 0:
+		return {"title":"A new wing is on its way","detail":"Construction cats · %ds left" % ceili(data.repair_remaining),"route":"Rooms","payload":{"wing":data.wings}}
+	var pinned: String = data.get("life",{}).get("pinned","")
+	if pinned != "":
+		for combo in preload("res://scripts/core/game_content.gd").COMBOS:
+			if combo.id != pinned: continue
+			var count: int = 0
+			for furnishings in data.get("room_furnishings",[]):
+				count = maxi(count,combo.items.filter(func(item): return furnishings.has(item)).size())
+			return {"title":combo.name,"detail":"%d / %d together in one room" % [count,combo.items.size()],"route":"Discoveries","payload":{"id":pinned}}
+	var costs: Array = data.get("costs",[])
+	if not costs.is_empty():
+		var zone: int = -1
+		for index in range(costs.size()):
+			if costs[index] > 0 and (zone == -1 or costs[index] < costs[zone]): zone = index
+		if zone == -1: return {"title":"Every service feels like home","detail":"Spend a moment with your cats","route":"Cats","payload":{}}
+		var shortfall: int = maxi(0,ceili(costs[zone]-data.coins))
+		return {"title":"A cozier %s" % str(data.zone_names[zone]).to_lower(),"detail":"%s more Cat Coins" % number(shortfall) if shortfall > 0 else "Upgrade · %s Cat Coins" % number(costs[zone]),"route":"Upgrades","payload":{"zone":zone}}
+	return {"title":"Welcome home","detail":"Find your next cozy improvement","route":"Life","payload":{}}
+
+func _open_next_action() -> void:
+	var action := next_action(snapshot)
+	match action.route:
+		"Upgrades": open_upgrades(int(action.payload.zone))
+		"Rooms": open_expansions(int(action.payload.wing))
+		"Offline": show_offline()
+		_: open_route(action.route,"Hotel")

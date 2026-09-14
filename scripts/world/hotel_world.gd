@@ -17,6 +17,7 @@ var neighborhood
 var shell
 var exterior_view: bool = false
 var overview_zoom: float = 48.0
+var ui_world_rect := Rect2()
 const ISO_RIGHT = Vector3(0.70710678, 0, -0.70710678)
 const ISO_UP = Vector3(-0.40824829, 0.81649658, -0.40824829)
 const Cat = preload("res://scripts/world/voxel_cat.gd")
@@ -78,15 +79,15 @@ func _ready() -> void:
 	var settings = Environment.new()
 	environment_settings = settings
 	settings.background_mode = Environment.BG_COLOR
-	settings.background_color = Color("d9dfbf")
+	settings.background_color = Color("e6efdb")
 	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	settings.ambient_light_color = Color("dee8d4")
+	settings.ambient_light_color = Color("e6edf0")
 	settings.ambient_light_energy = 0.34
 	environment.environment = settings
 	add_child(environment)
 	sun = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-49, -28, 0)
-	sun.light_color = Color("fff5e5")
+	sun.light_color = Color("fff4e6")
 	sun.light_energy = 0.43
 	sun.shadow_enabled = true
 	sun.shadow_bias = 0.08
@@ -157,23 +158,63 @@ func _projected_bounds() -> Rect2:
 func _measure_overview() -> void:
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var bounds = _projected_bounds()
-	var available: float = maxf(180,viewport_size.y-290)
-	overview_zoom = maxf(bounds.size.x/0.92,(bounds.size.y+3.0)*viewport_size.x/available)
+	var region := available_world_rect()
+	overview_zoom = maxf(bounds.size.x * viewport_size.x / (region.size.x * 0.92),(bounds.size.y+3.0)*viewport_size.x/(region.size.y * 0.88))
+
+func available_world_rect() -> Rect2:
+	return ui_world_rect if ui_world_rect.has_area() else get_viewport().get_visible_rect()
+
+func set_ui_world_rect(rect: Rect2) -> void:
+	if rect == ui_world_rect: return
+	ui_world_rect = rect
+	if camera != null: _viewport_resized()
+
+func _center_projected(bounds: Rect2) -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	var offset := (available_world_rect().get_center() - viewport_size * 0.5) * camera.size / viewport_size.x
+	var center := bounds.get_center() + Vector2(-offset.x, offset.y)
+	camera_target = Vector3(center.x / ISO_RIGHT.x + center.y / ISO_UP.x, 0, -center.x / ISO_RIGHT.x + center.y / ISO_UP.x) * 0.5
+	_update_camera()
+
+func visible_mesh_points(node: Node3D) -> Array[Vector3]:
+	var points: Array[Vector3] = []
+	if not node.is_visible_in_tree(): return points
+	if node is MeshInstance3D or node is MultiMeshInstance3D:
+		var bounds: AABB = node.mesh.get_aabb() if node is MeshInstance3D else AABB()
+		if node is MultiMeshInstance3D and node.multimesh != null:
+			# Calculate CPU bounds too: headless rendering does not populate the batch AABB.
+			for index in range(node.multimesh.instance_count):
+				var instance_bounds: AABB = node.multimesh.get_instance_transform(index) * node.multimesh.mesh.get_aabb()
+				bounds = instance_bounds if index == 0 else bounds.merge(instance_bounds)
+		for corner in range(8): points.append(node.global_transform * bounds.get_endpoint(corner))
+	for child in node.get_children():
+		if child is Node3D: points.append_array(visible_mesh_points(child))
+	return points
+
+func active_hotel_bounds() -> Rect2:
+	var points: Array[Vector3] = []
+	if exterior_view and shell != null:
+		points.append_array(visible_mesh_points(shell.exterior))
+	elif room_builder != null:
+		for room in room_builder.room_nodes: points.append_array(visible_mesh_points(room))
+	# Reception anchors the active rooms; unused public floor and future wings do not shrink guests.
+	points.append_array([Vector3(-1.2,0,0.4),Vector3(1.2,1.6,2.0)])
+	var bounds := Rect2(Vector2(points[0].dot(ISO_RIGHT),points[0].dot(ISO_UP)),Vector2.ZERO)
+	for point in points: bounds = bounds.expand(Vector2(point.dot(ISO_RIGHT),point.dot(ISO_UP)))
+	return bounds
 
 func _clamp_camera() -> void:
 	if build_mode:
 		camera_target.x = clampf(camera_target.x,-16,16)
 		camera_target.z = clampf(camera_target.z,-25,6)
 		return
-	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	var units: float = camera.size/maxf(1,viewport_size.x)
 	var bounds = navigation_bounds()
-	# Keep the map centered between the HUD and footer. Allow progressively more
-	# travel as the player zooms in; the street stays inside the allowed framing.
-	var center: Vector2 = bounds.get_center()-Vector2.ONE*(16.0*units/ISO_UP.x/2)
-	var travel: Vector2 = bounds.size*0.5*clampf(1.0-camera.size/overview_zoom,0.0,1.0)
-	camera_target.x = clampf(camera_target.x,center.x-travel.x,center.x+travel.x)
-	camera_target.z = clampf(camera_target.z,center.y-travel.y,center.y+travel.y)
+	var viewport_size := get_viewport().get_visible_rect().size
+	var offset := (available_world_rect().get_center()-viewport_size*0.5)*camera.size/maxf(1,viewport_size.x)
+	var center := bounds.get_center()+Vector2(-offset.x/ISO_RIGHT.x+offset.y/ISO_UP.x,offset.x/ISO_RIGHT.x+offset.y/ISO_UP.x)*0.5
+	var travel: Vector2 = bounds.size*0.5*clampf(1.0-camera.size/maxf(1,overview_zoom),0.0,1.0)
+	camera_target.x = clampf(camera_target.x,maxf(bounds.position.x,center.x-travel.x),minf(bounds.end.x,center.x+travel.x))
+	camera_target.z = clampf(camera_target.z,maxf(bounds.position.y,center.y-travel.y),minf(bounds.end.y,center.y+travel.y))
 	camera_target.y = 0
 
 func set_zoom(value: float) -> void:
@@ -187,17 +228,19 @@ func reset_camera() -> void:
 	overview = true
 	_measure_overview()
 	camera.size = overview_zoom
-	var center = navigation_bounds().get_center()
-	camera_target = Vector3(center.x,0,center.y)
-	_update_camera()
+	_center_projected(_projected_bounds())
 
 func focus_hotel() -> void:
 	follow_cat = -1
 	overview = false
 	_measure_overview()
-	camera.size = minf(28.0,overview_zoom)
-	camera_target = Vector3(0,0,-5.9)
-	_update_camera()
+	var bounds := active_hotel_bounds()
+	var viewport_size := get_viewport().get_visible_rect().size
+	var region := available_world_rect()
+	var width_fit := bounds.size.x * viewport_size.x / (region.size.x * 0.92)
+	var height_fit := bounds.size.y * viewport_size.x / (region.size.y * 0.88)
+	camera.size = clampf(maxf(width_fit,height_fit),8.0,overview_zoom)
+	_center_projected(bounds)
 
 func _viewport_resized() -> void:
 	if overview:
@@ -266,7 +309,7 @@ func show_hotel(index: int, levels: Array, built_wings: int = 0) -> void:
 	building = Node3D.new()
 	building.name = "FurnishedHotel"
 	add_child(building)
-	accent = [Color("8caa69"),Color("8bb9bb"),Color("bd895e"),Color("aec4d2")][index]
+	accent = [Color("5cc8a1"),Color("8bb9bb"),Color("bd895e"),Color("aec4d2")][index]
 	trim = [Color("4b7354"),Color("437982"),Color("665d3f"),Color("627886")][index]
 	wood = [Color("c39a66"),Color("d6b78b"),Color("96734e"),Color("bba083")][index]
 	crown_mesh = preload("res://scripts/world/tree_canopy.gd").create([trim, accent, Color("aabc78")])
@@ -330,7 +373,7 @@ func show_hotel(index: int, levels: Array, built_wings: int = 0) -> void:
 		reset_camera()
 
 func _wall(pos: Vector3, dimensions: Vector3) -> void:
-	box(pos, dimensions, Color("ede3c7"))
+	box(pos, dimensions, Color("fff8e9"))
 	box(pos + Vector3(0, dimensions.y * 0.5 + 0.04, 0), Vector3(dimensions.x + 0.08, 0.16, dimensions.z + 0.08), wood)
 	box(Vector3(pos.x, 0.36, pos.z), Vector3(dimensions.x + 0.035, 0.32, dimensions.z + 0.035), wood.darkened(0.07))
 	box(Vector3(pos.x, 0.56, pos.z), Vector3(dimensions.x + 0.06, 0.065, dimensions.z + 0.06), wood)
@@ -599,7 +642,7 @@ func _spawn_cat(index: int, color: Color, staff: bool, routine: Array) -> void:
 	actor.set_meta("staff", staff)
 	cast_root.add_child(actor)
 	actor.build(color, staff)
-	actor.scale = Vector3.ONE * 1.12
+	actor.scale = Vector3.ONE * (1.12 if staff else 1.40)
 	actor.set_routine(routine)
 	actors.append(actor)
 
@@ -739,10 +782,10 @@ func set_evening(enabled: bool) -> void:
 	evening = enabled
 	if environment_settings == null:
 		return
-	environment_settings.ambient_light_color = Color("a6b7d0") if evening else Color("dee8d4")
-	environment_settings.ambient_light_energy = 0.31 if evening else 0.34
-	sun.light_color = Color("aebee2") if evening else Color("fff5e5")
-	sun.light_energy = 0.16 if evening else 0.43
+	environment_settings.ambient_light_color = Color("a6b7d0") if evening else Color("e6edf0")
+	environment_settings.ambient_light_energy = 0.31 if evening else 0.50
+	sun.light_color = Color("aebee2") if evening else Color("fff4e6")
+	sun.light_energy = 0.16 if evening else 0.28
 	for lamp in lamps:
 		lamp.light_energy = 0.83 if evening else 0.32
 	for glow in lamp_glows:
@@ -914,7 +957,7 @@ func _set_room_routine(model, actor, room: int, arriving: bool = false) -> void:
 	var routine: Array = []
 	var bed_walk := _walk_points(bed_route)
 	var bed: Vector3 = bed_route[-1]
-	routine.append({"position":bed,"action":"sleep","wait":12.0+room*2.0})
+	routine.append({"position":bed,"action":"sleep","wait":12.0+room*2.0,"face":PI*0.25})
 	routine.append({"position":bed,"action":"stretch","wait":3.0})
 	var activity := _first_instance(model,room,false)
 	var current_walk: Array = bed_walk

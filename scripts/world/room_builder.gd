@@ -8,9 +8,9 @@ const Shared = preload("res://scripts/core/shared_layout.gd")
 const CELL: float = 1.1
 const ORIGIN = Vector3(-5.5, 0.24, -17.6)
 const MINT = Color("8bdfba")
-const WOOD = Color("ac7653")
-const CREAM = Color("f5e9cc")
-const GREEN = Color("829d78")
+const WOOD = Color("c18c62")
+const CREAM = Color("fff8e9")
+const GREEN = Color("5cc8a1")
 var world
 var model
 var room_nodes: Array = []
@@ -24,6 +24,8 @@ var _rooms: Array = []
 var _key: String = ""
 var _selected: int = -1
 var _floor: Node3D
+var _future_floor: Node3D
+var _future_garden: Node3D
 var _overlay: Node3D
 var _preview: Node3D
 var _preview_key: String = ""
@@ -277,6 +279,12 @@ func door_position(room: int) -> Vector3:
 	return Interior.entrance_transition(_rooms[room]).outside
 
 func _build_grid(wings: int) -> void:
+	_future_floor = Node3D.new()
+	_future_floor.name = "FutureBuildingTiles"
+	_floor.add_child(_future_floor)
+	_future_garden = Node3D.new()
+	_future_garden.name = "QuietGardenReserve"
+	_floor.add_child(_future_garden)
 	var first: int = maxi(0, 9 - wings * 3)
 	for row in range(12):
 		for col in range(10):
@@ -284,7 +292,7 @@ func _build_grid(wings: int) -> void:
 			var color: Color = Color("d6c39e") if row >= first else Color("a8af98")
 			if (row + col) % 2 == 0:
 				color = color.lightened(0.035)
-			_box(_floor, p, Vector3(CELL - 0.018, 0.11, CELL - 0.018), color)
+			_box(_future_floor if row < first else _floor, p, Vector3(CELL - 0.018, 0.11, CELL - 0.018), color)
 	if first > 0:
 		var barrier_z: float = ORIGIN.z + first * CELL - 0.12
 		for x in range(11):
@@ -293,10 +301,24 @@ func _build_grid(wings: int) -> void:
 		_box(_floor, Vector3(0, 0.32, barrier_z), Vector3(11, 0.12, 0.13), Color("c29c64"))
 		for wing in range(3 - wings):
 			var z: float = ORIGIN.z + (first - 1.5 - wing * 3) * CELL
-			_box(_floor, Vector3(-3.8, 0.45, z), Vector3(0.85, 0.44, 0.65), Color("bdb8a1"))
-			_box(_floor, Vector3(-3.8, 0.70, z), Vector3(0.92, 0.10, 0.72), Color("e8dfc6"))
-			_label(_floor, "FUTURE ROOMS", Vector3(0, 0.4, z), 34, Color("68745b"), 0.009)
+			_box(_future_floor, Vector3(-3.8, 0.45, z), Vector3(0.85, 0.44, 0.65), Color("bdb8a1"))
+			_box(_future_floor, Vector3(-3.8, 0.70, z), Vector3(0.92, 0.10, 0.72), Color("e8dfc6"))
+			_label(_future_floor, "FUTURE ROOMS", Vector3(0, 0.4, z), 34, Color("68745b"), 0.009)
+		_box(_future_garden,Vector3(0,0.18,ORIGIN.z+first*CELL*0.5),Vector3(10.8,0.09,first*CELL),Color("b7cda2"))
+		for index in range(7):
+			_plant(_future_garden,Vector3(-4.4+index*1.45,0.23,barrier_z-0.65-0.30*(index%2)),false)
 	_flush(_floor)
+	_flush(_future_floor)
+	_flush(_future_garden)
+	_update_reserve()
+
+func _process(_delta: float) -> void:
+	_update_reserve()
+
+func _update_reserve() -> void:
+	if is_instance_valid(_future_floor):
+		_future_floor.visible = world.build_mode or world.overview
+		_future_garden.visible = not _future_floor.visible
 
 func _make_room(data: Dictionary, index: int, ghost: bool = false) -> Node3D:
 	var node: Node3D = Node3D.new()
@@ -309,14 +331,19 @@ func _make_room(data: Dictionary, index: int, ghost: bool = false) -> Node3D:
 	var plank_count: int = int(d / 0.25)
 	for plank in range(plank_count):
 		var z: float = -d / 2.0 + (plank + 0.5) * d / plank_count
-		_box(node, Vector3(0, 0.012, z), Vector3(w - 0.12, 0.035, d / plank_count - 0.014), Color("c59c70") if plank % 3 == 0 else Color("ba8b60"), ghost)
+		_box(node, Vector3(0, 0.012, z), Vector3(w - 0.12, 0.035, d / plank_count - 0.014), Color("e6bb89") if plank % 3 == 0 else Color("d9ac7a"), ghost)
 		for seam in range(2):
 			var x: float = -w / 2.0 + w * (0.27 + seam * 0.44) + (0.32 if plank % 2 else 0.0)
 			_box(node, Vector3(x, 0.033, z), Vector3(0.012, 0.008, d / plank_count - 0.015), Color("a47c58"), ghost)
-	_wall(node, w, d, 3, int(data.rotation) == 3, ghost)
-	_wall(node, w, d, 2, int(data.rotation) == 2, ghost)
-	_wall(node, w, d, 0, int(data.rotation) == 0, ghost)
-	_wall(node, w, d, 1, int(data.rotation) == 1, ghost)
+	var room_color: Color = [Color("5cc8a1"),Color("f5a18f"),Color("ffcc68")][posmod(index,3)]
+	for side in [3,2,0,1]: _wall(node,w,d,side,int(data.rotation)==side,ghost,room_color)
+	# Soft curtains and a little display shelf live on the walls, clear of every placement cell.
+	for z in [-0.60,0.77]:
+		_box(node,Vector3(-w/2+0.24,1.48,z),Vector3(0.18,1.20,0.23),room_color.lightened(0.4),ghost)
+		_box(node,Vector3(-w/2+0.35,1.30,z),Vector3(0.04,0.08,0.25),room_color,ghost)
+	_box(node,Vector3(w*0.28,1.20,-d/2+0.22),Vector3(0.72,0.10,0.35),WOOD,ghost)
+	for book in range(3):
+		_box(node,Vector3(w*0.28-0.22+book*0.17,1.43,-d/2+0.21),Vector3(0.12,0.35+book*0.025,0.20),[room_color,Color("ffcc68"),CREAM][book],ghost)
 	# Framed botanical prints and a wide window make the cutaway feel inhabited.
 	if int(data.rotation) != 3:
 		for x in [-0.65, 0.30]:
@@ -334,7 +361,7 @@ func _make_room(data: Dictionary, index: int, ghost: bool = false) -> Node3D:
 	_flush(node)
 	return node
 
-func _wall(node: Node3D, w: float, d: float, side: int, door: bool, ghost: bool) -> void:
+func _wall(node: Node3D, w: float, d: float, side: int, door: bool, ghost: bool, room_color: Color = GREEN) -> void:
 	var along_x: bool = side == 1 or side == 3
 	var length: float = w if along_x else d
 	var tall: bool = side == 2 or side == 3
@@ -351,7 +378,7 @@ func _wall(node: Node3D, w: float, d: float, side: int, door: bool, ghost: bool)
 		size.y = 0.68 if tall else 0.13
 		size.z += 0.018 if along_x else 0.0
 		size.x += 0.0 if along_x else 0.018
-		_box(node, p, size, GREEN, ghost)
+		_box(node, p, size, room_color.lightened(0.15), ghost)
 		p.y = 0.72 if tall else 0.18
 		size.y = 0.055
 		_box(node, p, size, Color("d8d6ad"), ghost)
@@ -363,18 +390,18 @@ func _wall(node: Node3D, w: float, d: float, side: int, door: bool, ghost: bool)
 			for i in range(divisions):
 				var coordinate: float = float(span[0]) - float(span[1]) / 2.0 + (i + 0.5) * float(span[1]) / divisions
 				var rail: Vector3 = Vector3(coordinate, 0.36, fixed) if along_x else Vector3(fixed, 0.36, coordinate)
-				_box(node, rail, Vector3(0.035, 0.60, 0.16) if along_x else Vector3(0.16, 0.60, 0.035), Color("9bad88"), ghost)
+				_box(node, rail, Vector3(0.035, 0.60, 0.16) if along_x else Vector3(0.16, 0.60, 0.035), room_color.lightened(0.38), ghost)
 	if door and tall:
 		var lintel: Vector3 = Vector3(0, 1.98, fixed) if along_x else Vector3(fixed, 1.98, 0)
 		_box(node, lintel, Vector3(1.04, 0.20, 0.18) if along_x else Vector3(0.18, 0.20, 1.04), CREAM, ghost)
 
 func _bed(node: Node3D, p: Vector3, item: String, ghost: bool) -> void:
-	var bedding: Color = Color("c8c7aa")
+	var bedding: Color = Color("ffcc68")
 	match item:
 		"sun_cushion": bedding = Color("e8bd65")
 		"cave": bedding = Color("ae9695")
 		"heated": bedding = Color("ecc8ab")
-		"blanket": bedding = Color("8ca6a1")
+		"blanket": bedding = Color("5cc8a1")
 	for x in [-0.57, 0.57]:
 		for z in [-0.65, 0.65]:
 			_box(node, p + Vector3(x, 0.14, z), Vector3(0.13, 0.27, 0.13), Color("856346"), ghost)
@@ -383,6 +410,10 @@ func _bed(node: Node3D, p: Vector3, item: String, ghost: bool) -> void:
 	_box(node, p + Vector3(0, 0.75, -0.755), Vector3(1.22, 0.56, 0.07), Color("d5b590"), ghost)
 	_box(node, p + Vector3(0, 0.44, 0), Vector3(1.36, 0.23, 1.64), Color("fff3de"), ghost)
 	_box(node, p + Vector3(0, 0.57, 0.26), Vector3(1.39, 0.13, 1.15), bedding, ghost)
+	# Raised gingham squares read as a plush quilt even at the hotel camera distance.
+	for row in range(4):
+		for col in range(5):
+			_box(node,p+Vector3(-0.55+col*0.275,0.648,-0.16+row*0.275),Vector3(0.265,0.03,0.265),bedding.lightened(0.30) if (row+col)%2==0 else bedding,ghost)
 	_box(node, p + Vector3(0, 0.62, -0.23), Vector3(1.41, 0.085, 0.24), bedding.lightened(0.20), ghost)
 	for x in [-0.35, 0.35]:
 		_box(node, p + Vector3(x, 0.61, -0.53), Vector3(0.56, 0.17, 0.38), Color("fff8e9"), ghost)

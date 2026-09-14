@@ -39,10 +39,12 @@ func build(color: Color, staff: bool = false) -> void:
 		cube.size = Vector3.ONE
 	body = Node3D.new()
 	add_child(body)
-	part(body, Vector3(0, 0.35, 0), Vector3(0.48, 0.42, 0.7), coat)
+	part(body, Vector3(0, 0.40, 0), Vector3(0.57, 0.52, 0.74), coat)
+	part(body, Vector3(0,0.40,0.33),Vector3(0.40,0.38,0.08),Color("fff8e9"))
 	head = Node3D.new()
 	body.add_child(head)
-	head.position = Vector3(0, 0.63, 0.28)
+	head.position = Vector3(0, 0.79, 0.28)
+	head.scale = Vector3.ONE * 1.23
 	part(head, Vector3.ZERO, Vector3(0.60, 0.48, 0.46), coat)
 	for x in [-0.21, 0.21]:
 		ears.append(part(head, Vector3(x, 0.30, 0), Vector3(0.18, 0.23, 0.20), coat))
@@ -50,10 +52,15 @@ func build(color: Color, staff: bool = false) -> void:
 		var eye = part(head, Vector3(x * 0.72, 0.035, 0.239), Vector3(0.068, 0.09, 0.028), Color("28352d"))
 		eyes.append(eye)
 		part(head, Vector3(x * 0.72 - 0.01, 0.055, 0.258), Vector3(0.018, 0.025, 0.012), Color("fff9e9"))
-		part(head, Vector3(x, -0.115, 0.247), Vector3(0.075, 0.04, 0.03), Color("d7a18b"))
+		part(head, Vector3(x, -0.105, 0.247), Vector3(0.10, 0.045, 0.03), Color("f5a18f"))
+		for whisker in range(2):
+			part(head,Vector3(signf(x)*0.31,-0.07-whisker*0.08,0.255),Vector3(0.13,0.018,0.025),Color("53635b"))
 	part(head, Vector3(0, -0.11, 0.246), Vector3(0.28, 0.15, 0.07), Color("fff0da"))
 	part(head, Vector3(0, -0.065, 0.30), Vector3(0.08, 0.055, 0.03), Color("ad7973"))
 	mouth = part(head, Vector3(0, -0.13, 0.29), Vector3(0.02, 0.055, 0.02), Color("655c48"))
+	for side in [-1,1]:
+		var smile := part(head,Vector3(side*0.055,-0.155,0.295),Vector3(0.095,0.023,0.026),Color("53635b"))
+		smile.rotation.z = side * 0.32
 	for x in [-0.16, 0.16]:
 		for z in [-0.23, 0.25]:
 			var leg = Node3D.new()

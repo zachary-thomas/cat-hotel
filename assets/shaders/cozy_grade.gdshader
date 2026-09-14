@@ -6,8 +6,6 @@ void fragment() {
     scene *= vec3(1.018, 1.005, 0.97);
     float vignette = smoothstep(0.30, 0.83, length((UV - vec2(0.5)) * vec2(0.8, 1.0)));
     scene *= 1.0 - vignette * 0.12;
-    float header = 1.0 - smoothstep(0.06, 0.16, UV.y);
-    scene = mix(scene, vec3(0.94, 0.92, 0.84), header * 0.97);
     COLOR = vec4(scene, 1.0);
 }
 

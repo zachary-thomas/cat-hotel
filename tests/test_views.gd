@@ -31,6 +31,23 @@ func click(control: Control) -> void:
 		root.push_input(event,true)
 		await process_frame
 
+func check_labels() -> void:
+	var region: Rect2 = app.ui.metrics.world_rect
+	var unit: float = app.ui.metrics.unit
+	check(app.activity.placed_labels.size() <= 3,"Crowded hotel has at most three world annotations")
+	var occupied: Array[Rect2] = []
+	for label in app.activity.placed_labels:
+		check(region.encloses(label.rect),"Every label stays in the shared world rectangle")
+		check(not occupied.any(func(rect): return rect.intersects(label.rect)),"Accepted world labels never overlap")
+		occupied.append(label.rect)
+		if label.has("target") or label.has("wing"):
+			check(label.rect.size.x >= 48*unit and label.rect.size.y >= 48*unit,"Clickable labels provide a 48-unit target")
+	for marker in app.activity.repair_markers:
+		if not marker.visible: check(marker.mouse_filter == Control.MOUSE_FILTER_IGNORE,"Hidden repair markers cannot intercept a tap")
+	for target in app.world.neighborhood.targets:
+		if not app.activity.placed_labels.any(func(label): return label.get("target",{}) == target):
+			check(not target.get("screen_rect",Rect2()).has_area(),"Hidden ground label hit regions are cleared")
+
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute("res://tmp")
 	save_key = "res://tmp/views-"+str(Time.get_ticks_usec())
@@ -50,10 +67,12 @@ func run() -> void:
 	check(absf(absf(dx.y/dx.x)-0.57735) < 0.001,"The isometric ground axes have the expected 30 degree screen angle")
 	check(shell.doors.size() == 5 and not shell.exterior.visible,"Starter suites and hotel entrances have working doors")
 	await capture("50-isometric-inside")
+	check_labels()
 	app.ui.open_route("View", "Hotel")
 	await click(app.ui.view_button)
 	check(world.exterior_view and shell.exterior.visible and app.ui.tab == "Hotel","The view button shows the complete hotel and offers a return inside")
 	await capture("51-isometric-outside")
+	check_labels()
 	check(app.activity.repair_markers.all(func(marker): return not marker.visible),"Exterior view hides repair controls behind the roof")
 	check(not shell.doors[0].frame.visible and shell.doors[2].frame.visible,"Exterior view hides interior doors while keeping entrance doors")
 	world._select(world.camera.unproject_position(Vector3(2.9,0.2,-6.75)))
@@ -135,6 +154,7 @@ func run() -> void:
 	app._update_ui()
 	world.set_motion_enabled(false)
 	await capture("52-isometric-expanded")
+	check_labels()
 	world.focus_zone(0)
 	shell.open_door(0)
 	shell._process(0.3)
@@ -145,6 +165,26 @@ func run() -> void:
 	await capture("54-complete-hotel")
 	app.ui.manager_mode_requested.emit(true)
 	check(not world.exterior_view,"Controlling the manager reveals the interior")
+	await capture("task3-manager")
+	check_labels()
+	# A genuinely populated eight-room property, rather than only unlocked empty land.
+	app.model.hotels[0].erase("layout")
+	preload("res://scripts/core/room_layout.gd").entries(app.model,0)
+	check(app.model.furniture.ensure_rooms(app.model,0),"Full-hotel fixture furnishes every restored bedroom")
+	app.model.life.sync_discoveries(12)
+	app.model.hotels[0].zones = [10,10,10,10]
+	app._rebuild_world()
+	app._update_ui()
+	world.set_motion_enabled(false)
+	world.focus_hotel()
+	await capture("task3-full-hotel")
+	check(world.room_builder.room_nodes.size() == 8,"Crowded label coverage uses eight real furnished rooms")
+	check_labels()
+	app.ui._navigate("Cats")
+	await process_frame
+	app.activity._process(0)
+	check(app.activity.placed_labels.is_empty(),"Opening a sheet clears all world label regions")
+	check_labels()
 	app.queue_free()
 	await process_frame
 	await create_timer(0.1).timeout

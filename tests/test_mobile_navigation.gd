@@ -57,6 +57,61 @@ func run() -> void:
 	root.add_child(app)
 	await process_frame
 	app.start_game()
+	await settle()
+	app.world.set_motion_enabled(false)
+	app.world.focus_hotel()
+	var world_region: Rect2 = app.ui.metrics.world_rect
+	check(app.world.ui_world_rect == world_region,"Camera and world input share the UI rectangle")
+	for room in range(2):
+		check(world_region.has_point(app.world.camera.unproject_position(app.world.room_builder.bed_position(room))),"Starter bed projects into the available world rectangle")
+	var cat_bounds := Rect2()
+	var first_point := true
+	for point in app.world.visible_mesh_points(app.world.get_cat(0).body):
+		var screen: Vector2 = app.world.camera.unproject_position(point)
+		if first_point:
+			cat_bounds = Rect2(screen,Vector2.ZERO)
+			first_point = false
+		else: cat_bounds = cat_bounds.expand(screen)
+	check(cat_bounds.size.y / float(app.ui.metrics.unit) >= 28,"Starter cat rendered bounds are at least 28 phone units high")
+	print("STARTER CAT PHONE HEIGHT: ",cat_bounds.size.y / float(app.ui.metrics.unit)," CAMERA: ",app.world.camera.size)
+	await capture("task3-starter")
+	check(app.ui.objective_panel.get_global_rect().end.y <= app.ui.metrics.footer_rect.position.y,"Objective settles above the dock before the first capture")
+	check(app.ui.objective_button.get_global_rect().encloses(app.ui.progress_label.get_global_rect()),"Objective copy belongs to the whole-card action target")
+	app.world.focus_zone(0)
+	var target: Vector3 = app.world.camera_target
+	var zoom: float = app.world.camera.size
+	await click(app.ui.nav_buttons["Cats"])
+	await click(app.ui.nav_buttons["Hotel"])
+	check(app.world.camera_target.is_equal_approx(target),"Returning from Cats preserves target")
+	check(is_equal_approx(app.world.camera.size,zoom),"Returning from Cats preserves zoom")
+	await capture("task3-returned-from-cats")
+	app.ui.reset_camera_requested.emit()
+	check(app.world.overview,"Explicit Fit all still enters overview")
+	app.world.focus_hotel()
+	var objective_data: Dictionary = app.ui.snapshot.duplicate(true)
+	objective_data.pending = 42
+	check(app.ui.next_action(objective_data).route == "Offline","Pending earnings lead the objective priority")
+	objective_data.pending = 0
+	objective_data.grounds.hotels[0].job = {"kind":"clean","duration":30.0,"elapsed":12.0}
+	objective_data.repair_remaining = 20
+	check(app.ui.next_action(objective_data).route == "Manager","Running manager work precedes repairs and discoveries")
+	objective_data.grounds.hotels[0].job = {}
+	check(app.ui.next_action(objective_data).route == "Rooms","Running repairs precede pinned discoveries")
+	objective_data.repair_remaining = 0
+	objective_data.life.pinned = "sunbeam"
+	objective_data.room_furnishings = [["sun_cushion"]]
+	check(app.ui.next_action(objective_data).title == "Sunbeam Suite" and app.ui.next_action(objective_data).detail.begins_with("1 / 2"),"Pinned discovery names the combination and live room progress")
+	objective_data.life.pinned = ""
+	objective_data.coins = 0
+	var action: Dictionary = app.ui.next_action(objective_data)
+	check(action.route == "Upgrades" and action.payload.has("zone") and action.detail.contains(str(objective_data.costs[action.payload.zone])),"Unaffordable upgrade names the real shortfall and preserves its details route")
+	app.set_process(false)
+	app.ui.render(objective_data)
+	await click(app.ui.objective_button)
+	check(app.ui.tab == "Upgrades" and app.ui.selected_zone == action.payload.zone,"Objective dispatches to the exact service upgrade")
+	app.ui.close_sheet()
+	app._update_ui()
+	app.set_process(true)
 	check(app.ui.nav_buttons.keys() == ["Hotel","Cats","Build","Life","Map"], "Five stable destinations")
 	# Stop cleanly on the intentional pre-implementation failure.
 	if failures == 0:
@@ -131,13 +186,16 @@ func run() -> void:
 	check(primary.global_position == position_before, "Primary action stays fixed when the body scrolls")
 	await click(primary)
 	check(primary_calls == [0, 1], "Replacing a primary action disconnects its old callback")
-	for scale in [1.0, 1.5]:
+	for scale in [1.0, 1.25, 1.5]:
 		app.change_setting("ui_text_scale", scale)
 		await settle()
 		check_shell()
 		check(primary.size.y >= 56 * app.ui.metrics.unit, "Primary action is at least 56 phone units")
 		await capture("task2-sheet-" + str(roundi(scale * 100)))
 	app.ui.close_sheet()
+	await settle()
+	check(app.ui.objective_panel.get_global_rect().end.y <= app.ui.metrics.footer_rect.position.y,"Large-text objective leaves every dock target clear")
+	await capture("task3-objective-150")
 	app.ui._navigate("Life")
 	await settle()
 	check_shell()

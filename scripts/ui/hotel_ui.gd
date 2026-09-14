@@ -397,20 +397,6 @@ func _update_grounds(data: Dictionary) -> void:
 	var state: Dictionary = data.grounds.hotels[data.hotel]
 	var seconds: float = data.grounds.seconds
 	var job: Dictionary = state.job
-	if not job.is_empty():
-		var work: String = {"walk":"Walking","trim":"Trimming bushes","chase":"Chasing the mouse","clean":"Tidying a room"}.get(job.kind,"Working")
-		objective_label.text = "%s · %ds" % [work,ceili(maxf(0,job.duration-job.elapsed))]
-		progress_label.text = "Your manager is on the job"
-	elif data.settings.exterior:
-		objective_label.text = "Your hotel, from the outside"
-		progress_label.text = "Tap Inside for rooms · Doors open for passing cats"
-	elif manager_mode:
-		objective_label.text = "You're the manager"
-		progress_label.text = "Tap paths to walk · Tap a job to help"
-	elif data.get("repair_remaining",0) <= 0:
-		objective_label.text = "A neighborhood full of little adventures"
-		objective_label.add_theme_font_size_override("font_size",13)
-		progress_label.text = "Tap yarn for coins · Visit the garden & Paw Mart"
 	if is_instance_valid(job_status):
 		job_status.text = "Ready for your next task." if job.is_empty() else "%s · %ds remaining" % [str(job.kind).capitalize(),ceili(maxf(0,job.duration-job.elapsed))]
 	if is_instance_valid(maid_status):

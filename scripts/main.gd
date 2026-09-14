@@ -60,6 +60,8 @@ func _ready() -> void:
 	ui = UI.new()
 	activity.ui = ui
 	layer.add_child(ui)
+	ui.world_rect_changed.connect(world.set_ui_world_rect)
+	world.set_ui_world_rect(ui.metrics.world_rect)
 	build_panel = preload("res://scripts/ui/build_panel.gd").new()
 	build_panel.app = self
 	build_panel.ui = ui
@@ -93,6 +95,7 @@ func _ready() -> void:
 		world.focus_zone(index)
 	)
 	ui.reset_camera_requested.connect(world.reset_camera)
+	ui.hotel_focus_requested.connect(world.focus_hotel)
 	ui.action_requested.connect(perform_action)
 	ui.purchase_requested.connect(func(id): commerce.purchase(id))
 	ui.restore_requested.connect(func(): commerce.restore_purchases())
@@ -445,7 +448,9 @@ func _with_life(data: Dictionary) -> Dictionary:
 		data.owned.append(model.hotels[h].owned)
 		data.hotel_rates.append(model.hotel_rate(h))
 	data.room_combos = []
+	data.room_furnishings = []
 	for room in range(model.room_count(model.current_hotel)):
+		data.room_furnishings.append(model.life.room_items(model.current_hotel,room).map(func(instance): return instance.item))
 		data.room_combos.append(model.life.room_combos(model.current_hotel,room).map(func(combo): return combo.name))
 	data.star_checks = model.life.star_checks(model,model.current_hotel)
 	data.event_scores = {}
