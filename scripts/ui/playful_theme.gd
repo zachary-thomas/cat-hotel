@@ -28,9 +28,11 @@ static func panel(fill: Color, unit: float, radius: float = 20) -> StyleBoxFlat:
 static func button_style(fill: Color, unit: float, pressed: bool = false) -> StyleBoxFlat:
 	var scale := maxf(0.0, unit)
 	var surface := panel(fill, scale, 18.0)
-	surface.content_margin_top = 8.0 * scale
-	surface.content_margin_bottom = 8.0 * scale
-	surface.shadow_size = 0
+	surface.shadow_size = roundi(1.0 * scale) if fill.a > 0 else 0
+	surface.border_color = fill.darkened(0.15)
+	surface.border_width_bottom = roundi((1.0 if pressed else 3.0) * scale) if fill.a > 0 else 0
+	surface.content_margin_top = (10.0 if pressed else 7.0) * scale
+	surface.content_margin_bottom = (6.0 if pressed else 9.0) * scale
 	surface.shadow_color = Color(0.18, 0.28, 0.23, 0.28 if fill.a > 0 else 0)
 	surface.shadow_offset = Vector2(0, (1.0 if pressed else 3.0) * scale)
 	return surface

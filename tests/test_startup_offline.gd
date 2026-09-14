@@ -40,7 +40,7 @@ func run() -> void:
 	check(app.ui.tab=="Offline","Loading an existing save opens the coin screen")
 	var close_button: Button
 	for button in app.ui.sheet.find_children("*","Button",true,false):
-		if button.text=="×": close_button = button
+		if button.name=="SheetBack": close_button = button
 	check(close_button!=null,"Offline screen has a close control")
 	if close_button!=null:
 		check(app.ui.get_global_rect().encloses(close_button.get_global_rect()),"Startup close control stays inside the visible game window")

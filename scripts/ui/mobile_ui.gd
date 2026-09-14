@@ -1,5 +1,6 @@
 extends Control
 
+signal build_requested
 signal play_requested
 signal expansion_requested
 signal ui_sound_requested
@@ -10,6 +11,9 @@ signal setting_changed(key: String, value: Variant)
 signal zone_focus_requested(zone: int)
 signal reset_camera_requested
 
+const GameSheet = preload("res://scripts/ui/game_sheet.gd")
+const GameTile = preload("res://scripts/ui/game_tile.gd")
+const DOCK = ["Hotel", "Cats", "Build", "Life", "Map"]
 const Badge = preload("res://scripts/ui/cat_badge.gd")
 const Icon = preload("res://scripts/ui/game_icon.gd")
 const Art = preload("res://scripts/ui/menu_art.gd")
@@ -51,6 +55,14 @@ var nav_buttons: Dictionary = {}
 var objective_progress: ProgressBar
 var activity_label: Label
 var metrics: Dictionary = {}
+var route_parents: Dictionary = {}
+var _route_history: Array[String] = []
+var _pending_restore: Dictionary = {}
+var route_state: Dictionary = {}
+var _sheet_route: String = ""
+var _sheet_height: float = 525
+var dock_panel: PanelContainer
+var objective_panel: PanelContainer
 var _metrics_key: String = ""
 const PHONE_FONT_META := &"phone_font_units"
 const PHONE_BUTTON_META := &"phone_button_primary"
@@ -70,6 +82,7 @@ func _ready() -> void:
 	theme_resource.set_color("font_color", "Label", INK)
 	theme_resource.set_color("font_color", "Button", INK)
 	theme_resource.set_color("font_hover_color", "Button", INK)
+	theme_resource.set_color("font_focus_color", "Button", INK)
 	theme_resource.set_color("font_pressed_color", "Button", INK)
 	theme_resource.set_color("font_disabled_color", "Button", Color("909589"))
 	theme = theme_resource
@@ -165,6 +178,9 @@ func relayout() -> void:
 	_apply_theme_metrics()
 	_apply_control_metrics(self)
 	_apply_shell_geometry()
+	_layout_navigation()
+	if is_instance_valid(sheet):
+		sheet.relayout(_sheet_bounds())
 
 func _apply_theme_metrics() -> void:
 	if theme == null:
@@ -281,9 +297,11 @@ func _build_chrome() -> void:
 	var settings = button("", func(): _open_settings())
 	settings.name = "SettingsButton"
 	settings.tooltip_text = "Settings"
+	settings.accessibility_name = "Settings"
 	settings.custom_minimum_size = Vector2(44,44)
 	row.add_child(settings)
-	var cog = icon("settings", Vector2(24,24))
+	var cog = icon("settings", Vector2(28,28))
+	cog.name = "SettingsIcon"
 	settings.add_child(cog)
 	cog.position = Vector2(10,10)
 	activity_label = label("", 12, GREEN)
@@ -300,6 +318,7 @@ func _build_chrome() -> void:
 	footer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	footer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var objective = panel_at(footer, -146, -99, true)
+	objective_panel = objective
 	var objective_style = style(CREAM, 14)
 	objective_style.content_margin_top = 5
 	objective_style.content_margin_bottom = 5
@@ -320,19 +339,23 @@ func _build_chrome() -> void:
 	objective_progress.max_value = 2
 	objective_progress.hide()
 	texts.add_child(objective_progress)
-	var next = button("Fit all", func(): reset_camera_requested.emit())
+	var next = button("View", func(): open_route("View", "Hotel"))
 	next.name = "ViewAllHotel"
-	next.tooltip_text = "Fit the full hotel on screen"
+	next.tooltip_text = "Hotel view options"
 	next.custom_minimum_size = Vector2(72,44)
 	next.add_theme_font_size_override("font_size", 13)
 	objective_row.add_child(next)
 	var navigation = panel_at(footer, -90, -12, true)
+	dock_panel = navigation
+	navigation.name = "HotelDock"
 	navigation.add_theme_stylebox_override("panel", style(CREAM, 24, Color("fffced"), 2))
 	var nav = HBoxContainer.new()
 	nav.add_theme_constant_override("separation", 6)
 	navigation.add_child(nav)
-	for name in ["Hotel", "Upgrades", "Rooms", "Map", "Cats"]:
+	for name in DOCK:
 		var n = button("", func(): _navigate(name))
+		n.name = "Dock_" + name
+		n.accessibility_name = name
 		n.tooltip_text = name
 		n.custom_minimum_size.y = 57
 		n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -344,10 +367,12 @@ func _build_chrome() -> void:
 		col.offset_bottom = -2
 		col.add_theme_constant_override("separation", 2)
 		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var drawing = icon(name, Vector2(29, 29))
+		var drawing = icon(name, Vector2(30, 30))
+		drawing.name = "DockIcon"
 		drawing.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		col.add_child(drawing)
-		var caption = label(name, 13)
+		var caption = label(name, 12)
+		caption.name = "DockCaption"
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		col.add_child(caption)
@@ -407,7 +432,7 @@ func render(data: Dictionary) -> void:
 		return
 	var started: bool = bool(data.get("started", false))
 	header.visible = started and tab != "Build"
-	footer.visible = started
+	footer.visible = started and tab != "Build"
 	welcome.visible = not started
 	if not started:
 		return
@@ -465,82 +490,202 @@ func number(value: float) -> String:
 		result += raw[i]
 	return result
 
-func _navigate(name: String) -> void:
-	if name == "Rooms":
-		selected_wing = -1
-	if name == "Hotel":
+func parent_tab(route: String) -> String:
+	if route in ["Cats", "Pet", "Invitations"]: return "Cats"
+	if route in ["Life", "Events", "Staff", "Journal", "Discoveries", "Grounds", "Amenity", "Manager", "Kiosk"]: return "Life"
+	if route in ["Map", "Shop"]: return "Map"
+	if route == "Build": return "Build"
+	return "Hotel"
+
+func _navigate(destination: String) -> void:
+	if destination == "Build":
 		close_sheet()
-		reset_camera_requested.emit()
+		build_requested.emit()
+		footer.hide()
 		return
-	tab = name
+	if destination == "Hotel":
+		close_sheet()
+		return
+	if destination == "Rooms": selected_wing = -1
+	open_route(destination, "Hotel" if destination in DOCK else tab)
+
+func open_route(route: String, parent_route: String = "Hotel") -> void:
+	if route in ["Hotel", "Build"]:
+		_navigate(route)
+		return
+	_remember_sheet()
+	if route != tab:
+		route_parents[route] = parent_route
+		if route in DOCK:
+			_route_history.assign(["Hotel"])
+		elif parent_route == tab:
+			_route_history.append(parent_route)
+		else:
+			_route_history.clear()
+			if parent_route != "Hotel": _route_history.append("Hotel")
+			_route_history.append(parent_route)
+	tab = route
 	_refresh_sheet()
 	_update_nav()
 
+func go_back() -> void:
+	if tab == "Build": return # Main owns contextual Build cancellation.
+	var destination: String = _route_history.pop_back() if not _route_history.is_empty() else "Hotel"
+	_remember_sheet()
+	if destination == "Hotel" or destination == tab or destination == "Build":
+		close_sheet()
+	else:
+		tab = destination
+		_refresh_sheet()
+		_update_nav()
+
 func _update_nav() -> void:
-	for name in nav_buttons:
-		nav_buttons[name].add_theme_stylebox_override("normal", style(Color("dce5ce") if tab == name else CREAM, 12))
+	var unit: float = metrics.get("unit", 1.0)
+	for destination in nav_buttons:
+		var selected: bool = parent_tab(tab) == destination
+		var control: Button = nav_buttons[destination]
+		control.accessibility_name = destination + (" · selected" if selected else "")
+		for state in ["normal", "hover", "pressed"]:
+			var fill: Color = GREEN if selected else (PlayfulTheme.CORAL.lightened(0.22) if destination == "Build" else Color.TRANSPARENT)
+			var surface = PlayfulTheme.button_style(fill, unit, state == "pressed")
+			surface.content_margin_left = 0
+			surface.content_margin_right = 0
+			control.add_theme_stylebox_override(state, surface)
+		var drawing = control.find_child("DockIcon", true, false)
+		if drawing != null:
+			drawing.active = selected
+			drawing.queue_redraw()
+	if is_instance_valid(objective_panel): objective_panel.visible = not is_instance_valid(sheet)
+
+func _layout_navigation() -> void:
+	if not is_instance_valid(dock_panel): return
+	var unit: float = metrics.unit
+	var bounds: Rect2 = metrics.footer_rect
+	if is_instance_valid(shade): shade.offset_bottom = bounds.position.y - size.y
+	dock_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	dock_panel.position = bounds.position - footer.position + Vector2(6, 2) * unit
+	dock_panel.size = bounds.size - Vector2(12, 6) * unit
+	var surface = PlayfulTheme.panel(CREAM, unit, 24)
+	surface.content_margin_left = 5 * unit
+	surface.content_margin_right = 5 * unit
+	surface.content_margin_top = 4 * unit
+	surface.content_margin_bottom = 4 * unit
+	dock_panel.add_theme_stylebox_override("panel", surface)
+	var settings = header.find_child("SettingsButton", true, false)
+	if settings != null:
+		settings.custom_minimum_size = Vector2(48, 48) * unit
+		settings.set_meta(PHONE_BUTTON_UNIT_META, unit)
+		var cog = settings.find_child("SettingsIcon", true, false)
+		cog.custom_minimum_size = Vector2(28, 28) * unit
+		cog.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		cog.offset_left = -14 * unit
+		cog.offset_top = -14 * unit
+		cog.offset_right = 14 * unit
+		cog.offset_bottom = 14 * unit
+	var nav = dock_panel.get_child(0)
+	nav.add_theme_constant_override("separation", roundi(3 * unit))
+	for control in nav_buttons.values():
+		control.custom_minimum_size = Vector2(48, 64) * unit
+		control.set_meta(PHONE_BUTTON_UNIT_META, unit)
+		var drawing = control.find_child("DockIcon", true, false)
+		drawing.custom_minimum_size = Vector2(30, 30) * unit
+	_update_nav()
 
 func open_upgrades(zone: int = 0) -> void:
 	selected_zone = clampi(zone, 0, 3)
-	tab = "Upgrades"
 	zone_focus_requested.emit(selected_zone)
-	_refresh_sheet()
-	_update_nav()
+	open_route("Upgrades", tab)
+
+func _remember_sheet() -> void:
+	if not is_instance_valid(sheet): return
+	var focused := get_viewport().gui_get_focus_owner()
+	route_state[_sheet_route] = {"scroll": sheet.scroll.scroll_vertical, "focus": str(focused.name) if focused != null and sheet.is_ancestor_of(focused) else ""}
+
+func _restore_sheet(target: Control, route: String) -> void:
+	var focused := get_viewport().gui_get_focus_owner()
+	_pending_restore = {"target": weakref(target), "route": route, "frames": 3, "focus_id": focused.get_instance_id() if focused != null else 0}
+
+# Count completed layout opportunities without keeping suspended calls alive on freed sheets.
+func _advance_sheet_restore() -> void:
+	if _pending_restore.is_empty(): return
+	_pending_restore.frames -= 1
+	if _pending_restore.frames > 0: return
+	var pending := _pending_restore
+	_pending_restore = {}
+	var target = pending.target.get_ref()
+	if not is_instance_valid(target) or target != sheet: return
+	var route: String = pending.route
+	var initial_focus_id: int = pending.focus_id
+	target.relayout(_sheet_bounds())
+	var saved: Dictionary = route_state.get(route, {})
+	var focus_name: String = saved.get("focus", "")
+	var focus_target = target.find_child(focus_name, true, false) if not focus_name.is_empty() else null
+	var current_focus := get_viewport().gui_get_focus_owner()
+	var current_focus_id: int = current_focus.get_instance_id() if current_focus != null else 0
+	if current_focus_id == initial_focus_id:
+		if focus_target is Control: focus_target.grab_focus()
+		else: target.back.grab_focus()
+	target.scroll.scroll_vertical = int(saved.get("scroll", 0))
 
 func close_sheet() -> void:
-	if is_instance_valid(shade):
-		remove_child(shade)
-		shade.queue_free()
-	if is_instance_valid(sheet):
-		remove_child(sheet)
-		sheet.queue_free()
-	shade = null
-	sheet = null
-	live_buttons.clear()
+	_remember_sheet()
+	_dispose_sheet()
+	_route_history.clear()
 	tab = "Hotel"
 	_update_nav()
 
-func _base_sheet(title: String, height: float = 525) -> VBoxContainer:
-	if is_instance_valid(shade):
-		remove_child(shade)
-		shade.queue_free()
-	if is_instance_valid(sheet):
-		remove_child(sheet)
-		sheet.queue_free()
+func _dispose_sheet() -> void:
+	_pending_restore.clear()
+	for node in [shade, sheet]:
+		if is_instance_valid(node):
+			remove_child(node)
+			node.queue_free()
+	shade = null
+	sheet = null
+	sheet_content = null
 	live_buttons.clear()
+
+func _sheet_bounds() -> Rect2:
+	var bounds: Rect2 = metrics.content_rect
+	var unit: float = metrics.unit
+	bounds.position.x += 8 * unit
+	bounds.size.x -= 16 * unit
+	var height: float = minf(_sheet_height * unit, bounds.size.y)
+	bounds.position.y = bounds.end.y - height
+	bounds.size.y = height
+	return bounds
+
+func _base_sheet(title: String, height: float = 525) -> VBoxContainer:
+	_remember_sheet()
+	_dispose_sheet()
+	_sheet_route = tab
+	_sheet_height = height
 	shade = ColorRect.new()
-	shade.color = Color(0.13, 0.20, 0.15, 0.27)
+	shade.name = "SheetShade"
+	shade.color = Color(0.13, 0.20, 0.15, 0.20)
 	add_child(shade)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	shade.offset_bottom = -90
+	shade.offset_bottom = metrics.footer_rect.position.y - size.y
 	shade.gui_input.connect(func(event):
-		if event is InputEventMouseButton and event.pressed:
-			close_sheet()
+		if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) or (event is InputEventScreenTouch and event.pressed):
+			get_viewport().set_input_as_handled()
+			go_back()
 	)
-	sheet = panel_at(self, -minf(height + 90, size.y - 50), -90, true)
-	sheet.name = "ActiveSheet"
-	sheet.add_theme_stylebox_override("panel", style(CREAM, 26, Color("fff9e9"), 2))
-	var column = VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
-	sheet.add_child(column)
-	var heading = HBoxContainer.new()
-	column.add_child(heading)
-	var title_item = label(title, 24)
-	title_item.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	title_item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	heading.add_child(title_item)
-	var close = button("×", close_sheet)
-	close.custom_minimum_size = Vector2(48, 48)
-	heading.add_child(close)
-	var scroll = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	column.add_child(scroll)
-	sheet_content = VBoxContainer.new()
-	sheet_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sheet_content.add_theme_constant_override("separation", 12)
-	scroll.add_child(sheet_content)
+	sheet = GameSheet.new()
+	add_child(sheet)
+	sheet_content = sheet.configure(self, title, _sheet_bounds())
+	sheet.back_requested.connect(go_back)
+	_restore_sheet(sheet, tab)
+	_update_nav()
 	return sheet_content
+
+func set_primary_action(text: String, callback: Callable, disabled: bool = false) -> Button:
+	if not is_instance_valid(sheet): return null
+	return sheet.set_primary(text, callback, disabled)
+
+func _view() -> void:
+	var content = _base_sheet("Your hotel view", 320)
+	content.add_child(button("Fit the full hotel", func(): close_sheet(); reset_camera_requested.emit()))
 
 func _refresh_sheet() -> void:
 	if snapshot.is_empty():
@@ -551,6 +696,7 @@ func _refresh_sheet() -> void:
 		"Rooms": _expansions()
 		"Cats": _cats()
 		"Settings": _settings()
+		"View": _view()
 
 func _upgrades() -> void:
 	var content = _base_sheet("A little more lovely", 587)
@@ -577,9 +723,8 @@ func _upgrades() -> void:
 	statbox.add_child(label("LEVEL %d  →  %d" % [level, mini(10, level + 1)] if level > 0 else "READY FOR A NEW SERVICE", 12, MUTED))
 	statbox.add_child(label("+%d  →  +%d / min" % [level * 10, mini(10, level + 1) * 10], 27))
 	
-	var purchase = button("Upgrade", func(): upgrade_requested.emit(selected_zone), true)
+	var purchase = set_primary_action("Upgrade", func(): upgrade_requested.emit(selected_zone))
 	purchase.name = "PurchaseUpgrade"
-	content.add_child(purchase)
 	live_buttons.append({"button": purchase, "kind": "upgrade", "zone": selected_zone})
 	
 	content.add_child(paragraph("Visual makeovers at levels 4 and 7.", 12, MUTED))
@@ -640,9 +785,7 @@ func _cats() -> void:
 		card.add_child(label(snapshot.cat_traits[i] if not portrait.locked else "Keep upgrading", 12, MUTED))
 
 func _open_settings() -> void:
-	tab = "Settings"
-	_update_nav()
-	_settings()
+	open_route("Settings", tab)
 
 func _settings() -> void:
 	var content = _base_sheet("Make yourself comfortable", 555)
@@ -692,6 +835,7 @@ func show_toast(message: String) -> void:
 	toast_timer = 3.5
 
 func _process(delta: float) -> void:
+	_advance_sheet_restore()
 	var viewport: Vector2 = get_viewport_rect().size
 	var safe: Rect2 = BuildMetrics.safe_area(self)
 	var phone_scale: float = BuildMetrics.phone_scale(self)
@@ -704,16 +848,15 @@ func _process(delta: float) -> void:
 		toast_label.visible = toast_timer > 0
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		close_sheet()
+	if event.is_action_pressed("ui_cancel") and tab != "Build":
+		get_viewport().set_input_as_handled()
+		go_back()
 
 
 
 func open_expansions(wing: int = -1) -> void:
 	selected_wing = wing
-	tab = "Rooms"
-	_refresh_sheet()
-	_update_nav()
+	open_route("Rooms", tab)
 
 func _expansions() -> void:
 	var n: int = clampi(selected_wing if selected_wing >= 0 else snapshot.wings, 0, 2)

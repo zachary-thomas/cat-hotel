@@ -6,7 +6,6 @@ signal photo_requested
 signal privacy_requested
 signal grounds_requested(action: String, payload: Dictionary)
 signal manager_mode_requested(enabled: bool)
-signal build_requested
 signal modal_requested
 const Grounds = preload("res://scripts/core/grounds_model.gd")
 var manager_mode: bool = false
@@ -31,6 +30,16 @@ var commerce: Dictionary = {}
 var purchase_buttons: Array = []
 var last_life_revision: int = -1
 
+func _view() -> void:
+	super._view()
+	view_button = button("Inside" if snapshot.settings.exterior else "Outside", func():
+		close_sheet()
+		setting_changed.emit("exterior", not snapshot.settings.exterior)
+	)
+	view_button.name = "HotelViewButton"
+	sheet_content.add_child(view_button)
+	sheet_content.add_child(button("Watch your favorite", func(): close_sheet(); setting_changed.emit("watch", true)))
+
 func _process(delta: float) -> void:
 	super._process(delta)
 	if snapshot.get("settings",{}).get("watch",false):
@@ -40,32 +49,7 @@ func _ready() -> void:
 	super._ready()
 	quick_bar = HBoxContainer.new()
 	header.add_child(quick_bar)
-	quick_bar.anchor_right = 1
-	quick_bar.offset_left = 22
-	quick_bar.offset_right = -22
-	quick_bar.offset_top = 72
-	quick_bar.offset_bottom = 116
-	quick_bar.add_theme_constant_override("separation",8)
-	for item in [["Hotel life","Life"],["Build","Build"],["Outside","View"],["Shop","Shop"]]:
-		var b = button(item[0],func():
-			if item[1] == "Build":
-				build_requested.emit()
-			elif item[1] == "View":
-				close_sheet()
-				setting_changed.emit("exterior",not snapshot.get("settings",{}).get("exterior",false))
-			elif item[1] == "Watch":
-				close_sheet()
-				setting_changed.emit("watch",true)
-			else:
-				_navigate(item[1])
-		)
-		b.custom_minimum_size.y = 44
-		b.add_theme_font_size_override("font_size",15)
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		quick_bar.add_child(b)
-		if item[1] == "View":
-			view_button = b
-			b.name = "HotelViewButton"
+	quick_bar.hide()
 	pending_button.position.y = 122
 	watch_exit = button("Back to hotel",func(): setting_changed.emit("watch",false))
 	add_child(watch_exit)
@@ -84,11 +68,12 @@ func render(data: Dictionary) -> void:
 	super.render(data)
 	if not data.get("started",false) or not data.has("life") or quick_bar == null:
 		return
-	view_button.text = "Inside" if data.settings.exterior else "Outside"
-	view_button.tooltip_text = "Reveal the rooms" if data.settings.exterior else "View the complete hotel with its roof and walls"
+	if is_instance_valid(view_button):
+		view_button.text = "Inside" if data.settings.exterior else "Outside"
+		view_button.tooltip_text = "Reveal the rooms" if data.settings.exterior else "View the complete hotel with its roof and walls"
 	_update_grounds(data)
 	var quiet: bool = data.settings.watch
-	quick_bar.visible = tab != "Build"
+	quick_bar.hide()
 	header.visible = not quiet
 	footer.visible = not quiet
 	if tab == "Build": footer.hide()
@@ -154,9 +139,7 @@ func _expansions() -> void:
 
 func open_cat(index: int) -> void:
 	selected_cat = index
-	tab = "Pet"
-	_pet()
-	_update_nav()
+	open_route("Pet", tab)
 
 func _pet() -> void:
 	var cat: Dictionary = snapshot.life.cats[selected_cat]
@@ -219,18 +202,13 @@ func _cats() -> void:
 	grid.add_theme_constant_override("v_separation",12)
 	col.add_child(grid)
 	for i in range(Content.CAT_NAMES.size()):
-		var card = VBoxContainer.new()
-		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(card)
 		var portrait = Badge.new()
-		portrait.custom_minimum_size = Vector2(120,105)
+		portrait.custom_minimum_size = Vector2(80, 105)
 		portrait.coat = Color(Content.COATS[i])
 		portrait.locked = not snapshot.life.cats[i].known
-		card.add_child(portrait)
-		var b = button(Content.CAT_NAMES[i],func(): open_cat(i))
-		b.add_theme_font_size_override("font_size",16)
-		card.add_child(b)
-		card.add_child(paragraph(Content.CAT_TRAITS[i] if not portrait.locked else ("Expansion traveler" if i>=12 else "Discover a favorite room"),12))
+		var card = GameTile.new()
+		card.configure(self, Content.CAT_NAMES[i], Content.CAT_TRAITS[i] if not portrait.locked else ("Expansion traveler" if i >= 12 else "Discover a favorite room"), portrait, func(): open_cat(i))
+		grid.add_child(card)
 
 func _events() -> void:
 	var col = _base_sheet("Something to look forward to",630)

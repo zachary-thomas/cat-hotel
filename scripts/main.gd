@@ -314,8 +314,11 @@ func _update_ui() -> void:
 	ui.render(_with_life({"started": true, "repair_remaining": model.repair_remaining(selected), "repair_seconds": Model.REPAIR_SECONDS, "wings": model.wing_count(selected), "rooms": model.room_count(selected), "wing_names": Model.WING_NAMES, "wing_costs": Model.WING_COSTS, "wing_levels": Model.WING_LEVELS, "wing_rates": Model.WING_RATES, "can_expand": model.can_expand(selected), "coins": model.coins, "rate": model.rate(), "hotel": selected, "hotel_name": Model.HOTEL_NAMES[selected], "hotel_names": Model.HOTEL_NAMES, "hotel_level": model.hotel_level(selected), "levels": model.hotels[selected].zones.duplicate(), "purchases": model.hotels[selected].purchases, "zone_names": Model.ZONE_NAMES, "zone_descriptions": Model.ZONE_DETAILS, "costs": costs, "owned": [model.hotels[0].owned, model.hotels[1].owned], "hotel_rates": [model.hotel_rate(0), model.hotel_rate(1)], "meadow_level": model.hotel_level(0), "can_unlock": model.hotel_level(0) >= 10 and model.coins >= 10000 and not model.hotels[1].owned, "pending": model.pending_coins, "pending_seconds": model.pending_seconds, "away_seconds": model.away_seconds, "cats_unlocked": model.discovered_cats(), "cat_names": Model.CAT_NAMES, "cat_traits": Model.CAT_TRAITS, "settings": model.settings.duplicate(), "save_error": save_error}))
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST and ui != null and ui.tab == "Build":
-		build_panel.cancel() if build_panel.placing or build_panel.selected_item != "" else build_panel.close()
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and ui != null:
+		if ui.tab == "Build":
+			build_panel.cancel() if build_panel.placing or build_panel.selected_item != "" else build_panel.close()
+		else:
+			ui.go_back()
 		return
 	if soundscape != null and what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_WINDOW_FOCUS_OUT]:
 		soundscape.configure(model.settings, model.current_hotel, false, false)
