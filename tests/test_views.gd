@@ -180,6 +180,26 @@ func run() -> void:
 	await capture("task3-full-hotel")
 	check(world.room_builder.room_nodes.size() == 8,"Crowded label coverage uses eight real furnished rooms")
 	check_labels()
+	# Running work must get its place in the budget even in ordinary Hotel play.
+	app.active = false
+	world.neighborhood.manager_control = false
+	ui_normal_job_fixture(world)
+	await capture("task3-normal-hotel-running-job")
+	var labels: Array = app.activity.placed_labels
+	check(app.ui.tab == "Hotel" and not world.neighborhood.manager_control,"Job priority fixture uses ordinary Hotel play")
+	check(world.neighborhood.targets.size() > 3,"Ordinary Hotel fixture has competing available annotations")
+	check(not labels.is_empty() and labels[0].text == "On the job" and labels[0].priority == 1,"Eligible running job precedes available and ambient annotations in normal Hotel play")
+	check(labels.any(func(label): return label.priority >= 2),"Running job shares the budget with eligible lower-priority annotations")
+	check_labels()
+	world.neighborhood.manager.hide()
+	app.activity._process(0)
+	check(not app.activity.placed_labels.any(func(label): return label.text == "On the job"),"A hidden worker does not produce a running-job annotation")
+	world.neighborhood.manager.show()
+	world.set_exterior_view(true)
+	app.activity._process(0)
+	check(not app.activity.placed_labels.any(func(label): return label.text == "On the job"),"Exterior roof hides the interior worker's job annotation")
+	check_labels()
+	world.set_exterior_view(false)
 	app.ui._navigate("Cats")
 	await process_frame
 	app.activity._process(0)
@@ -192,3 +212,14 @@ func run() -> void:
 		if FileAccess.file_exists(save_key+suffix): DirAccess.remove_absolute(save_key+suffix)
 	print("VIEWS TESTS: ","PASS" if failures == 0 else "FAIL"," (",failures," failures)")
 	quit(1 if failures else 0)
+
+func ui_normal_job_fixture(world) -> void:
+	app.ui.manager_mode = false
+	app.ui.selected_wing = -1
+	world.neighborhood.selected_target = ""
+	world.neighborhood.manager.position = Vector3(0,0.24,2.2)
+	var state: Dictionary = app.model.grounds.hotels[0]
+	state.manager = [0.0,2.2]
+	state.job = Grounds.make_job("walk",0,Vector2(0,2.2),Vector2(0,4),4)
+	app._update_ui()
+	world.focus_grounds()

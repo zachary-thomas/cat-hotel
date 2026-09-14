@@ -77,8 +77,11 @@ func _place_candidates() -> void:
 	var scene = world.neighborhood
 	if scene != null and scene.model != null:
 		var state: Dictionary = model.grounds.hotels[model.current_hotel]
-		if scene.manager_control:
-			candidates.append({"text":"You" if state.job.is_empty() else "On the job","point":scene.manager.global_position+Vector3(0,1.5,0),"priority":0 if state.job.is_empty() else 1})
+		if is_instance_valid(scene.manager) and scene.manager.is_visible_in_tree() and not (world.exterior_view and world.contains_hotel(scene.manager.global_position)):
+			if not state.job.is_empty():
+				candidates.append({"text":"On the job","point":scene.manager.global_position+Vector3(0,1.5,0),"priority":1})
+			elif scene.manager_control:
+				candidates.append({"text":"You","point":scene.manager.global_position+Vector3(0,1.5,0),"priority":0})
 		for target in scene.targets:
 			if world.exterior_view and world.contains_hotel(target.position): continue
 			if target.action=="clean" and not scene.manager_control: continue
