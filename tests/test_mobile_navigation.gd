@@ -129,7 +129,7 @@ func run() -> void:
 	await settle()
 	await click(app.ui.nav_buttons["Cats"])
 	await settle()
-	var cat_tile: Button = app.ui.sheet.find_child("Tile_Miso", true, false)
+	var cat_tile: Button = app.ui.sheet.find_child("CatCard_0", true, false)
 	check(cat_tile != null, "Cat collection uses a whole-card action")
 	if cat_tile != null:
 		check_tile_art(cat_tile)
@@ -162,7 +162,7 @@ func run() -> void:
 	check(app.ui.tab == "Life", "Cross-linked detail history unwinds without a routing loop")
 	app.ui._navigate("Cats")
 	await settle()
-	var remembered: Button = app.ui.sheet.find_child("Tile_Miso", true, false)
+	var remembered: Button = app.ui.sheet.find_child("CatCard_0", true, false)
 	remembered.grab_focus()
 	app.ui.sheet.scroll.scroll_vertical = 32
 	var scroll_before: int = app.ui.sheet.scroll.scroll_vertical
@@ -170,7 +170,7 @@ func run() -> void:
 	app.ui.go_back()
 	await settle()
 	check(app.ui.sheet.scroll.scroll_vertical == scroll_before, "Back restores collection scroll after layout")
-	check(root.gui_get_focus_owner().name == "Tile_Miso", "Back restores the named card focus")
+	check(root.gui_get_focus_owner().name == "CatCard_0", "Back restores the named card focus")
 	await capture("task2-cats-100")
 	# Build a long body to exercise the reusable fixed action contract directly.
 	app.ui.open_route("Life")
@@ -220,7 +220,7 @@ func run() -> void:
 	app.active = false
 	app.ui._navigate("Cats")
 	await settle()
-	var existing_tile: Button = app.ui.sheet.find_child("Tile_Miso", true, false)
+	var existing_tile: Button = app.ui.sheet.find_child("CatCard_0", true, false)
 	check_tile_art(existing_tile)
 	var drawing: Control = existing_tile.get_child(0).get_child(0)
 	var previous_size := drawing.size

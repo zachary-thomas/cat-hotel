@@ -2,10 +2,17 @@ extends Control
 ## Layered voxel portraits share the hotel's warm materials and feline anatomy.
 var coat: Color = Color("d59c5d")
 var locked: bool = false
+var cat_index: int = -1
+const GuestArt = preload("res://scripts/ui/guest_art.gd")
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(queue_redraw)
 func _draw() -> void:
+	if cat_index >= 0 and cat_index < 18 and not locked:
+		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		var extent := Vector2.ONE * minf(size.x, size.y)
+		draw_texture_rect(GuestArt.portrait(cat_index), Rect2((size - extent) / 2, extent), false)
+		return
 	var bg = StyleBoxFlat.new()
 	bg.bg_color = Color("e6e6d6") if locked else Color("e8ead6")
 	bg.set_corner_radius_all(16)

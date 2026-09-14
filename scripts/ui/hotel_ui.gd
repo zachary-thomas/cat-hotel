@@ -15,8 +15,10 @@ var job_status: Label
 var maid_status: Label
 var grounds_key: String = ""
 const Content = preload("res://scripts/core/game_content.gd")
+const CatViews = preload("res://scripts/ui/views/cat_views.gd")
 const PetView = preload("res://scripts/ui/cat_interaction.gd")
 var selected_cat: int = 0
+var cat_filter: String = "Met"
 var selected_room: int = 0
 var selected_slot: int = 0
 var pet_view
@@ -84,7 +86,11 @@ func render(data: Dictionary) -> void:
 	activity_label.text = "%d rooms · %d happy visits · Day %d" % [data.rooms,data.life.hotels[data.hotel].happy,1+int(data.life.seconds/600)]
 	if is_instance_valid(bond_label) and tab == "Pet":
 		var cat: Dictionary = data.life.cats[selected_cat]
-		bond_label.text = "%d / 100 friendship · %s" % [cat.bond,"Hotel favorite" if cat.bond>=100 else ("Regular" if cat.bond>=20 else "Getting acquainted")]
+		bond_label.text = "♥ %d / 100 friendship · %s" % [cat.bond,"Hotel favorite" if cat.bond>=100 else ("Regular" if cat.bond>=20 else "Getting acquainted")]
+		var friendship = sheet.find_child("CareFriendship", true, false)
+		if friendship != null: friendship.value = cat.bond
+		var favorite = sheet.find_child("CatFavorite", true, false)
+		if favorite != null: favorite.text = "♥  Hotel favorite" if data.life.favorite == selected_cat else "♡  Make hotel favorite"
 		if is_instance_valid(preference_label):
 			preference_label.text = "Loves " + Content.PREFERENCE_COPY[Content.PREFERENCES[selected_cat]] + "." if cat.preference else "Spend time together to learn a favorite comfort."
 	if is_instance_valid(event_label):
@@ -104,6 +110,7 @@ func _refresh_sheet() -> void:
 		"Life": _life()
 		"Decorate": _decorate()
 		"Pet": _pet()
+		"Invitations": _invitations()
 		"Events": _events()
 		"Journal": _journal()
 		"Staff": _staff()
@@ -139,75 +146,20 @@ func _expansions() -> void:
 
 func open_cat(index: int) -> void:
 	selected_cat = index
-	open_route("Pet", tab)
+	open_route("Pet", "Cats" if tab == "Hotel" else tab)
 
 func _pet() -> void:
-	var cat: Dictionary = snapshot.life.cats[selected_cat]
-	var col = _base_sheet(Content.CAT_NAMES[selected_cat],650)
-	col.add_child(paragraph(Content.CAT_TRAITS[selected_cat],14))
-	if not cat.known:
-		col.add_child(paragraph("A traveler who loves " + Content.PREFERENCE_COPY[Content.PREFERENCES[selected_cat]] + ". Prepare a room and send an invitation."))
-		var pack: String = Content.cat_pack(selected_cat)
-		if pack != "" and not snapshot.life.entitlements.has(pack):
-			col.add_child(button("Meet them in the expansion shop",func(): _navigate("Shop")))
-		else:
-			col.add_child(button("Invite this traveler",func(): command("invite",{"cat":selected_cat}),true))
-		return
-	pet_view = PetView.new()
-	pet_view.name = "PettingView"
-	pet_view.cat_index = selected_cat
-	pet_view.enabled_motion = snapshot.settings.motion
-	pet_view.interacted.connect(func(kind): command("interact",{"cat":selected_cat,"kind":kind}))
-	col.add_child(pet_view)
-	col.add_child(paragraph("Stroke your cat, hold gently, or use a button below.",13))
-	bond_label = label("",14,GREEN)
-	col.add_child(bond_label)
-	bond_label.text = "%d / 100 friendship" % cat.bond
-	preference_label = paragraph("Loves " + Content.PREFERENCE_COPY[Content.PREFERENCES[selected_cat]] + "." if cat.preference else "Spend time together to learn a favorite comfort.",14)
-	col.add_child(preference_label)
-	var grid = GridContainer.new()
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation",6)
-	grid.add_theme_constant_override("v_separation",6)
-	col.add_child(grid)
-	for item in [["Pet","pet"],["Brush","brush"],["Feather","wand"],["Yarn","yarn"],["Cushion","cushion"],["Box","box"]]:
-		var b = button(item[0],func(): pet_view.play(item[1]))
-		b.name = "Interact_"+item[1]
-		b.add_theme_font_size_override("font_size",15)
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(b)
-	col.add_child(button("Favorite & follow " + Content.CAT_NAMES[selected_cat],func(): command("favorite",{"cat":selected_cat})))
-	col.add_child(button("Invite to this hotel",func(): command("invite",{"cat":selected_cat})))
-	col.add_child(label("Invite a friend to play",19))
-	for i in range(snapshot.life.cats.size()):
-		if i != selected_cat and snapshot.life.cats[i].known:
-			var b = button(Content.CAT_NAMES[i],func(): command("playdate",{"cat":selected_cat,"other":i}))
-			b.disabled = cat.bond < 10 or snapshot.life.cats[i].bond < 10 or snapshot.levels[2] == 0
-			col.add_child(b)
-	col.add_child(paragraph("Playdates need an open lounge and 10 friendship with both cats. Staff also build friendship through good hospitality.",13))
+	CatViews.profile(self, selected_cat)
 
 func _cats() -> void:
-	if not snapshot.has("life"):
-		super._cats()
-		return
-	var col = _base_sheet("Your little regulars",650)
-	var count: int = 0
-	for cat in snapshot.life.cats:
-		if cat.known:
-			count += 1
-	col.add_child(paragraph("%d travelers met. Every cat has a favorite comfort and a story." % count))
-	var grid = GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation",10)
-	grid.add_theme_constant_override("v_separation",12)
-	col.add_child(grid)
-	for i in range(Content.CAT_NAMES.size()):
-		var portrait = Badge.new()
-		portrait.coat = Color(Content.COATS[i])
-		portrait.locked = not snapshot.life.cats[i].known
-		var card = GameTile.new()
-		card.configure(self, Content.CAT_NAMES[i], Content.CAT_TRAITS[i] if not portrait.locked else ("Expansion traveler" if i >= 12 else "Discover a favorite room"), portrait, func(): open_cat(i))
-		grid.add_child(card)
+	CatViews.collection(self)
+
+func _invitations() -> void:
+	CatViews.invitations(self, selected_cat)
+
+func relayout() -> void:
+	super.relayout()
+	CatViews.relayout(self)
 
 func _events() -> void:
 	var col = _base_sheet("Something to look forward to",630)
@@ -284,7 +236,8 @@ func _journal() -> void:
 			box.add_child(photo)
 		else:
 			var portrait = Badge.new()
-			portrait.coat = Color(Content.COATS[entry.cat])
+			portrait.cat_index = entry.cat
+			portrait.locked = not snapshot.life.cats[entry.cat].known
 			portrait.custom_minimum_size.y = 95
 			box.add_child(portrait)
 		box.add_child(paragraph(entry.title,19,INK))

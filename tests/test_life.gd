@@ -13,6 +13,12 @@ func action(m, name: String, payload: Dictionary = {}) -> Dictionary:
 	return m.life.perform(m,name,payload)
 
 func _initialize() -> void:
+	for index in range(Content.CAT_NAMES.size()):
+		check(Content.FAVORITE_ACTIONS[index] in ["pet","brush","wand","yarn","cushion","box"], "Every guest has a reachable illustrated care favorite")
+	var biscuit = Model.new()
+	biscuit.new_game(1000)
+	biscuit.life.state.cats[5].known = true
+	check(action(biscuit,"interact",{"cat":5,"kind":"yarn"}).ok and biscuit.life.state.cats[5].bond == 6 and biscuit.life.state.cats[5].preference,"Biscuit's available yarn favorite reveals a comfort and grants the favorite bonus")
 	var m = Model.new()
 	m.new_game(1000)
 	check(m.hotels.size()==4 and not m.hotels[2].owned,"Expansion destinations start locked; base hotel stays free")

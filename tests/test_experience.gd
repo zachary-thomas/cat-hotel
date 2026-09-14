@@ -17,6 +17,16 @@ func check(condition: bool, message: String) -> void:
 func _initialize() -> void:
 	call_deferred("run")
 
+func click(control: Control) -> void:
+	for frame in range(6): await process_frame
+	for down in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.position = control.get_global_rect().get_center()
+		event.pressed = down
+		root.push_input(event, true)
+		await process_frame
+
 func capture(name: String) -> void:
 	await process_frame
 	await process_frame
@@ -38,13 +48,9 @@ func run() -> void:
 	app.ui.open_cat(0)
 	await process_frame
 	check(app.ui.pet_view.cat != null,"Cat profiles contain a live 3D cat")
-	var touch = InputEventMouseButton.new()
-	touch.button_index = MOUSE_BUTTON_LEFT
-	touch.pressed = true
-	touch.position = Vector2(100,100)
-	app.ui.pet_view._gesture(touch)
-	touch.pressed = false
-	app.ui.pet_view._gesture(touch)
+	var stage = app.ui.pet_view
+	await click(stage)
+	check(app.ui.pet_view == stage,"Real petting input preserves the live care stage")
 	check(not app.ui.pet_view.held,"Releasing a petting gesture stops repeated interactions")
 	await process_frame
 	check(app.model.life.state.cats[0].bond==6,"Petting through the UI changes the saved relationship")

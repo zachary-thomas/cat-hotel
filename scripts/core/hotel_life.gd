@@ -317,7 +317,7 @@ func perform(model, action: String, payload: Dictionary) -> Dictionary:
 			if not has_cat(cat):
 				return failure("This traveler belongs to an expansion pack.")
 			if not known(cat) and matching_rooms(model,hotel,Content.PREFERENCES[cat]) == 0:
-				return failure("Prepare " + Content.PREFERENCE_COPY[Content.PREFERENCES[cat]] + " first.")
+				return failure("Prepare a favorite room before inviting this traveler.")
 			discover(cat,hotel)
 			# Inviting is not a repeatable way to farm visits or rewards.
 			memory("invite_%d_%d" % [hotel,cat], "A room for " + Content.CAT_NAMES[cat], "Your invitation has arrived. A familiar face is on the way.", cat, hotel, "arrival")

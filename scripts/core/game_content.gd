@@ -5,7 +5,7 @@ const COATS = ["d99c51", "999e93", "343e35", "e3d5b9", "829d91", "cda46f", "6875
 const CAT_NAMES = ["Miso", "Clover", "Bean", "Mochi", "Olive", "Biscuit", "Pebble", "Maple", "Nori", "Pip", "Coco", "Tofu", "Truffle", "Ember", "Captain", "Flurry", "Juniper", "Pearl"]
 const CAT_TRAITS = ["Sun seeker", "Curious explorer", "Playful soul", "Professional napper", "Quiet observer", "Snack enthusiast", "Window watcher", "Friendly traveler", "Night owl", "Little adventurer", "Lounge lover", "Gentle dreamer", "Velvet storyteller", "Autumn acrobat", "Seafaring napper", "Snowflake collector", "Woodland wanderer", "Spa connoisseur"]
 const PREFERENCES = ["sunny", "explore", "play", "quiet", "quiet", "food", "sunny", "social", "warm", "explore", "social", "warm", "quiet", "explore", "social", "warm", "explore", "warm"]
-const FAVORITE_ACTIONS = ["pet", "box", "wand", "cushion", "brush", "bell", "pet", "yarn", "brush", "wand", "yarn", "cushion", "brush", "wand", "box", "cushion", "box", "pet"]
+const FAVORITE_ACTIONS = ["pet", "box", "wand", "cushion", "brush", "yarn", "pet", "yarn", "brush", "wand", "yarn", "cushion", "brush", "wand", "box", "cushion", "box", "pet"]
 const PREFERENCE_COPY = {"sunny": "a perch beside a warm window", "explore": "climbing towers and places to explore", "play": "tunnels, toys and a lively lounge", "quiet": "a sheltered bed and a peaceful corner", "food": "a good kitchen and a welcoming table", "social": "shared activities and friendly company", "warm": "heated cushions and soft evening lamps"}
 const FURNITURE = [
 	{"id":"mat", "name":"Linen mat", "slot":0, "cost":0, "tags":[], "level":1},
