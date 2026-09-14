@@ -1,6 +1,6 @@
 # Actual mobile interface captures
 
-These 36 PNGs were captured from the final integrated Godot app. They are native controls over live game scenes and the separately authored production illustrations. Names include viewport, text scale and state. The12 numbered primary screens correspond to the four approved boards.
+These 40 PNGs were captured from the final integrated Godot app. They are native controls over live game scenes and the separately authored production illustrations. Names include viewport, text scale and state. The12 numbered primary screens correspond to the four approved boards.
 
 | Screen | Final capture |
 | --- | --- |
@@ -17,7 +17,7 @@ These 36 PNGs were captured from the final integrated Godot app. They are native
 | Welcome back | [Pending reward](11-reward-360x640-100-pending.png) |
 | Settings | [Preferences](12-settings-360x640-100-sound.png) |
 
-13–14 show a real paid Build preview and saved placement.15–18 cover invalid placement, failed Build save, failed reward save at 150%, and insufficient coins.19–30 cover large text, four-edge insets, Watch, unknown/paid guests,125% Welcome, empty album and completed event.31–36 show centered desktop details and representative390/430/360x800 layouts.
+13–14 show a real paid Build preview and saved placement.15–18 cover invalid placement, failed Build save, failed reward save at 150%, and insufficient coins.19–30 cover large text, four-edge insets, Watch, unknown/paid guests,125% Welcome, empty album and completed event.31–36 show centered desktop details and representative390/430/360x800 layouts.37–40 show the live Cardboard gathering on Life itself, running and cooling down at normal and 150% text on the shortest phone.
 
 Captures01–03,05–07,10,13–14 come from a fresh-save pointer walkthrough with normal starting currency and progression. Other captures use isolated seeded fixtures to expose later-game, boundary and failure states. No fake purchase or consent operation was performed to produce this gallery. The privacy action test uses a disconnected local UI spy.
 

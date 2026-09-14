@@ -14,10 +14,10 @@ func populate(ui, before: Dictionary, after: Dictionary, text_scale: float = 1.0
 		var delta: int = value-old
 		var row = HBoxContainer.new()
 		add_child(row)
-		var label: Label = ui.canvas_label(LABELS[index],roundi((14 if compact else 16)*text_scale),PlayfulTheme.SECONDARY_INK)
+		var label: Label = ui.canvas_label(LABELS[index],ceili((14 if compact else 16)*text_scale),PlayfulTheme.SECONDARY_INK)
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(label)
-		var numbers: Label = ui.canvas_label(str(value) if delta==0 else "%d → %d (%+d)" % [old,value,delta],roundi((14 if compact else 16)*text_scale),PlayfulTheme.INK if delta>=0 else PlayfulTheme.ERROR_INK)
+		var numbers: Label = ui.canvas_label(str(value) if delta==0 else "%d → %d (%+d)" % [old,value,delta],ceili((14 if compact else 16)*text_scale),PlayfulTheme.INK if delta>=0 else PlayfulTheme.ERROR_INK)
 		numbers.name = "Stat_"+axis
 		row.add_child(numbers)
 		if compact: continue
@@ -33,4 +33,4 @@ func populate(ui, before: Dictionary, after: Dictionary, text_scale: float = 1.0
 	if compact: return
 	var quality: int = after.get("quality",0)
 	var mood: String = "Simple" if quality<25 else ("Inviting" if quality<50 else ("Lovely" if quality<75 else "Exceptional"))
-	add_child(ui.canvas_paragraph("%s · Room quality %d/100\nFurnishing quality income +%d coins/min" % [mood,quality,after.get("income",0)],roundi(14*text_scale)))
+	add_child(ui.canvas_paragraph("%s · Room quality %d/100\nFurnishing quality income +%d coins/min" % [mood,quality,after.get("income",0)],ceili(14*text_scale)))

@@ -55,7 +55,7 @@ func _process(delta: float) -> void:
 func _place_candidates() -> void:
 	var region: Rect2 = ui.metrics.world_rect.grow(-4 * float(ui.metrics.unit))
 	var unit: float = ui.metrics.unit
-	var font_size := roundi(14 * unit * float(ui.metrics.font_scale))
+	var font_size := _annotation_font_size()
 	var candidates: Array[Dictionary] = []
 	var protected: Array[Rect2] = []
 	if not world.exterior_view and world.room_builder != null:
@@ -125,6 +125,9 @@ func _place_candidates() -> void:
 			marker.mouse_filter = Control.MOUSE_FILTER_STOP
 			marker.show()
 		elif candidate.has("target"): candidate.target.screen_rect = rect
+
+func _annotation_font_size() -> int:
+	return ceili(14 * float(ui.metrics.unit) * float(ui.metrics.font_scale))
 
 func _draw() -> void:
 	for candidate in placed_labels:

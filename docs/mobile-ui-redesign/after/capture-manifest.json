@@ -22,7 +22,7 @@
   {
     "Capture": "05-life-360x640-100-starting.png",
     "Source": "tmp/walkthrough-360x640-100-08-life.png",
-    "SHA256": "49078BC31BA31D56C48E3085391574F8296B220169A7CD1B1FA1AF57F000EC1B"
+    "SHA256": "55085AD43AB6A05AA2A18E712D7C821774C52DA6D4DAC3D27A564F9782A24EE6"
   },
   {
     "Capture": "06-map-360x640-100-locked.png",
@@ -62,22 +62,22 @@
   {
     "Capture": "13-build-360x640-100-preview.png",
     "Source": "tmp/walkthrough-360x640-100-06-build-preview.png",
-    "SHA256": "D9C8E57BC2BE042662CA05E325355D4B40220E0C3041A36FCCD3EF9CA02CF0D7"
+    "SHA256": "8464822545ACD3B100F597F4438C01CB470C35A2EE751B96710E6B54331324A3"
   },
   {
     "Capture": "14-build-360x640-100-placed.png",
     "Source": "tmp/walkthrough-360x640-100-07-build-placed.png",
-    "SHA256": "E8BE724240A05C59016BF37756620C195221F32E5740344509FE24EC12159436"
+    "SHA256": "03B1D365497843F4F2C42D2145D28DF7925E589E90804A4FE67876B4C9B328EF"
   },
   {
     "Capture": "15-build-360x640-150-invalid.png",
     "Source": "tmp/furniture-check-invalid-360x640.png",
-    "SHA256": "8AC9A3586E961D6112906EC2CAFC417255BB559A2D811481BC63F18972BAC780"
+    "SHA256": "FB0BFEF29886EEFF60054E253B0D1A349546750DEB9215331958844C3EC6AEBD"
   },
   {
     "Capture": "16-build-360x640-150-save-error.png",
     "Source": "tmp/task4-build-save-failure-360x640-150.png",
-    "SHA256": "1EBFE45477A20A2F220B83D33BB5C93D8A0F247BB25A9835552C8432B3C50D8B"
+    "SHA256": "EB04A926A9EC0B6589DD4EDF2F7B93B71B3F30325C4C6E27877A42FFC6DB60E4"
   },
   {
     "Capture": "17-reward-360x640-150-save-error.png",
@@ -152,7 +152,7 @@
   {
     "Capture": "31-life-1280x800-100-desktop.png",
     "Source": "tmp/final-1280x800-life-100-plain.png",
-    "SHA256": "7DAF0108E1BEF9C38BFC6679482EC148B8EAF2DEE725013C87DBD3A7CB3C170A"
+    "SHA256": "8469DBEDC7E39A75F401ED02BCEE32C442A39E9A1B7ED5AECB97DFB264CFE06E"
   },
   {
     "Capture": "32-map-390x844-125-inset.png",
@@ -167,7 +167,7 @@
   {
     "Capture": "34-life-430x932-150-inset.png",
     "Source": "tmp/final-430x932-life-150-inset.png",
-    "SHA256": "E47F4744B4336282501C0B949F142B8133A2E652A0CCF42539664322CE190E6D"
+    "SHA256": "2DA675847EFA1CA4789AD56039D4D655CBCB57A53F5146F2CB95CE9F29FBCE63"
   },
   {
     "Capture": "35-care-360x800-125-inset.png",
@@ -178,5 +178,25 @@
     "Capture": "36-build-1280x800-150-desktop.png",
     "Source": "tmp/build-1280x800-150.png",
     "SHA256": "2335339B045B93EEFE4D86C2AFEB1BA5561E90CEA4B8C1090F4B7E1AE94D1655"
+  },
+  {
+    "Capture": "37-life-360x640-100-cardboard-running.png",
+    "Source": "tmp/task6-featured-cardboard-running-100-final-360x640.png",
+    "SHA256": "F1803B1282E7C2F7BA33AECF80CAC154E9C58D06A1E16F2CDCDDDB8C02DE9FCF"
+  },
+  {
+    "Capture": "38-life-360x640-150-cardboard-running.png",
+    "Source": "tmp/task6-featured-cardboard-running-150-final-360x640.png",
+    "SHA256": "D6B64177197C52E03F1E7EE4C9A533785E5D4621B3A462CAFE39426C18A6CF20"
+  },
+  {
+    "Capture": "39-life-360x640-100-cardboard-cooldown.png",
+    "Source": "tmp/task6-featured-cardboard-cooldown-100-final-360x640.png",
+    "SHA256": "36935FE47DD9F5B0989484AF90B7563BA2E79CD2D47724F8DDF21F72EE53C09B"
+  },
+  {
+    "Capture": "40-life-360x640-150-cardboard-cooldown.png",
+    "Source": "tmp/task6-featured-cardboard-cooldown-150-final-360x640.png",
+    "SHA256": "BF0F0BC7979CBC1ACF8C97A751DE12DD99DB2C00C2B2370E602F5EDBFB5CB8B4"
   }
 ]

@@ -36,10 +36,16 @@ static func picture(texture: Texture2D, height: float) -> TextureRect:
 
 static func hub(ui: Control) -> void:
 	var col: VBoxContainer = ui._base_sheet("Life at " + ui.snapshot.hotel_name, 650)
-	col.add_child(ui.paragraph("Little things. Happy cats."))
 	var featured := card(ui, col, Color("FFF1D6"))
-	featured.add_child(ui.art("nap", 95 * ui.metrics.unit))
-	featured.add_child(heading(ui, "Great Nap Championship",20))
+	var featured_art: Control = ui.art("nap", (24 if ui.metrics.font_scale >= 1.5 else 68) * ui.metrics.unit)
+	featured_art.name = "FeaturedEventArt"
+	featured.add_child(featured_art)
+	var featured_name: Label = heading(ui, "Great Nap Championship",18 if ui.metrics.font_scale >= 1.5 else 20)
+	featured_name.name = "FeaturedEventName"
+	featured.add_child(featured_name)
+	var featured_status: Label = ui.paragraph("")
+	featured_status.name = "FeaturedEventStatus"
+	featured.add_child(featured_status)
 	var ready := action(ui, "Get ready  ›", func(): ui.open_route("Events", "Life"), true)
 	ready.name = "Life_Events"
 	featured.add_child(ready)
@@ -66,6 +72,7 @@ static func hub(ui: Control) -> void:
 		col.add_child(ui.paragraph(option.copy))
 	if ui.snapshot.hotel_level < 3: col.add_child(ui.paragraph("Specialties open at hotel level 3."))
 	relayout(ui)
+	update(ui)
 
 static func events(ui: Control) -> void:
 	var col: VBoxContainer = ui._base_sheet("Let’s get together",650)
@@ -101,6 +108,20 @@ static func events(ui: Control) -> void:
 static func update(ui: Control) -> void:
 	if not is_instance_valid(ui.sheet): return
 	var h: Dictionary = ui.snapshot.life.hotels[ui.snapshot.hotel]
+	if ui.tab == "Life":
+		var featured: Dictionary = _featured_event(ui,h)
+		var art = ui.sheet.find_child("FeaturedEventArt",true,false)
+		var title: Label = ui.sheet.find_child("FeaturedEventName",true,false)
+		var status: Label = ui.sheet.find_child("FeaturedEventStatus",true,false)
+		var route: Button = ui.sheet.find_child("Life_Events",true,false)
+		if art != null:
+			art.kind = featured.id
+			art.queue_redraw()
+		if title != null: title.text = featured.name
+		if status != null: status.text = featured.status
+		if route != null:
+			route.text = featured.action
+			route.accessibility_name = featured.action.replace("›","").strip_edges()
 	if ui.tab == "Events":
 		var cooldown: int = maxi(0,ceili(60-(ui.snapshot.life.seconds-h.last_event)))
 		if is_instance_valid(ui.event_label):
@@ -120,6 +141,31 @@ static func update(ui: Control) -> void:
 		if train != null:
 			var index: int = ui.selected_staff
 			train.disabled = h.staff[index]>=3 or ui.snapshot.coins<250*(h.staff[index]+1) or ui.snapshot.levels[Content.STAFF[index].zone]==0 or ui.snapshot.save_error != ""
+
+static func _featured_event(ui: Control, h: Dictionary) -> Dictionary:
+	var cooldown: int = maxi(0,ceili(60-(ui.snapshot.life.seconds-h.last_event)))
+	var event: Dictionary = {}
+	if not h.event.is_empty():
+		event = Content.find_event(str(h.event.id))
+	elif cooldown > 0:
+		var prefix: String = "event_%d_" % int(ui.snapshot.hotel)
+		for index in range(ui.snapshot.life.memories.size()-1,-1,-1):
+			var memory_id: String = str(ui.snapshot.life.memories[index].id)
+			if not memory_id.begins_with(prefix): continue
+			var suffix: String = memory_id.trim_prefix(prefix)
+			for candidate in Content.EVENTS:
+				if suffix.begins_with(str(candidate.id)+"_"):
+					event = candidate
+					break
+			if not event.is_empty(): break
+	if event.is_empty(): event = Content.find_event("nap")
+	if not h.event.is_empty():
+		var remaining: int = maxi(0,ceili(float(h.event.ends)-float(ui.snapshot.life.seconds)))
+		return {"id":event.id,"name":event.name,"status":"%ds left · Score %d / 100" % [remaining,int(h.event.score)],"action":"View gathering  ›"}
+	if cooldown > 0:
+		return {"id":event.id,"name":event.name,"status":"Gathering complete · Ready again in %ds" % cooldown,"action":"See results · %ds  ›" % cooldown}
+	var available_copy: String = "Available again · choose a gathering." if float(h.last_event) >= 0 else "Ready for a gathering."
+	return {"id":event.id,"name":event.name,"status":available_copy,"action":"Get ready  ›"}
 
 static func staff(ui: Control) -> void:
 	var col: VBoxContainer = ui._base_sheet("The cats behind the comfort",650)
@@ -242,10 +288,20 @@ static func journal(ui: Control) -> void:
 		box.add_child(heading(ui,entry.title,20))
 		box.add_child(ui.paragraph(entry.text))
 		box.add_child(ui.paragraph("Day %d · %s" % [entry.day,ui.snapshot.hotel_names[entry.hotel]]))
-		box.add_child(action(ui,"Visit "+Content.CAT_NAMES[entry.cat],func(): ui.open_cat(entry.cat)))
+		var visit: Button = action(ui,"Visit "+Content.CAT_NAMES[entry.cat],func(): ui.open_cat(entry.cat))
+		visit.name = "JournalVisit_" + str(entry.id).md5_text()
+		box.add_child(visit)
 
 static func relayout(ui: Control) -> void:
 	if not is_instance_valid(ui.sheet): return
+	var enlarged: bool = ui.metrics.font_scale >= 1.5
+	var featured_art: Control = ui.sheet.find_child("FeaturedEventArt",true,false)
+	var featured_name: Label = ui.sheet.find_child("FeaturedEventName",true,false)
+	if featured_art != null: featured_art.custom_minimum_size.y = (24 if enlarged else 68) * ui.metrics.unit
+	if featured_name != null:
+		var title_size: int = 18 if enlarged else 20
+		featured_name.set_meta(ui.PHONE_FONT_META,title_size)
+		featured_name.add_theme_font_size_override("font_size",ui._scaled_font_size(title_size))
 	for name in ["grid","StaffSelector"]:
 		var grid = ui.sheet.find_child(name,true,false)
 		if grid == null: continue

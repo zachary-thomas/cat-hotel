@@ -71,6 +71,20 @@ func test_makeover_flow() -> void:
 	app.model.settings.watch=true; app.world.apply_life(app.model)
 	check(app.world.follow_cat==-1 and not app.world.exterior_view,"Build camera takes precedence over Watch and exterior settings")
 	app.model.settings.watch=false
+	panel.preview_item("perch")
+	var undiscovered_tray: Control = panel.find_child("SelectedFurnitureTray",true,false)
+	var undiscovered_copy: String = ""
+	for label in undiscovered_tray.find_children("*","Label",true,false): undiscovered_copy += label.text+"\n"
+	check(not undiscovered_copy.contains("Miso loves") and undiscovered_copy.contains("Learn cat favorites"),"Build keeps a known cat's preference neutral until discovery")
+	check(not app.model.life.state.cats[0].preference,"Furniture preview never discovers a cat preference")
+	panel.cancel()
+	app.perform_action("interact",{"cat":0,"kind":"pet"})
+	check(app.model.life.state.cats[0].preference,"Miso's real favorite interaction discovers the preference")
+	panel.preview_item("perch")
+	var discovered_copy: String = ""
+	for label in panel.find_child("SelectedFurnitureTray",true,false).find_children("*","Label",true,false): discovered_copy += label.text+"\n"
+	check(discovered_copy.contains("Miso loves a perch beside a warm window"),"Build names an eligible cat's preference after real discovery")
+	panel.cancel()
 	var before: Dictionary = app.model.serialize()
 	panel.preview_item("scratch")
 	check(panel.confirm_button.icon!=null and panel.get_node("BuildActions/CancelFurniture").icon!=null,"Furniture placement has check and cancel icons")
@@ -106,6 +120,16 @@ func test_makeover_flow() -> void:
 	check(not panel.ghost.is_empty() and str(panel.ghost.uid)==failed_uid and is_instance_valid(app.world.room_builder.renderer(0)._ghost),"A failed save keeps the positioned ghost available to retry")
 	check(not panel.confirm_button.disabled and panel.confirm_button.text=="Place · 160","A valid preview can retry the same quoted Place after a save failure")
 	check_build_alert(panel,"Simulated furniture save failure","Save failure")
+	var error_focus: Button = panel.find_child("AdjustFurniture",true,false)
+	error_focus.grab_focus()
+	var error_ghost: Dictionary = panel.ghost.duplicate(true)
+	var error_status_id: int = panel.status.get_instance_id()
+	app.model.coins_units += app.model.UNIT
+	panel._process(0)
+	check(panel.transaction_error == "Simulated furniture save failure" and panel.status.get_instance_id() == error_status_id,"Incidental income preserves a genuine transaction error in place")
+	check(panel.ghost == error_ghost and root.gui_get_focus_owner() == error_focus,"Incidental income preserves the failed placement ghost and focus")
+	app.model.coins_units -= app.model.UNIT
+	panel._process(0)
 	if DisplayServer.get_name()!="headless":
 		await process_frame; await process_frame; await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/task4-build-save-failure-360x640-150.png")
@@ -155,7 +179,9 @@ func test_makeover_flow() -> void:
 		panel.open(); await process_frame; await process_frame; await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/build-no-room-large-wallet-360x640-150.png")
 		panel.close()
-	app.queue_free(); await process_frame; await create_timer(0.1).timeout
+	app.soundscape.shutdown()
+	await create_timer(0.15).timeout
+	app.queue_free(); await process_frame; await create_timer(0.15).timeout
 	preload("res://scripts/core/save_journal.gd").new(path).clear()
 	preload("res://scripts/core/build_draft_store.gd").new(path).clear()
 
@@ -264,6 +290,25 @@ func test_affordable_wallet_updates(app, panel) -> void:
 	empty_state=panel.find_child("FurnitureEmptyState",true,false)
 	check(empty_state!=null and empty_state.visible and empty_state.text.contains("No stored furniture"),"Empty storage keeps its specific guidance")
 	app.model.coins_units=wallet_units; panel.affordable=false; panel.category="sleep"; panel._last_balance=-1; panel._refresh(); panel.preview_item("perch")
+	panel.adjust_open=true; panel._refresh()
+	await process_frame; await process_frame
+	var positioned_ghost: Dictionary=panel.ghost.duplicate(true)
+	var tray: Control=panel.find_child("SelectedFurnitureTray",true,false)
+	var tray_id: int=tray.get_instance_id()
+	var adjust: Button=panel.find_child("AdjustFurniture",true,false)
+	adjust.grab_focus()
+	var scroll: ScrollContainer=panel.find_child("BuildScroll",true,false)
+	scroll.scroll_vertical=mini(24,roundi(scroll.get_v_scroll_bar().max_value))
+	var scroll_before: int=scroll.scroll_vertical
+	app.model.coins_units=149*app.model.UNIT; panel._last_balance=-1; panel._process(0)
+	check(panel.status.text.contains("Need 1 more coins") and panel.find_child("BuildAlert",true,false)!=null and panel.confirm_button.disabled,"Positioned preview reports the live below-price shortfall")
+	app.model.coins_units=150*app.model.UNIT; panel._process(0)
+	check(panel.status.text.contains("Ready to place") and panel.find_child("BuildAlert",true,false)==null and not panel.confirm_button.disabled,"Positioned preview switches to a normal ready surface at the exact price")
+	app.model.coins_units=151*app.model.UNIT; panel._process(0)
+	check(panel.status.text.contains("Ready to place") and not panel.confirm_button.disabled,"Positioned preview stays coherent above the price")
+	check(panel.ghost==positioned_ghost and panel.adjust_open and panel.find_child("SelectedFurnitureTray",true,false).get_instance_id()==tray_id,"Wallet changes preserve ghost position, Adjust and the selected tray")
+	check(root.gui_get_focus_owner()==adjust and scroll.scroll_vertical==scroll_before,"Wallet changes preserve placement focus and scroll")
+	app.model.coins_units=wallet_units; panel._last_balance=-1; panel._process(0)
 
 func check_build_alert(panel, expected_copy: String, context: String) -> void:
 	var alert: PanelContainer=panel.find_child("BuildAlert",true,false)

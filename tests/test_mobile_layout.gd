@@ -115,6 +115,27 @@ func check_controller_transaction(Model) -> void:
 	await process_frame
 	app.start_game()
 	app.active = false
+	var phone_scale: float = 390.0/450.0
+	var metrics_before: Dictionary = app.ui.metrics.duplicate(true)
+	app.ui.metrics.unit = 1.0/phone_scale
+	app.ui.metrics.font_scale = 1.0
+	check(app.activity._annotation_font_size()*phone_scale>=14.0,"World annotation rounds upward to the 14-unit physical minimum at 390 width")
+	app.ui.metrics = metrics_before
+	var Stats = load("res://scripts/ui/build_room_stats.gd")
+	var before_stats := {"comfort":1,"entertainment":2,"atmosphere":3,"quality":4,"income":5}
+	var compact_stats = Stats.new()
+	app.ui.add_child(compact_stats)
+	compact_stats.populate(app.ui,before_stats,before_stats,1.0/phone_scale,true)
+	for label in compact_stats.find_children("*","Label",true,false):
+		check(label.get_theme_font_size("font_size")*phone_scale>=14.0,"Compact Build room stat rounds upward at 390 width")
+	var full_stats = Stats.new()
+	app.ui.add_child(full_stats)
+	full_stats.populate(app.ui,before_stats,before_stats,1.0/phone_scale,false)
+	for label in full_stats.find_children("*","Label",true,false):
+		var minimum: float = 14.0 if label.text.contains("Room quality") else 16.0
+		check(label.get_theme_font_size("font_size")*phone_scale>=minimum,"Full Build room stat preserves its physical minimum at 390 width")
+	compact_stats.queue_free()
+	full_stats.queue_free()
 	var initial_title_size: int = app.ui.title_label.get_theme_font_size("font_size")
 	app.change_setting("ui_text_scale", 1.5)
 	var reloaded = Model.new()

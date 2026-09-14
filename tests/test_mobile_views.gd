@@ -212,11 +212,13 @@ func run() -> void:
 		app.model.life.state.cats[2].bond = 10
 		app.model.hotels[0].zones[2] = 1
 		app._update_ui()
-		app.ui._invitations()
 		await settle()
 		check(not app.ui.sheet.find_child("Playdate_2", true, false).disabled, "Lounge and both bonds enable a playdate")
 		await click(app.ui.sheet.find_child("Playdate_2", true, false))
 		check(app.model.life.state.cats[1].friend == 2 and app.model.life.state.cats[2].friend == 1, "Playdate button creates the selected real friendship pair")
+	await passive_life_refresh_coverage()
+	await journal_focus_refresh_coverage()
+	await featured_life_coverage()
 	await life_coverage()
 	await album_capacity_coverage()
 	await final_matrix_coverage()
@@ -229,6 +231,173 @@ func run() -> void:
 		if FileAccess.file_exists(key + suffix): DirAccess.remove_absolute(key + suffix)
 	print("MOBILE VIEWS TESTS: ", "PASS" if failures == 0 else "FAIL", " (", failures, " failures)")
 	quit(1 if failures else 0)
+
+func passive_life_refresh_coverage() -> void:
+	var fresh = preload("res://scripts/core/hotel_model.gd").new()
+	fresh.new_game(int(Time.get_unix_time_from_system()))
+	var fixture: Dictionary = fresh.serialize()
+	check(app.model.restore(fixture.duplicate(true)),"Passive refresh starts from an independent valid fixture")
+	var viewport_before: Vector2i = root.size
+	root.size = Vector2i(360,640)
+	await settle()
+	app.ui.close_sheet()
+	app.model.current_hotel = 0
+	for index in range(app.model.life.state.cats.size()):
+		app.model.life.state.cats[index].known = index < 3
+		app.model.life.state.cats[index].bond = 0
+	app.model.hotels[0].zones = [10,2,1,2]
+	app.model.life.state.hotels[0].staff = [3,3,3]
+	app.model.life.state.hotels[0].visits = 0
+	app.model.life.state.hotels[0].visit_clock = app.model.life.visit_interval(app.model,0)-0.5
+	app.model.life.touch()
+	app._update_ui()
+	app.ui.cat_filter = "Met"
+	app.ui._navigate("Cats")
+	await settle()
+	var cat_focus: Control = app.ui.sheet.find_child("CatCard_2",true,false)
+	app.ui.sheet.scroll.ensure_control_visible(cat_focus)
+	cat_focus.grab_focus()
+	app.ui.sheet.scroll.scroll_vertical = 40
+	await settle()
+	var cat_scroll: int = app.ui.sheet.scroll.scroll_vertical
+	app.model.advance(1.0)
+	app._update_ui()
+	await settle()
+	var summary: Label = app.ui.sheet.find_child("CatCollectionSummary",true,false)
+	check(summary != null and summary.text.begins_with("4 travelers met"),"A passive happy visit refreshes the open collection count")
+	check(app.ui.sheet.find_child("CatCard_6",true,false) != null,"A passively discovered matching guest joins the open Met collection")
+	check(app.ui.cat_filter == "Met" and app.ui.sheet.scroll.scroll_vertical == cat_scroll,"Passive collection membership refresh preserves filter and scroll")
+	check(root.gui_get_focus_owner() != null and root.gui_get_focus_owner().name == "CatCard_2","Passive collection membership refresh restores the focused cat card")
+
+	check(app.model.restore(fixture.duplicate(true)),"Invitation refresh fixture restores atomically")
+	app.model.current_hotel = 0
+	for index in range(12): app.model.life.state.cats[index].known = true
+	app.model.life.state.cats[0].bond = 9
+	app.model.life.state.cats[1].bond = 9
+	app.model.hotels[0].zones = [10,2,1,2]
+	app.model.life.state.hotels[0].staff = [3,3,3]
+	app.model.life.state.hotels[0].visits = 0
+	var interval: float = app.model.life.visit_interval(app.model,0)
+	app.model.life.state.hotels[0].visit_clock = interval*2.0-0.5
+	app.model.life.touch()
+	app._update_ui()
+	app.ui.selected_cat = 0
+	app.ui.open_route("Invitations","Pet")
+	await settle()
+	var playdate: Button = app.ui.sheet.find_child("Playdate_1",true,false)
+	check(playdate != null and playdate.disabled,"Passive invitation regression begins below both friendship gates")
+	app.ui.sheet.scroll.ensure_control_visible(playdate)
+	playdate.grab_focus()
+	var invitation_scroll: int = app.ui.sheet.scroll.scroll_vertical
+	var playdate_id: int = playdate.get_instance_id()
+	app.model.advance(1.0)
+	app._update_ui()
+	await settle()
+	var refreshed_playdate: Button = app.ui.sheet.find_child("Playdate_1",true,false)
+	check(app.model.life.state.cats[0].bond >= 10 and app.model.life.state.cats[1].bond >= 10,"Actual passive visits cross both playdate friendship gates")
+	check(refreshed_playdate != null and not refreshed_playdate.disabled,"Passive friendship gains enable the open invitation action")
+	check(refreshed_playdate != null and refreshed_playdate.get_instance_id() == playdate_id,"Invitation gate updates in place without rebuilding the sheet")
+	check(root.gui_get_focus_owner() == refreshed_playdate and app.ui.sheet.scroll.scroll_vertical == invitation_scroll,"Passive invitation refresh preserves focus and scroll")
+	check(app.model.restore(fixture),"Passive refresh fixture restores the prior model")
+	app._update_ui()
+	root.size = viewport_before
+	await settle()
+
+func journal_focus_refresh_coverage() -> void:
+	var fresh = preload("res://scripts/core/hotel_model.gd").new()
+	fresh.new_game(int(Time.get_unix_time_from_system()))
+	var fixture: Dictionary = fresh.serialize()
+	check(app.model.restore(fixture.duplicate(true)),"Scrapbook focus starts from an independent valid fixture")
+	app.ui.close_sheet()
+	app.model.life.state.memories.clear()
+	app.model.life.memory("same-cat-first","Miso's first note","A quiet first memory.",0,0)
+	app.model.life.memory("same-cat-second","Miso's second note","Another memory about the same cat.",0,0)
+	app._update_ui()
+	app.ui._navigate("Journal")
+	await settle()
+	var first_name: String = "JournalVisit_" + "same-cat-first".md5_text()
+	var second_name: String = "JournalVisit_" + "same-cat-second".md5_text()
+	var first_action: Button = app.ui.sheet.find_child(first_name,true,false)
+	var second_action: Button = app.ui.sheet.find_child(second_name,true,false)
+	check(first_action != null and second_action != null and first_name != second_name,"Same-cat scrapbook memories receive deterministic unique Visit identifiers")
+	if first_action != null:
+		app.ui.sheet.scroll.ensure_control_visible(first_action)
+		first_action.grab_focus()
+		await settle()
+		var scroll_before: int = app.ui.sheet.scroll.scroll_vertical
+		app.model.life.touch()
+		app._update_ui()
+		await settle()
+		check(root.gui_get_focus_owner() != null and root.gui_get_focus_owner().name == first_name,"A normal life revision restores the focused later scrapbook entry")
+		check(app.ui.sheet.scroll.scroll_vertical == scroll_before,"A normal life revision preserves later scrapbook scroll")
+	check(app.model.restore(fixture),"Scrapbook focus fixture restores the prior model")
+	app._update_ui()
+
+func featured_life_coverage() -> void:
+	var fresh = preload("res://scripts/core/hotel_model.gd").new()
+	fresh.new_game(int(Time.get_unix_time_from_system()))
+	var fixture: Dictionary = fresh.serialize()
+	check(app.model.restore(fixture.duplicate(true)),"Featured Life starts from an independent valid fixture")
+	app.ui.close_sheet()
+	app.model.current_hotel = 0
+	app.model.life.state.hotels[0].event = {}
+	app.model.life.state.hotels[0].last_event = -1000.0
+	app.model.life.state.hotels[0].trophies.erase("cardboard")
+	app.model.life.state.memories = app.model.life.state.memories.filter(func(entry): return not str(entry.id).begins_with("event_0_cardboard_"))
+	app.model.life.touch()
+	app._update_ui()
+	app.change_setting("ui_text_scale",1.0)
+	app.ui._navigate("Life")
+	await settle()
+	check_featured_event("nap","Great Nap Championship","Ready for a gathering","Get ready","Idle Life")
+	var before_reward_units: int = app.model.coins_units
+	app.perform_action("event",{"id":"cardboard"})
+	await settle()
+	check_featured_event("cardboard","Cardboard Castle Festival","50s left","View gathering","Running Life")
+	await life_capture("featured-cardboard-running-100-final")
+	app.change_setting("ui_text_scale",1.5)
+	await settle()
+	check_featured_event("cardboard","Cardboard Castle Festival","50s left","View gathering","Enlarged running Life")
+	await life_capture("featured-cardboard-running-150-final")
+	var running_status: Label = app.ui.sheet.find_child("FeaturedEventStatus",true,false)
+	app.model.advance(10.0)
+	app._update_ui()
+	check(running_status != null and app.ui.sheet.find_child("FeaturedEventStatus",true,false) == running_status and running_status.text.contains("40s left"),"Life featured countdown updates in place")
+	app.model.advance(41.0)
+	app._update_ui()
+	await settle()
+	check_featured_event("cardboard","Cardboard Castle Festival","Gathering complete","See results","Cooldown Life")
+	check(app.model.life.state.hotels[0].trophies.has("cardboard") and app.model.coins_units >= before_reward_units + 250*app.model.UNIT,"Life event completion keeps the controller-owned first trophy reward")
+	await life_capture("featured-cardboard-cooldown-150-final")
+	app.change_setting("ui_text_scale",1.0)
+	await settle()
+	check_featured_event("cardboard","Cardboard Castle Festival","Gathering complete","See results","Normal cooldown Life")
+	await life_capture("featured-cardboard-cooldown-100-final")
+	var rewarded_units: int = app.model.coins_units
+	app.model.advance(60.0)
+	app._update_ui()
+	await settle()
+	check_featured_event("nap","Great Nap Championship","Available again","Get ready","Available-again Life")
+	check(app.model.life.state.hotels[0].trophies.count("cardboard") == 1 and app.model.coins_units-rewarded_units < 250*app.model.UNIT,"Life availability adds no duplicate reward or claim path")
+	check(app.model.restore(fixture),"Featured Life fixture restores the prior model")
+	app._update_ui()
+
+func check_featured_event(kind: String, title: String, status_copy: String, action_copy: String, context: String) -> void:
+	var art = app.ui.sheet.find_child("FeaturedEventArt",true,false)
+	var heading: Label = app.ui.sheet.find_child("FeaturedEventName",true,false)
+	var status: Label = app.ui.sheet.find_child("FeaturedEventStatus",true,false)
+	var action_button: Button = app.ui.sheet.find_child("Life_Events",true,false)
+	check(art != null and art.kind == kind,context+" uses matching featured art")
+	check(heading != null and heading.text == title,context+" uses the current gathering name")
+	check(status != null and status.text.contains(status_copy),context+" reports live gathering state")
+	check(action_button != null and action_button.text.contains(action_copy),context+" uses a matching Events-route caption")
+	if status != null and action_button != null:
+		check(app.ui.sheet.scroll.get_global_rect().grow(1).encloses(status.get_global_rect()),context+" keeps the full featured status visible")
+		check(app.ui.sheet.scroll.get_global_rect().grow(1).encloses(action_button.get_global_rect()) and action_button.size.y >= 48*app.ui.metrics.unit,context+" keeps the Events action visible and touchable")
+	if app.ui.metrics.font_scale == 1.0:
+		var grid: GridContainer = app.ui.sheet.find_child("grid",true,false)
+		for index in range(mini(2,grid.get_child_count())):
+			check(app.ui.sheet.scroll.get_global_rect().grow(1).encloses(grid.get_child(index).get_global_rect()),context+" keeps the first complete activity row visible")
 
 func travel_shop_coverage() -> void:
 	app.set_process(false)

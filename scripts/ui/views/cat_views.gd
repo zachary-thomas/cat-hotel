@@ -8,7 +8,9 @@ const PetView = preload("res://scripts/ui/cat_interaction.gd")
 static func collection(ui: Control) -> void:
 	var col: VBoxContainer = ui._base_sheet("Your little regulars", 650)
 	var known: int = ui.snapshot.life.cats.filter(func(cat): return cat.known).size()
-	col.add_child(ui.paragraph("%d travelers met · Little paws, big personalities" % known))
+	var summary: Label = ui.paragraph("%d travelers met · Little paws, big personalities" % known)
+	summary.name = "CatCollectionSummary"
+	col.add_child(summary)
 	var filters := HBoxContainer.new()
 	col.add_child(filters)
 	for choice in ["Met", "To meet"]:
@@ -37,10 +39,12 @@ static func collection(ui: Control) -> void:
 		card.name = "CatCard_" + str(index)
 		if cat.known:
 			var bond: Label = ui.paragraph("♥ %d / 100" % cat.bond, 16, ui.INK)
+			bond.name = "CatBond_" + str(index)
 			bond.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			bond.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			card._column.add_child(bond)
 			var progress := ProgressBar.new()
+			progress.name = "CatProgress_" + str(index)
 			progress.show_percentage = false
 			progress.value = cat.bond
 			progress.custom_minimum_size.y = 8 * ui.metrics.unit
@@ -136,7 +140,46 @@ static func invitations(ui: Control, cat_index: int) -> void:
 		action.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		action.disabled = not ready
 		col.add_child(action)
-		col.add_child(ui.paragraph("%d / 10 friendship · %s" % [mini(cat.bond,10), "Ready to play" if ready else "Getting acquainted"]))
+		var status: Label = ui.paragraph("%d / 10 friendship · %s" % [mini(cat.bond,10), "Ready to play" if ready else "Getting acquainted"])
+		status.name = "PlaydateStatus_" + str(index)
+		col.add_child(status)
+
+static func update(ui: Control) -> bool:
+	if not is_instance_valid(ui.sheet): return false
+	if ui.tab == "Cats":
+		var expected: Array[String] = []
+		for index in range(Content.CAT_NAMES.size()):
+			var cat: Dictionary = ui.snapshot.life.cats[index]
+			if cat.known == (ui.cat_filter == "Met"): expected.append("CatCard_" + str(index))
+		var cards: Array[Node] = ui.sheet.find_children("CatCard_*","Button",true,false)
+		if cards.size() != expected.size(): return true
+		for name in expected:
+			if ui.sheet.find_child(name,true,false) == null: return true
+		var summary: Label = ui.sheet.find_child("CatCollectionSummary",true,false)
+		if summary != null:
+			var known: int = ui.snapshot.life.cats.filter(func(cat): return cat.known).size()
+			summary.text = "%d travelers met · Little paws, big personalities" % known
+		for index in range(Content.CAT_NAMES.size()):
+			var bond: Label = ui.sheet.find_child("CatBond_"+str(index),true,false)
+			var progress: ProgressBar = ui.sheet.find_child("CatProgress_"+str(index),true,false)
+			if bond != null: bond.text = "♥ %d / 100" % int(ui.snapshot.life.cats[index].bond)
+			if progress != null: progress.value = int(ui.snapshot.life.cats[index].bond)
+	elif ui.tab == "Invitations":
+		var expected: Array[int] = []
+		for index in range(Content.CAT_NAMES.size()):
+			if index != ui.selected_cat and ui.snapshot.life.cats[index].known: expected.append(index)
+		var actions: Array[Node] = ui.sheet.find_children("Playdate_*","Button",true,false)
+		if actions.size() != expected.size(): return true
+		for index in expected:
+			var action: Button = ui.sheet.find_child("Playdate_"+str(index),true,false)
+			var status: Label = ui.sheet.find_child("PlaydateStatus_"+str(index),true,false)
+			if action == null or status == null: return true
+			var cat: Dictionary = ui.snapshot.life.cats[index]
+			var ready: bool = ui.snapshot.levels[2] > 0 and cat.bond >= 10 and ui.snapshot.life.cats[ui.selected_cat].bond >= 10
+			action.disabled = not ready
+			action.accessibility_name = action.text + (" · unavailable" if not ready else "")
+			status.text = "%d / 10 friendship · %s" % [mini(cat.bond,10), "Ready to play" if ready else "Getting acquainted"]
+	return false
 
 static func relayout(ui: Control) -> void:
 	if not is_instance_valid(ui.sheet): return

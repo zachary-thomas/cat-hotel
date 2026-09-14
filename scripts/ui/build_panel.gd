@@ -18,6 +18,8 @@ var content: VBoxContainer
 var actions: HBoxContainer
 var wallet: Label
 var status: Label
+var status_host: VBoxContainer
+var _status_key: String=""
 var confirm_button: Button
 var catalogue_view
 var placement_tools: HBoxContainer
@@ -119,7 +121,7 @@ func _refresh() -> void:
  metrics=Metrics.measure(get_viewport_rect().size,Metrics.safe_area(self),Metrics.phone_scale(self),app.model.settings.build_text_scale)
  _target=metrics.min_target; _font_scale=app.model.settings.build_text_scale*metrics.unit
  for child in get_children(): remove_child(child); child.queue_free()
- confirm_button=null; status=null; catalogue_view=null; placement_tools=null
+ confirm_button=null; status=null; status_host=null; _status_key=""; catalogue_view=null; placement_tools=null
  var header_surface=Panel.new(); header_surface.name="BuildHeaderSurface"; add_child(header_surface)
  header_surface.position=metrics.header_rect.position; header_surface.size=metrics.header_rect.size; header_surface.mouse_filter=Control.MOUSE_FILTER_IGNORE
  var header_style=PlayfulTheme.panel(PlayfulTheme.CREAM,metrics.unit,20)
@@ -244,8 +246,8 @@ func _makeover_content() -> void:
  var after: Dictionary=before
  if not ghost.is_empty():
   var definition: Dictionary=Catalog.item(ghost.item)
-  var status_copy: String=transaction_error if transaction_error!="" else validity.get("message","Tap any floor to position.")
-  status=_alert_copy(status_copy) if transaction_error!="" or not validity.get("ok",false) else _copy(status_copy,PlayfulTheme.INK)
+  status_host=VBoxContainer.new(); status_host.name="BuildStatusHost"; content.add_child(status_host)
+  _update_placement_status()
   var tray=HBoxContainer.new(); tray.name="SelectedFurnitureTray"; tray.add_theme_constant_override("separation",roundi(10*metrics.unit)); content.add_child(tray)
   var thumbnail=Thumbnail.new(); thumbnail.name="SelectedFurnitureArt"; thumbnail.item_id=definition.id; thumbnail.custom_minimum_size=Vector2.ONE*72*metrics.unit; tray.add_child(thumbnail)
   var details=VBoxContainer.new(); details.size_flags_horizontal=Control.SIZE_EXPAND_FILL; details.add_theme_constant_override("separation",roundi(2*metrics.unit)); tray.add_child(details)
@@ -290,7 +292,7 @@ func _space_name(room: int) -> String:
 func _preference_hint(definition: Dictionary) -> String:
  for cat in range(app.Content.CAT_NAMES.size()):
   var preference: String=app.Content.PREFERENCES[cat]
-  if app.model.life.known(cat) and definition.tags.has(preference):
+  if app.model.life.known(cat) and app.model.life.state.cats[cat].preference and definition.tags.has(preference):
    return "%s loves %s." % [app.Content.CAT_NAMES[cat],app.Content.PREFERENCE_COPY[preference]]
  return "Learn cat favorites to find the perfect guest match."
 
@@ -497,6 +499,7 @@ func _update_action() -> void:
   confirm_button.disabled=not validity.get("ok",false) or app.model.coins<price
  elif not ghost.is_empty():
   _check_ghost()
+  _update_placement_status()
   var cost: int=_ghost_cost()
   var caption: String="Move · Free" if ghost_intent=="move" else ("Place · Free" if cost==0 else "Place · %s" % ui.number(cost))
   confirm_button.text=caption
@@ -504,6 +507,20 @@ func _update_action() -> void:
   confirm_button.disabled=not validity.get("ok",false)
   confirm_button.accessibility_description="Saves this placement immediately." if validity.get("ok",false) else validity.get("message","Choose a valid position.")
   confirm_button.tooltip_text=confirm_button.accessibility_name if validity.get("ok",false) else confirm_button.accessibility_description
+
+func _update_placement_status() -> void:
+ if ghost.is_empty() or not is_instance_valid(status_host): return
+ var error: bool=transaction_error!="" or not validity.get("ok",false)
+ var message: String=transaction_error if transaction_error!="" else validity.get("message","Tap any floor to position.")
+ var next_key: String=("error:" if error else "normal:")+message
+ if next_key==_status_key and is_instance_valid(status):
+  status.text=message
+  return
+ for child in status_host.get_children():
+  status_host.remove_child(child)
+  child.queue_free()
+ status=_alert_copy(message,status_host) if error else _copy(message,PlayfulTheme.INK,status_host)
+ _status_key=next_key
 
 func show_error(message: String) -> void:
  transaction_error=message

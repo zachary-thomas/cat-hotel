@@ -99,11 +99,14 @@ func render(data: Dictionary) -> void:
 		if favorite != null: favorite.text = "♥  Hotel favorite" if data.life.favorite == selected_cat else "♡  Make hotel favorite"
 		if is_instance_valid(preference_label):
 			preference_label.text = "Loves " + Content.PREFERENCE_COPY[Content.PREFERENCES[selected_cat]] + "." if cat.preference else "Spend time together to learn a favorite comfort."
+	var cat_membership_changed: bool = CatViews.update(self)
 	LifeViews.update(self)
 	if tab == "Map": TravelViews.update_map(self)
 	if last_life_revision != int(data.life.revision):
 		last_life_revision = int(data.life.revision)
 		if tab in ["Life","Journal","Staff","Discoveries","Shop"] and is_instance_valid(sheet):
+			_refresh_sheet()
+		elif tab in ["Cats","Invitations"] and cat_membership_changed and is_instance_valid(sheet):
 			_refresh_sheet()
 
 func _refresh_sheet() -> void:
