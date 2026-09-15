@@ -85,6 +85,10 @@ Settings > Start fresh loads the latest starter layout after confirmation.
 It resets this preview's progress. Existing layouts otherwise stay saved.
 Room warnings appear above their rooms, and cats give each other room
 while walking. Animated voxel fountains respect the motion setting.
+Reception and milkshake counters are sized for cats. Neighbors stroll
+along sidewalks outside the hotel, with houses and gardens beyond the lot.
+Camera limits keep your hotel central while revealing nearby streets.
+These visual improvements apply to existing saves; no fresh start is needed.
 
 SAVING
 Every build change saves immediately; the game also saves during play.

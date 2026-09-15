@@ -2,7 +2,9 @@
 
 A creative cat hotel built around shared spaces: expand the lot, arrange rooms and cottages, decorate gardens, and watch cats check in, socialize and visit the milkshake bar.
 
-Meadow now opens as a connected main hotel with a planted fountain garden and an arrival street. Guests use smooth routes and give one another room while walking. See [the latest game captures](docs/creative-preview/garden-polish/hotel-390x844-100.png).
+Meadow opens as a connected main hotel with a planted fountain garden and an arrival street. Lower counters fit the cat staff, while neighbors stroll past gardens and voxel homes outside the lot. Camera limits reveal glimpses of the streets around your hotel. See [the latest game captures](docs/creative-preview/neighborhood-polish/README.md).
+
+The neighborhood and lower desks appear when loading an existing save; no reset is needed.
 
 ## Play the current game
 

@@ -3,12 +3,14 @@ extends Node3D
 const UNIT: float = 1.1
 const FLOOR: float = 0.18
 const Objects = preload("res://scripts/creative/creative_objects.gd")
+const Neighborhood = preload("res://scripts/creative/creative_neighborhood.gd")
 const Content = preload("res://scripts/creative/creative_content.gd")
 const Geometry = preload("res://scripts/creative/lot_geometry.gd")
 const Cat = preload("res://scripts/world/voxel_cat.gd")
 const Legacy = preload("res://scripts/core/game_content.gd")
 var model
 var camera: Camera3D
+var neighborhood: Node3D
 var room_nodes: Dictionary = {}
 var object_nodes: Dictionary = {}
 var actors: Dictionary = {}
@@ -40,6 +42,9 @@ func _ensure_scene() -> void:
 	_terrain = Node3D.new()
 	_terrain.name = "Grounds"
 	add_child(_terrain)
+	neighborhood = Neighborhood.new()
+	neighborhood.name = "Neighborhood"
+	add_child(neighborhood)
 	_building = Node3D.new()
 	_building.name = "Hotel"
 	add_child(_building)
@@ -111,6 +116,7 @@ func sync() -> void:
 	var definition: Dictionary = model.map_definition()
 	var hotel: Dictionary = model.hotel()
 	_grounds(definition,hotel)
+	if changed_hotel: neighborhood.configure(definition)
 	for room in hotel.get("rooms",[]): _room(room,definition)
 	for item in hotel.get("objects",[]): _object(item)
 	Objects.flush(_terrain)
@@ -125,6 +131,7 @@ func sync() -> void:
 
 func apply_visual_settings() -> void:
 	if model==null or _environment==null: return
+	neighborhood.set_motion_enabled(bool(model.state.get("settings",{}).get("motion",true)))
 	_set_water_motion(_terrain,bool(model.state.get("settings",{}).get("motion",true)))
 	_set_water_motion(_building,bool(model.state.get("settings",{}).get("motion",true)))
 	var evening: bool = bool(model.state.get("settings",{}).get("evening",false))
@@ -140,12 +147,12 @@ func _grounds(definition: Dictionary, hotel: Dictionary) -> void:
 	var accent: Color = Color(String(definition.get("accent","b99369")))
 	var theme: String = String(definition.get("theme","meadow"))
 	_environment.background_color = {"meadow":Color("dae6cc"),"coast":Color("d5e6df"),"forest":Color("cbd8c1"),"snow":Color("dce5e1")}.get(theme,Color("dae6cc"))
-	Objects.box(_terrain,Vector3(0,-0.67,0),Vector3(150,1.3,150),ground.darkened(0.10))
+	Objects.box(_terrain,Vector3(0,-0.67,0),Vector3(400,1.3,400),ground.darkened(0.10))
 	if theme=="coast":
 		# The shoreline lies beyond every purchasable lot and continues to the
 		# horizon, so the seaside destination reads as an actual coast.
-		Objects.water(_terrain,Vector3(62,0.07,0),Vector2(75,150),Color("75b4bd"))
-		Objects.water(_terrain,Vector3(-13,0.072,-62),Vector2(150,75),Color("75b4bd"))
+		Objects.water(_terrain,Vector3(112.25,0.07,0),Vector2(175.5,400),Color("75b4bd"))
+		Objects.water(_terrain,Vector3(-87.75,0.072,-112.25),Vector2(224.5,175.5),Color("75b4bd"))
 	# The parcel edge and gentle change in turf make owned land readable even
 	# when the build tray is closed; purchasable plots remain quiet clearings.
 	var base: Array = definition.get("base",[-12,-12,24,24])
@@ -213,7 +220,7 @@ func _road(definition: Dictionary, arrival: Array) -> void:
 		Objects.box(road,Vector3(crossing_x,0.089,(rect.position.y+0.40+float(stripe)*0.62)*UNIT),Vector3(1.64,0.019,0.29),Color("eee8cf"))
 	for offset in [-5.5,5.5]:
 		var lamp: Node3D = Objects.make(Content.item("garden_lamp"))
-		lamp.position = Vector3(crossing_x+offset,0.17,(rect.position.y-0.62)*UNIT)
+		lamp.position = Vector3(crossing_x+offset,0.17,(rect.end.y+1.35)*UNIT)
 		lamp.scale = Vector3.ONE*1.25
 		road.add_child(lamp)
 
@@ -435,9 +442,10 @@ func _sync_actors(delta: float) -> void:
 				var stand = Node3D.new()
 				cat.add_child(stand)
 				stand.name = "StaffPlatform"
-				Objects.box(stand,Vector3(0,-0.373,0),Vector3(0.92,0.747,0.89),Color("b99268"))
+				var height: float = Objects.STAFF_STEP_HEIGHT/0.83
+				Objects.box(stand,Vector3(0,-height*0.5,0),Vector3(0.92,height,0.89),Color("b99268"))
 				Objects.box(stand,Vector3(0,-0.045,0),Vector3(0.98,0.09,0.95),Color("d7b68a"))
-				for step in range(3): Objects.box(stand,Vector3(0,-0.68+float(step)*0.17,-0.59-float(2-step)*0.11),Vector3(0.82,0.13,0.22),Color("c5a277"))
+				Objects.box(stand,Vector3(0,-height*0.75,-0.53),Vector3(0.82,height*0.5,0.22),Color("c5a277"))
 				Objects.flush(stand)
 			var cup = Node3D.new()
 			cup.name = "Milkshake"
@@ -448,7 +456,7 @@ func _sync_actors(delta: float) -> void:
 		var actor = actors[id]
 		var position_2d: Vector2 = data.position
 		var visual_position: Vector3 = Vector3(position_2d.x*UNIT,FLOOR,position_2d.y*UNIT)
-		if int(id)>=1000 and int(data.get("staff_role",2))!=2: visual_position.y += 0.62
+		if int(id)>=1000 and int(data.get("staff_role",2))!=2: visual_position.y += Objects.STAFF_STEP_HEIGHT
 		var facing: float = float(data.get("face",0.0))
 		if not String(data.phase) in ["walk","walk_seat","walk_clean","walk_depart","wander"] and object_nodes.has(String(data.venue)):
 			var toward: Vector3 = object_nodes[String(data.venue)].position-visual_position
@@ -625,22 +633,30 @@ func focus_hotel() -> void:
 
 func focus_lot() -> void:
 	if model==null: return
+	focus_bounds(_lot_bounds().grow(1.2))
+
+func _lot_bounds() -> Rect2:
 	var definition: Dictionary = model.map_definition()
 	var bounds: Rect2 = _rect(definition.get("base",[-12,-12,24,24]))
 	for parcel in definition.get("plots",[]): bounds = bounds.merge(_rect(parcel.rect))
-	focus_bounds(bounds.grow(1.2))
+	return bounds
 
 func focus_bounds(bounds: Rect2) -> void:
 	_ensure_scene()
 	var center: Vector2 = bounds.get_center()*UNIT
 	_target = Vector3(center.x,FLOOR+0.4,center.y)
 	_update_camera()
+	_size = _fit_size(bounds)
+	_update_camera()
+
+func _fit_size(bounds: Rect2) -> float:
+	var center: Vector2 = bounds.get_center()*UNIT
 	var projected: Rect2 = Rect2()
 	var first: bool = true
 	for x in [bounds.position.x,bounds.end.x]:
 		for y in [bounds.position.y,bounds.end.y]:
 			for height in [0.0,3.4]:
-				var point: Vector3 = Vector3(float(x)*UNIT,height,float(y)*UNIT)-_target
+				var point: Vector3 = Vector3(float(x)*UNIT-center.x,height,float(y)*UNIT-center.y)
 				var projection: Vector2 = Vector2(point.dot(camera.basis.x),point.dot(camera.basis.y))
 				if first:
 					projected = Rect2(projection,Vector2.ZERO)
@@ -648,8 +664,40 @@ func focus_bounds(bounds: Rect2) -> void:
 				else: projected = projected.expand(projection)
 	var viewport: Vector2 = get_viewport().get_visible_rect().size
 	var visible: Rect2 = _visible_rect()
-	_size = clampf(maxf(projected.size.y*viewport.y/maxf(1.0,visible.size.y),projected.size.x*viewport.y/maxf(1.0,visible.size.x))*1.06,8.0,200.0)
-	_update_camera()
+	return clampf(maxf(projected.size.y*viewport.y/maxf(1.0,visible.size.y),projected.size.x*viewport.y/maxf(1.0,visible.size.x))*1.06,8.0,200.0)
+
+func _limit_manual_camera() -> void:
+	if model==null: return
+	var bounds: Rect2 = _lot_bounds()
+	var maximum: float = _fit_size(bounds.grow(1.2))*1.08
+	_size = clampf(_size,7.0,maximum)
+	# At close range the player can inspect any edge of the property. Pulling
+	# back keeps the hotel central, giving glimpses down the neighboring streets.
+	var freedom: float = 1.0-clampf((_size/maximum-0.35)/0.65,0.0,1.0)
+	var center: Vector2 = bounds.get_center()*UNIT
+	var reach: Vector2 = (bounds.size*0.5*freedom+Vector2(3,3))*UNIT
+	_target.x = clampf(_target.x,center.x-reach.x,center.x+reach.x)
+	_target.z = clampf(_target.z,center.y-reach.y,center.y+reach.y)
+	# Adjacent parcels make a cross, not a filled rectangle. Keep close views
+	# near real building land instead of drifting into its empty diagonal gaps.
+	var definition: Dictionary = model.map_definition()
+	var parcels: Array = [definition.base]
+	for parcel in definition.plots: parcels.append(parcel.rect)
+	var ground_shift: Vector2 = Vector2(_camera_direction.x,_camera_direction.z)*((_target.y-FLOOR)/_camera_direction.y)
+	var at: Vector2 = (Vector2(_target.x,_target.z)-ground_shift)/UNIT
+	var closest: Vector2 = at
+	var nearest: float = INF
+	for values in parcels:
+		var parcel: Rect2 = _rect(values)
+		var point: Vector2 = at.clamp(parcel.position,parcel.end)
+		var distance: float = at.distance_to(point)
+		if distance<nearest:
+			nearest = distance
+			closest = point
+	if nearest>3.0:
+		at = closest+(at-closest).normalized()*3.0
+		_target.x = at.x*UNIT+ground_shift.x
+		_target.z = at.y*UNIT+ground_shift.y
 
 func pan(relative: Vector2) -> void:
 	var center: Vector2 = _visible_rect().get_center()
@@ -657,10 +705,12 @@ func pan(relative: Vector2) -> void:
 	var second: Vector2 = world_point(center-relative)
 	var difference: Vector2 = (second-first)*UNIT
 	_target += Vector3(difference.x,0,difference.y)
+	_limit_manual_camera()
 	_update_camera()
 
 func zoom(factor: float) -> void:
 	_size = clampf(_size*factor,7.0,200.0)
+	_limit_manual_camera()
 	_update_camera()
 
 func world_point(screen: Vector2) -> Vector2:

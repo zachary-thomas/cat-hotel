@@ -6,9 +6,9 @@ Verified September 14–15, 2026, on Windows with Godot 4.7.2, using isolated te
 
 | Check | Result |
 |---|---|
-| Existing regression suites | All 33 suites completed successfully |
-| Creative model, content, building, maps, save integrity, services, God mode, social simulation, movement, Meadow, world, voxel polish, UI, app and dense-property suites | All 15 suites completed with zero failures |
-| Actual UI captures | 55 Build/menu captures, 12 God mode Settings/Build captures and 16 hotel/garden captures; zero layout failures at 100% and 150% text |
+| Original-game regression suites | All 33 passed for the earlier creative-preview delivery; this pass changes the separate creative renderer and maps |
+| Current creative suites, including counter/camera and neighborhood checks | All 17 suites completed with zero failures |
+| Actual UI captures | 55 Build/menu, 16 hotel/garden and 31 neighborhood captures refreshed at 100% and 150% text; zero panel overflow. The earlier 12 God mode captures are retained |
 | Pointer and simulated touch | Selection, move preview, rotation, cancel, path drag, pinch, menu exclusion, Undo/Redo, resize storage warnings and save retry passed |
 | Safe areas | Synthetic inset test passed; world picking coordinates include the safe-area offset once |
 | Room and template geometry | All four starter maps validated; all six arrangements placed in all four rotations on all four maps |
@@ -20,6 +20,8 @@ Verified September 14–15, 2026, on Windows with Godot 4.7.2, using isolated te
 | God mode | Settings interaction, all-map unlocks, free construction and upgrades, normal pricing after disabling, refund protection, save rollback and persistence passed |
 | Movement and collision QA | Clear diagonal routes, wall/furniture clearance, separated arrivals, oncoming guests, narrow doors, housekeeping yielding, crowded activities and physical furniture poses passed |
 | Voxel QA | Cube geometry and animated spillways, reduced-motion freeze, raised counter staff, screen-space warning badges and equal-revision world replacement passed |
+| Neighborhood | Six independent pedestrians per map; five minutes of swept-route clearance and separation; actual scenery cubes checked against paths; no save changes or resets during hotel edits |
+| Counter and camera | Lower worktops and staff steps, all parcels frameable, zoom limits, and close/far panning near the actual parcel union passed at five screen sizes |
 
 ## Workflows covered
 
@@ -37,6 +39,8 @@ Verified September 14–15, 2026, on Windows with Godot 4.7.2, using isolated te
 - Walk 18 guests through a 24-cottage property for 600 simulated seconds. Every guest checks in and completes activities; bodies remain separated and travel has no teleports. A rendered minute of activity also checks that furniture poses do not stack cats.
 - Verify idle housekeeping can step aside, and a guest starting between grid points joins its route without a backward step. Avoidance excludes both occupied nodes and edges that graze another cat.
 - Confirm Start fresh before replacing preview progress. A failed write keeps the previous model, history and world. Successful reset rebuilds geometry even when the old and new model revisions happen to match.
+- Load an existing hotel and see the lower counters and surrounding neighborhood without resetting progress. Sidewalk cats remain outside all editable parcels and the gameplay navigation group. Motion settings freeze their travel and body poses immediately.
+- Move the camera at both zoom extremes. The complete lot remains frameable, while close views stay out of the empty diagonal gaps between expansion parcels.
 
 ## Performance
 
@@ -44,16 +48,18 @@ Measured on this Windows machine with an NVIDIA RTX 4090 Laptop GPU. These are d
 
 | Dense fixture measurement | Observed |
 |---|---:|
-| Cached simulation, 3,600 frames | Approximately 0.32–0.35 ms per frame |
-| Build quote | Approximately 30–35 ms |
-| Initial navigation build | Approximately 310–346 ms |
-| Save validation | Approximately 0.72–0.80 seconds |
-| Rendered property, 1280×800, 90 measured frames | 7.97 ms per frame |
-| Draw calls in rendered dense view | 5,531 |
+| Cached simulation, 3,600 frames | Approximately 0.28–0.61 ms per frame |
+| Build quote | Approximately 28–61 ms |
+| Initial navigation build | Approximately 251–565 ms |
+| Save validation | Approximately 0.65–1.51 seconds |
+| Rendered property with neighborhood, 1280×800, 90 measured frames | 7.41–14.25 ms per frame |
+| Draw calls in rendered dense view | 5,873–5,890 |
 
 Navigation is reused until a layout commit. The viewport capture from this run is [dense-property.png](dense-property.png).
 
-Latest first-visit captures, close-ups, phone room warnings and a 120-frame movement recording are in [garden-polish](garden-polish/hotel-390x844-100.png). The garden and connected main hotel replace Meadow's earlier scattered starter buildings. Existing player layouts are retained until **Settings → Start fresh** is confirmed.
+The final isolated build measured 14.25 ms per rendered frame while other development jobs ran on this computer. Native rendering is required for the test that reads actual MultiMesh cube transforms; Godot's headless renderer returns identity transforms. Headless tests separately check authored bounds, house/trunk clearance, pedestrian spacing and camera behavior.
+
+The [latest neighborhood captures](neighborhood-polish/README.md) show all four destinations, lower counters and both camera extremes. The earlier [garden pass](garden-polish/README.md) contains room-warning and garden close-ups. Existing player layouts are retained; neighborhood and counter changes appear without a fresh start.
 
 ## Preview boundaries
 

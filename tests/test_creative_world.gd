@@ -30,8 +30,17 @@ func run() -> void:
 	await process_frame
 	check(world.room_nodes.size()==model.hotel().rooms.size(),"Every dynamic room has its own rendered shell")
 	check(world.object_nodes.size()==model.hotel().objects.size(),"Every editable item has one scene object")
+	var neighbor=world.neighborhood.pedestrians[0].node
+	var saved_state:Dictionary=model.serialize()
+	world.neighborhood.advance(10.0)
+	check(model.serialize()==saved_state,"Neighborhood activity never awards income or changes a save")
+	var neighbor_position:Vector3=neighbor.position
+	model._invalidate(); world.sync()
+	check(world.neighborhood.pedestrians[0].node==neighbor and neighbor.position==neighbor_position,"Building revisions preserve neighborhood pedestrians and their positions")
 	model.state.settings.motion=false
 	world.apply_visual_settings()
+	world.neighborhood.advance(10.0)
+	check(neighbor.position==neighbor_position,"Motion setting immediately freezes sidewalk cats")
 	var water_checked: bool = false
 	for mesh in world.find_children("*","MeshInstance3D",true,false):
 		var material = mesh.material_override

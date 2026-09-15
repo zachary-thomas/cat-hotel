@@ -4,6 +4,8 @@ const SURFACE = preload("res://assets/shaders/voxel_surface.gdshader")
 const WATER = preload("res://assets/shaders/water.gdshader")
 const FONT = preload("res://assets/fonts/Fredoka.ttf")
 const WaterMotion = preload("res://scripts/creative/creative_water_motion.gd")
+const COUNTER_HEIGHT: float = 0.74
+const STAFF_STEP_HEIGHT: float = 0.18
 static var _cube: BoxMesh
 static var _materials: Dictionary = {}
 
@@ -102,34 +104,35 @@ static func make(definition: Dictionary) -> Node3D:
 				box(root,Vector3(0,0.91,0),Vector3(w*0.2,0.16,d*0.2),Color("e0b894"))
 				box(root,Vector3(0,1.09,0),Vector3(w*0.29,0.22,d*0.26),Color("6d956a"))
 		"milkshake_counter", "reception_counter":
-			box(root,Vector3(0,0.56,0),Vector3(w*0.95,1.07,d*0.82),c)
-			box(root,Vector3(0,1.14,0),Vector3(w,0.16,d),cream)
+			root.set_meta("counter_height",COUNTER_HEIGHT)
+			box(root,Vector3(0,0.32,0),Vector3(w*0.95,0.60,d*0.82),c)
+			box(root,Vector3(0,COUNTER_HEIGHT-0.06,0),Vector3(w,0.12,d),cream)
 			for index in range(8):
 				var x: float = -w*0.43+float(index)*w*0.123
-				box(root,Vector3(x,0.49,d*0.422),Vector3(w*0.035,0.68,0.035),c.lightened(0.18))
-			box(root,Vector3(0,0.95,d*0.44),Vector3(w*0.66,0.19,0.035),wood)
-			if shape=="milkshake_counter": label(root,"MILKSHAKES",Vector3(0,0.97,d*0.465),minf(0.0037,w/145.0),cream)
+				box(root,Vector3(x,0.30,d*0.422),Vector3(w*0.035,0.39,0.035),c.lightened(0.18))
+			box(root,Vector3(0,0.52,d*0.44),Vector3(w*0.72,0.19,0.035),wood)
+			if shape=="milkshake_counter": label(root,"MILKSHAKES",Vector3(0,0.53,d*0.465),minf(0.0034,w/150.0),cream)
 			if shape=="milkshake_counter":
-				for x in [-0.27,0,0.27]: drink(root,Vector3(x*w,1.24,d*0.17),Color("e9a7aa") if x<0 else Color("edcc92"))
-				box(root,Vector3(-w*0.31,1.49,-d*0.21),Vector3(w*0.20,0.46,d*0.34),Color("d4e0d4"))
-				box(root,Vector3(-w*0.31,1.64,-d*0.03),Vector3(w*0.14,0.21,0.03),Color("6e9088"))
-				box(root,Vector3(w*0.23,1.54,-d*0.24),Vector3(w*0.31,0.64,0.06),wood)
-				label(root,"SHAKE\n& PURR",Vector3(w*0.23,1.57,-d*0.198),minf(0.0033,w/220.0),cream)
+				for x in [-0.15,0.13,0.37]: drink(root,Vector3(x*w,COUNTER_HEIGHT+0.02,d*0.17),Color("e9a7aa") if x<0 else Color("edcc92"))
+				box(root,Vector3(-w*0.35,0.94,-d*0.21),Vector3(w*0.18,0.40,d*0.34),Color("d4e0d4"))
+				box(root,Vector3(-w*0.35,1.05,-d*0.03),Vector3(w*0.12,0.17,0.03),Color("6e9088"))
+				box(root,Vector3(w*0.32,0.98,-d*0.24),Vector3(w*0.25,0.46,0.06),wood)
+				label(root,"SHAKE\n& PURR",Vector3(w*0.32,1.0,-d*0.198),minf(0.0027,w/240.0),cream)
 			else:
-				box(root,Vector3(w*0.25,1.37,0),Vector3(w*0.24,0.34,d*0.30),Color("6b8174"))
-				box(root,Vector3(w*0.25,1.40,d*0.162),Vector3(w*0.19,0.22,0.035),Color("bbd9c9"))
-				box(root,Vector3(-w*0.24,1.30,d*0.08),Vector3(0.20,0.17,0.20),Color("d9b65b"))
+				box(root,Vector3(w*0.32,0.88,0),Vector3(w*0.21,0.28,d*0.30),Color("6b8174"))
+				box(root,Vector3(w*0.32,0.91,d*0.162),Vector3(w*0.16,0.18,0.035),Color("bbd9c9"))
+				box(root,Vector3(-w*0.24,0.82,d*0.08),Vector3(0.17,0.15,0.17),Color("d9b65b"))
 				# A framed front plaque, ledger, bell and amber desk lantern.
-				box(root,Vector3(0,0.56,d*0.438),Vector3(w*0.63,0.56,0.05),wood)
-				box(root,Vector3(0,0.56,d*0.475),Vector3(w*0.58,0.45,0.034),cream)
-				label(root,"PURRINGTON\nHOTEL",Vector3(0,0.56,d*0.496),0.0038,Color("876d4e"))
-				for side in [-1,1]: box(root,Vector3(side*w*0.45,0.56,d*0.434),Vector3(0.10,1.04,0.06),wood)
-				box(root,Vector3(-w*0.10,1.25,d*0.10),Vector3(w*0.19,0.045,d*0.33),Color("9b7660"))
-				box(root,Vector3(-w*0.10,1.28,d*0.10),Vector3(w*0.17,0.016,d*0.29),cream)
-				box(root,Vector3(-w*0.40,1.28,-d*0.14),Vector3(0.27,0.07,0.26),wood)
-				box(root,Vector3(-w*0.40,1.48,-d*0.14),Vector3(0.075,0.36,0.075),Color("d2a55f"))
-				box(root,Vector3(-w*0.40,1.73,-d*0.14),Vector3(0.35,0.24,0.34),Color("f4d48b"))
-				box(root,Vector3(-w*0.40,1.87,-d*0.14),Vector3(0.30,0.055,0.29),cream)
+				box(root,Vector3(0,0.34,d*0.438),Vector3(w*0.63,0.39,0.05),wood)
+				box(root,Vector3(0,0.34,d*0.475),Vector3(w*0.58,0.32,0.034),cream)
+				label(root,"PURRINGTON\nHOTEL",Vector3(0,0.34,d*0.496),0.0028,Color("876d4e"))
+				for side in [-1,1]: box(root,Vector3(side*w*0.45,0.32,d*0.434),Vector3(0.10,0.60,0.06),wood)
+				box(root,Vector3(-w*0.06,0.766,d*0.10),Vector3(w*0.19,0.045,d*0.33),Color("9b7660"))
+				box(root,Vector3(-w*0.06,0.797,d*0.10),Vector3(w*0.17,0.016,d*0.29),cream)
+				box(root,Vector3(-w*0.41,0.775,-d*0.14),Vector3(0.25,0.07,0.24),wood)
+				box(root,Vector3(-w*0.41,0.92,-d*0.14),Vector3(0.065,0.25,0.065),Color("d2a55f"))
+				box(root,Vector3(-w*0.41,1.11,-d*0.14),Vector3(0.31,0.19,0.30),Color("f4d48b"))
+				box(root,Vector3(-w*0.41,1.23,-d*0.14),Vector3(0.28,0.05,0.27),cream)
 		"fireplace":
 			box(root,Vector3(0,0.65,0),Vector3(w*0.91,1.30,d*0.90),c)
 			box(root,Vector3(0,0.47,d*0.46),Vector3(w*0.62,0.66,0.04),Color("655953"))

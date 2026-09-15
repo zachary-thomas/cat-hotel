@@ -2,6 +2,8 @@
 
 The new hotel is a place to build, decorate and spend time with cats. It is now the default game for project Play and both Windows packages, with a separate save format from the original hotel.
 
+The [latest neighborhood pass](neighborhood-polish/README.md) lowers staff counters and adds themed homes, garden paths and sidewalk cats outside each destination. Camera limits keep the hotel central and leave distant streets partly hidden. These changes appear in existing saves without a reset.
+
 ## Play
 
 Open `builds/windows/Play.cmd` or `builds/creative-social/Play Creative Hotel.cmd`. Both Windows ZIPs contain the current game. Keep the executable and resource pack together. In Godot, use project Play (F5); reopen the project if an existing editor still remembers the previous main scene.

@@ -90,9 +90,9 @@ func _object(data: Dictionary, p: Vector3, s: float) -> void:
 		_box(p+Vector3(0,7,0)*s,Vector3(42,8,45)*s,c)
 		_box(p+Vector3(0,15,-14)*s,Vector3(31,6,12)*s,Color("fff8e9"))
 	elif "bar" in shape or "counter" in shape or role in ["reception","bar"]:
-		_box(p,Vector3(64,32,26)*s,c)
-		_box(p+Vector3(0,32,0)*s,Vector3(68,5,31)*s,Color("ead6ad"))
-		for x in [-17,14]: _box(p+Vector3(x,37,-1)*s,Vector3(8,12,8)*s,Color("efd29a"))
+		_box(p,Vector3(64,14,26)*s,c)
+		_box(p+Vector3(0,14,0)*s,Vector3(68,3,31)*s,Color("ead6ad"))
+		for x in [-21,21]: _box(p+Vector3(x,17,-1)*s,Vector3(8,9,8)*s,Color("efd29a"))
 	elif "table" in shape:
 		for x in [-19,19]:
 			for z in [-12,12]: _box(p+Vector3(x,0,z)*s,Vector3(4,25,4)*s,Color("ad855f"))

@@ -5,12 +5,60 @@ extends RefCounted
 const Content = preload("res://scripts/creative/creative_content.gd")
 
 static func definition(index: int) -> Dictionary:
+	var map: Dictionary
 	match index:
-		0: return _meadow()
-		1: return _coast()
-		2: return _forest()
-		3: return _snow()
-	return {}
+		0: map = _meadow()
+		1: map = _coast()
+		2: map = _forest()
+		3: map = _snow()
+		_: return {}
+	map.neighborhood = _neighborhood(String(map.theme))
+	return map
+
+static func _neighborhood(theme: String) -> Dictionary:
+	# These coordinates reserve the full footprint of every optional parcel.
+	# Far streets and planted blocks continue well beyond the camera's envelope.
+	var neighborhood: Dictionary = {"homes":[],"trees":[],"streets":[],"walkways":[],"lanes":[],"segments":[[-46,-15],[-12,13],[16,46]]}
+	var coast: bool = theme=="coast"
+	if theme=="meadow":
+		neighborhood.lanes = [12.52,17.48]
+	else:
+		var front: float = {"coast":10.15,"forest":14.15,"snow":12.15}[theme]
+		neighborhood.walkways.append([-120,front,139 if coast else 240,2.25])
+		neighborhood.lanes = [front+0.56,front+1.69]
+		if coast: neighborhood.segments = [[-75,-32],[-29,-2],[1,18]]
+	for side in [-1,1]:
+		if coast and side==1: continue
+		neighborhood.streets.append([side*37-1.6,-20 if coast else -120,3.2,140 if coast else 133])
+		if not coast: neighborhood.streets.append([side*37-1.6,18,3.2,102])
+		var near_x: float = side*(29.0 if theme in ["coast","snow"] else 28.0)
+		neighborhood.homes.append([near_x,-8.5,side*PI*0.5,[side*34.9,-8.5]])
+		neighborhood.homes.append([near_x,29.0,side*PI*0.5,[side*34.9,29.0]])
+		neighborhood.homes.append([side*47.0,-10.0,-side*PI*0.5,[side*39.1,-10.0]])
+		neighborhood.homes.append([side*52.0,27.0,-side*PI*0.5,[side*39.1,27.0]])
+	if theme=="meadow":
+		neighborhood.homes.append([-6,27,PI,[-6,17.48]])
+		neighborhood.homes.append([10,29,PI,[10,17.48]])
+		neighborhood.trees.append([-13,30,2.05])
+		neighborhood.trees.append([17,32,2.2])
+	if coast:
+		for x in [-100,-76,-52]:
+			for y in [-9,23,48,78]: neighborhood.homes.append([x,y,0.0 if y<0 else PI])
+		for x in [-13,8]: neighborhood.homes.append([x,31,PI])
+	else:
+		for x in [-100,-76,-52,-28,-4,20,44,68,92]:
+			for y in [-48,57]: neighborhood.homes.append([x,y,0.0 if y<0 else PI])
+		for x in [-86,-38,10,58,106]:
+			for y in [-85,94]: neighborhood.homes.append([x,y,0.0 if y<0 else PI])
+	# Individually staggered trees let roofs and side roads peek through.
+	for x in range(-114,115,12):
+		for y in [-106,-67,-34,45,77,111]:
+			if coast and (x>14 or y< -17): continue
+			neighborhood.trees.append([float(x)+float(posmod(x,5))*0.45,float(y)+float(posmod(x,7))*0.55,2.1+float(posmod(x+y,4))*0.25])
+	for side in [-1,1]:
+		if coast and side==1: continue
+		for y in [-16,4,23,40]: neighborhood.trees.append([side*(26.0 if theme in ["coast","snow"] else 24.2),y,2.05])
+	return neighborhood
 
 static func _property(id: String, name: String, theme: String, ground: String, accent: String, base: Array, arrival: Array, parcel_names: Array) -> Dictionary:
 	var x: int = base[0]
@@ -59,7 +107,7 @@ static func _scenery(map: Dictionary, entries: Array) -> void:
 
 static func _meadow() -> Dictionary:
 	var map := _property("meadow","Meadow House","meadow","91b57a","dfa878",[-12,-12,24,24],[8.5,11.5],["Orchard plot","Wildflower plot","Meadow rise"])
-	map.road={"rect":[-32,13,64,4],"sidewalk":true}
+	map.road={"rect":[-120,13,240,4],"sidewalk":true}
 	# Guest rooms open directly into the two halves of one main hotel.
 	_guest(map,"guest_1","Clover Room",-10,-10,"mat")
 	_guest(map,"guest_2","Marigold Room",-10,-4,"sun_cushion")
@@ -105,12 +153,11 @@ static func _meadow() -> Dictionary:
 		["north_border_3","flower_bed",-1.5,-11.5,0]]
 	for entry in garden: _object(map,entry[0],entry[1],"",entry[2],entry[3],entry[4])
 	_scenery(map,[
-		["house",-25,-13,4.5,"e8c2a1"],["house",25,-16,4.0,"d7b9bb"],
 		["tree",-24,-5,3.7,"79a56c"],["tree",-24,3,3.9,"668f62"],
 		["tree",24,0,4.2,"729f69"],["tree",18,-24,3.6,"8bb16f"],
 		["tree",-12,-24,3.5,"87a964"],["tree",-1,-25,3.8,"759f6c"],
 		["pond",6,-26,6.0,"87bfc7"],["shrub",12,-23,2.0,"79a368"],
-		["flowers",-18,11,2.2,"e3a1ac"],["flowers",18,11,2.0,"edca82"],
+		["flowers",-23,11,2.2,"e3a1ac"],["flowers",23,11,2.0,"edca82"],
 		["rock",-23,10,1.3,"b9b7a6"],["flowers",1,-22,2.0,"dba3bd"],
 		["shrub",-22,-18,2.0,"779a65"],["flowers",-25,7,1.8,"f1c67c"],
 		["shrub",23,8,2.0,"799e70"],["flowers",25,-7,1.8,"e1a7c4"]])
@@ -132,8 +179,8 @@ static func _coast() -> Dictionary:
 	_scenery(map,[
 		["sea",29,0,13.0,"79b6c9"],["sea",7,-28,10.0,"8ec2cd"],
 		["palm",-25,-7,3.0,"78a891"],["palm",-24,4,2.6,"87b28b"],
-		["palm",-15,-22,2.7,"81ab8b"],["dune",-26,11,3.0,"e6c797"],
-		["dune",-5,15,3.3,"ecd6ab"],["rock",23,-15,1.8,"bbbcae"],
+		["palm",-15,-22,2.7,"81ab8b"],["dune",-26,17,3.0,"e6c797"],
+		["dune",-5,19,3.3,"ecd6ab"],["rock",23,-15,1.8,"bbbcae"],
 		["boat",28,5,2.4,"db9b89"],["buoy",25,-6,1.0,"e6a58e"],
 		["rock",21,14,1.4,"c9c6b4"],["flowers",-19,-21,1.5,"e8c9b1"]])
 	return map
@@ -175,9 +222,9 @@ static func _snow() -> Dictionary:
 	_object(map,"snow_shrub","shrub","",7,3)
 	_scenery(map,[
 		["mountain",-5,-30,9.0,"b8c8d0"],["mountain",19,-28,7.0,"c2d1d5"],
-		["mountain",-24,-25,7.0,"aebbcb"],["pine",-26,-8,3.7,"849f95"],
-		["pine",-25,4,3.5,"75978e"],["pine",26,-7,4.0,"90aaa0"],
+		["mountain",-24,-25,7.0,"aebbcb"],["pine",-26,-16,3.7,"849f95"],
+		["pine",-25,4,3.5,"75978e"],["pine",26,-16,4.0,"90aaa0"],
 		["pine",25,6,3.0,"76948e"],["frozen_pond",-4,18,5.0,"b7d3dc"],
 		["snowdrift",-19,17,3.0,"e4eeeb"],["snowdrift",20,17,3.5,"e7efed"],
-		["rock",-25,12,1.8,"afbfc7"],["rock",25,12,1.5,"bdcbd0"]])
+		["rock",-25,18,1.8,"afbfc7"],["rock",25,18,1.5,"bdcbd0"]])
 	return map
