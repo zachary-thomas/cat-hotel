@@ -2,6 +2,7 @@ extends Node3D
 ## Colorful outdoor spaces plus actors driven by the saved grounds simulation.
 signal selected(action: String, payload: Dictionary)
 const Grounds = preload("res://scripts/core/grounds_model.gd")
+const Garden = preload("res://scripts/core/garden_layout.gd")
 const Cat = preload("res://scripts/world/voxel_cat.gd")
 var world
 var model
@@ -20,6 +21,7 @@ var clock: float = 0
 var manager_control: bool = false
 var mouse_actor: Node3D
 var yarn_nodes: Array = []
+var water_materials: Array[ShaderMaterial] = []
 
 func block(parent: Node3D, p: Vector3, dimensions: Vector3, color: String) -> MeshInstance3D:
 	var mesh = MeshInstance3D.new()
@@ -82,6 +84,7 @@ func sync(game) -> void:
 		scenery = Node3D.new()
 		add_child(scenery)
 		_street()
+		_batch_street()
 		manager = actor(self,"db9b55",at(Grounds.MANAGER_HOME),"d96765")
 		manager.name = "PlayerManager"
 		maid = actor(self,"eee3d4",Vector3(0,0.24,3.5),"9b8bc2")
@@ -95,7 +98,7 @@ func sync(game) -> void:
 	var availability: Array = []
 	for time in state.yarn_ready + state.bush_ready + [state.mouse_ready]:
 		availability.append(game.grounds.seconds >= time)
-	var key: String = str(h)+str(state.amenities)+str(availability)+str(state.dirty)+str(game.room_count(h))+str(game.hotels[h].get("layout",[]))
+	var key: String = str(h)+str(state.amenities)+str(state.amenity_layout)+str(state.plots)+str(game.wing_count(h))+str(availability)+str(state.dirty)+str(game.room_count(h))+str(game.hotels[h].get("layout",[]))
 	if key != detail_key:
 		detail_key = key
 		if is_instance_valid(details):
@@ -107,7 +110,9 @@ func sync(game) -> void:
 		targets.clear()
 		amenity_cats.clear()
 		yarn_nodes.clear()
+		water_materials.clear()
 		mouse_actor = null
+		_plots(state)
 		for item in Grounds.AMENITIES:
 			_amenity(item,state.amenities.has(item.id))
 		for i in range(3):
@@ -145,12 +150,14 @@ func sync(game) -> void:
 		maid.place_at(maid.position)
 	for cat in [manager,maid]+walkers+amenity_cats:
 		cat.motion_enabled = game.settings.motion
+	for material in water_materials:
+		material.set_shader_parameter("motion",1.0 if game.settings.motion else 0.0)
 
 func _street() -> void:
 	# Slate-blue lane, wide sandstone pavement, crossing and striped supply kiosk.
-	block(scenery,Vector3(0,-0.08,10.7),Vector3(27,0.22,4.1),"72849b")
-	block(scenery,Vector3(0,0.01,7.5),Vector3(27,0.20,2.4),"e7cda5")
-	for x in range(-12,13):
+	block(scenery,Vector3(0,-0.08,10.7),Vector3(512,0.22,4.1),"72849b")
+	block(scenery,Vector3(0,0.01,7.5),Vector3(512,0.20,2.4),"e7cda5")
+	for x in range(-120,121):
 		block(scenery,Vector3(x,0.05,8.65),Vector3(0.88,0.17,0.22),"f1e4ca")
 		if x%3 == 0:
 			block(scenery,Vector3(x,0.045,10.8),Vector3(1.3,0.02,0.10),"f7dfa0")
@@ -182,9 +189,40 @@ func _street() -> void:
 		for z in range(-10,7):
 			block(scenery,Vector3(side*6.6,0.025,z),Vector3(0.8,0.10,0.83),"d3dbe0")
 		for z in [-9.0,-4.8,4.5]:
-			block(scenery,Vector3(side*11.8,0.28,z),Vector3(0.6,0.55,1.1),"a38dbc")
+			block(scenery,Vector3(side*17.7,0.28,z),Vector3(0.6,0.55,1.1),"a38dbc")
 			for flower in range(3):
-				round_shape(scenery,Vector3(side*11.8,0.78,z-0.3+flower*0.3),0.22,0.24,["e8889f","f4c366","b59cd8"][flower],true)
+				round_shape(scenery,Vector3(side*17.7,0.78,z-0.3+flower*0.3),0.22,0.24,["e8889f","f4c366","b59cd8"][flower],true)
+
+func _plots(state: Dictionary) -> void:
+	for plot in Garden.PLOTS:
+		var bounds: Rect2 = plot.rect
+		var center := bounds.get_center()
+		var opened: bool = state.plots.has(plot.id)
+		block(details,at(center,-0.25),Vector3(bounds.size.x,0.20,bounds.size.y),["bfd49d","e9d9b6","acbd8c","edf3f1"][current_hotel] if opened else "a7b99a")
+		# Low corner markers describe parcels without enclosing the expanded view in a wall.
+		for p in [bounds.position,bounds.end,Vector2(bounds.position.x,bounds.end.y),Vector2(bounds.end.x,bounds.position.y)]:
+			block(details,at(p,0.22),Vector3(0.18,0.8,0.18),"d0b589")
+		if not opened:
+			var marker := at(center,0.7)
+			block(details,marker,Vector3(2.7,0.7,0.16),"f1dfb5")
+			block(details,at(center,0.2),Vector3(0.14,1.0,0.14),"947d60")
+			targets.append({"action":"garden_plot","payload":{"id":plot.id},"position":marker,"radius":2.0,"label":plot.name+" · "+str(plot.cost)})
+
+func _batch_street() -> void:
+	# Extended pavements and road markings share draw calls; animated cats stay separate.
+	var batches := {}
+	for child in scenery.get_children():
+		if not child is MeshInstance3D or not child.mesh is BoxMesh: continue
+		var material: Material=child.material_override
+		if not batches.has(material): batches[material]=[]
+		batches[material].append(child.transform)
+		scenery.remove_child(child); child.queue_free()
+	for material in batches:
+		var mesh := MultiMesh.new(); mesh.transform_format=MultiMesh.TRANSFORM_3D
+		mesh.mesh=BoxMesh.new(); mesh.instance_count=batches[material].size()
+		for index in range(mesh.instance_count): mesh.set_instance_transform(index,batches[material][index])
+		var instance := MultiMeshInstance3D.new(); instance.multimesh=mesh; instance.material_override=material
+		scenery.add_child(instance)
 
 func _preview_amenity(area: Node3D, id: String) -> void:
 	# Planned sites have recognizable silhouettes, rather than identical boxes.
@@ -225,7 +263,9 @@ func _amenity(item: Dictionary, owned: bool) -> void:
 	var area = Node3D.new()
 	details.add_child(area)
 	area.name = item.id.capitalize()
-	area.position = at(item.position,0.12)
+	var state: Dictionary = model.grounds.hotels[current_hotel]
+	area.position = at(Garden.position(state,item),0.12)
+	area.rotation.y = Garden.rotation(state,item.id)*PI*0.5
 	block(area,Vector3(0,0.05,0),Vector3(4.4,0.18,3.5),{"pool":"b6e0dc","litter":"b7c6db","playpen":"d6b3ce","picnic":"c3d496"}[item.id])
 	targets.append({"action":"amenity","payload":{"id":item.id},"position":area.position+Vector3(0,0.5,0),"radius":2.1,"label":item.name})
 	if not owned:
@@ -239,8 +279,17 @@ func _amenity(item: Dictionary, owned: bool) -> void:
 		return
 	match item.id:
 		"pool":
-			round_shape(area,Vector3(0,0.24,0),1.65,0.40,"64b7c6")
-			round_shape(area,Vector3(0,0.46,0),1.4,0.08,"83d4e2")
+			# A shallow basin, rounded rim and one inset water surface never share faces.
+			round_shape(area,Vector3(0,0.24,0),1.65,0.20,"64b7c6")
+			var rim := MeshInstance3D.new(); rim.name="PoolRim"
+			var torus := TorusMesh.new(); torus.inner_radius=1.38; torus.outer_radius=1.65
+			torus.rings=40; torus.ring_segments=12
+			rim.mesh=torus; rim.position.y=0.46; rim.material_override=materials["64b7c6"]; area.add_child(rim)
+			var water := round_shape(area,Vector3(0,0.435,0),1.39,0.012,"83d4e2")
+			water.name="PoolWater"; water.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			var material := ShaderMaterial.new(); material.shader=preload("res://assets/shaders/water.gdshader")
+			material.set_shader_parameter("deep_color",Color("72c8d2"))
+			water.material_override=material; water_materials.append(material)
 			for p in [Vector3(-0.8,0.60,0.7),Vector3(0.7,0.60,-0.5)]:
 				round_shape(area,p,0.19,0.2,"f6d262",true)
 			block(area,Vector3(1.9,0.23,0.6),Vector3(0.6,0.12,1.4),"e69ea4")
@@ -328,7 +377,7 @@ func _process(delta: float) -> void:
 	clock += delta
 	for i in range(walkers.size()):
 		var passer = walkers[i]
-		var x: float = fmod(clock*0.85+i*6.4,27)-13.5
+		var x: float = fmod(clock*0.85+i*16.4,144)-72
 		if i%2:
 			x = -x
 		var desired = Vector3(x,0.12,10.1+(i%2)*1.1)
@@ -338,7 +387,7 @@ func _process(delta: float) -> void:
 			passer.action = "walk" if passer.moving else "eat"
 		else:
 			# Wrap at the edge of the street, but check the re-entry space too.
-			if absf(passer.position.x-desired.x) > 20.0:
+			if absf(passer.position.x-desired.x) > 100.0:
 				passer.place_at(desired)
 			passer.moving = passer.move_safely(desired,delta*2)
 			passer.action = "walk"

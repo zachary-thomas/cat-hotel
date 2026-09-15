@@ -40,7 +40,8 @@ func build(color: Color, staff: bool = false) -> void:
 	body = Node3D.new()
 	add_child(body)
 	part(body, Vector3(0, 0.40, 0), Vector3(0.57, 0.52, 0.74), coat)
-	part(body, Vector3(0,0.40,0.33),Vector3(0.40,0.38,0.08),Color("fff8e9"))
+	# Keep the bib beyond the body's z=0.37 face at every pose and scale.
+	part(body, Vector3(0,0.40,0.35),Vector3(0.40,0.38,0.08),Color("fff8e9"))
 	head = Node3D.new()
 	body.add_child(head)
 	head.position = Vector3(0, 0.79, 0.28)
@@ -72,7 +73,8 @@ func build(color: Color, staff: bool = false) -> void:
 	body.add_child(tail)
 	tail.position = Vector3(0, 0.38, -0.36)
 	part(tail, Vector3(0, 0.19, -0.14), Vector3(0.13, 0.40, 0.13), coat)
-	part(tail, Vector3(0, 0.37, -0.07), Vector3(0.13, 0.13, 0.25), Color("f4ead5"))
+	# The tip wraps the stem; equal widths produce coincident side faces.
+	part(tail, Vector3(0, 0.37, -0.07), Vector3(0.15, 0.13, 0.29), Color("f4ead5"))
 	if staff:
 		part(body, Vector3(0, 0.40, 0.20), Vector3(0.50, 0.26, 0.09), Color("426f56"))
 		part(body, Vector3(0, 0.51, 0.37), Vector3(0.14, 0.07, 0.05), Color("d7ac50"))

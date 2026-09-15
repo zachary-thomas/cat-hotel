@@ -273,6 +273,11 @@ func _restore_candidate(data: Dictionary) -> bool:
 	var restored_grounds = Grounds.new()
 	if not restored_grounds.restore(data.get("grounds")):
 		return false
+	for index in range(entries.size()):
+		var garden: Dictionary=restored_grounds.hotels[index]
+		for id in garden.amenity_layout:
+			var place: Dictionary=garden.amenity_layout[id]
+			if not Grounds.Garden.validate(garden,Grounds.AMENITIES,id,Vector2(place.x,place.z),int(place.rotation),int(entries[index].get("wings",0))).ok: return false
 	var migrated_hotels: Array[int] = []
 	for index in range(entries.size()):
 		if entries[index].owned and not entries[index].has("layout"):

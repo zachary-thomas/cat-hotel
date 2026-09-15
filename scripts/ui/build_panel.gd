@@ -234,6 +234,7 @@ func _rooms_content() -> void:
  if not clipboard.is_empty(): _button("Paste "+str(clipboard.name),paste_room,true,"PasteRoom")
  _copy("Tap any room to copy its layout or move the whole room.")
  _button("Expand building",func(): _finish_close(); ui.open_expansions(app.model.wing_count(app.model.current_hotel)))
+ _button("Arrange garden & amenities",func(): _finish_close(); ui.garden_edit_requested.emit(""),false,"BuildGarden")
  if app.recovered_draft.get("ok",false):
   var old_quote: Dictionary=app.recovered_draft.session.quote(app.model)
   _button("Restore previous makeover · %d" % int(old_quote.cost_coins),_resume,false,"ResumeDraft")

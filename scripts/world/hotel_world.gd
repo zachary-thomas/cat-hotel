@@ -7,6 +7,7 @@ signal grounds_selected(action: String, payload: Dictionary)
 signal room_selected(index: int)
 signal build_tapped(point: Vector2)
 const Layout = preload("res://scripts/core/room_layout.gd")
+const Garden = preload("res://scripts/core/garden_layout.gd")
 const Interior = preload("res://scripts/core/furniture_layout.gd")
 const Catalog = preload("res://scripts/core/furniture_catalog.gd")
 var room_builder
@@ -17,6 +18,7 @@ var neighborhood
 var shell
 var exterior_view: bool = false
 var overview_zoom: float = 48.0
+var neighborhood_zoom: float = 110.0
 var ui_world_rect := Rect2()
 const ISO_RIGHT = Vector3(0.70710678, 0, -0.70710678)
 const ISO_UP = Vector3(-0.40824829, 0.81649658, -0.40824829)
@@ -98,8 +100,8 @@ func _ready() -> void:
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.keep_aspect = Camera3D.KEEP_WIDTH
 	camera.size = DEFAULT_ZOOM
-	camera.near = 0.1
-	camera.far = 100
+	camera.near = 0.5
+	camera.far = 600
 	add_child(camera)
 	camera.current = true
 	_update_camera()
@@ -124,11 +126,13 @@ func _ready() -> void:
 
 func _update_camera() -> void:
 	_clamp_camera()
-	camera.position = camera_target + Vector3(32, 32, 32)
+	var distance := maxf(32,camera.size*0.85)
+	camera.position = camera_target + Vector3.ONE*distance
+	sun.directional_shadow_max_distance=distance*sqrt(3.0)+40.0
 	camera.look_at(camera_target)
 
 func navigation_bounds() -> Rect2:
-	return Rect2(-13.5, -18.0-wings*2.5, 27.0, 30.8+wings*2.5)
+	return Garden.CAMERA_BOUNDS
 
 func contains_hotel(point: Vector3) -> bool:
 	return absf(point.x) < 5.95 and point.z > -17.4 and point.z < 4.9
@@ -140,8 +144,7 @@ func set_exterior_view(value: bool) -> void:
 	if shell != null:
 		shell.set_outside(exterior_view)
 
-func _projected_bounds() -> Rect2:
-	var bounds = navigation_bounds()
+func _projected_bounds(bounds: Rect2 = Rect2(-18,-26,36,38.8)) -> Rect2:
 	var projected = Rect2()
 	var first: bool = true
 	for x in [bounds.position.x, bounds.end.x]:
@@ -160,6 +163,8 @@ func _measure_overview() -> void:
 	var bounds = _projected_bounds()
 	var region := available_world_rect()
 	overview_zoom = maxf(bounds.size.x * viewport_size.x / (region.size.x * 0.92),(bounds.size.y+3.0)*viewport_size.x/(region.size.y * 0.88))
+	# Keep Fit all useful for the property; allow another step out to explore its district.
+	neighborhood_zoom = maxf(overview_zoom,110.0)
 
 func available_world_rect() -> Rect2:
 	return ui_world_rect if ui_world_rect.has_area() else get_viewport().get_visible_rect()
@@ -204,23 +209,21 @@ func active_hotel_bounds() -> Rect2:
 	return bounds
 
 func _clamp_camera() -> void:
-	if build_mode:
-		camera_target.x = clampf(camera_target.x,-16,16)
-		camera_target.z = clampf(camera_target.z,-25,6)
-		return
 	var bounds = navigation_bounds()
+	# Bounds constrain the visible area's center; scenic land/water extends beyond it.
 	var viewport_size := get_viewport().get_visible_rect().size
 	var offset := (available_world_rect().get_center()-viewport_size*0.5)*camera.size/maxf(1,viewport_size.x)
-	var center := bounds.get_center()+Vector2(-offset.x/ISO_RIGHT.x+offset.y/ISO_UP.x,offset.x/ISO_RIGHT.x+offset.y/ISO_UP.x)*0.5
-	var travel: Vector2 = bounds.size*0.5*clampf(1.0-camera.size/maxf(1,overview_zoom),0.0,1.0)
-	camera_target.x = clampf(camera_target.x,maxf(bounds.position.x,center.x-travel.x),minf(bounds.end.x,center.x+travel.x))
-	camera_target.z = clampf(camera_target.z,maxf(bounds.position.y,center.y-travel.y),minf(bounds.end.y,center.y+travel.y))
+	var shift := Vector2(offset.x/ISO_RIGHT.x-offset.y/ISO_UP.x,-offset.x/ISO_RIGHT.x-offset.y/ISO_UP.x)*0.5
+	var center := Vector2(camera_target.x,camera_target.z)+shift
+	center = center.clamp(bounds.position,bounds.end)
+	camera_target.x = center.x-shift.x
+	camera_target.z = center.y-shift.y
 	camera_target.y = 0
 
 func set_zoom(value: float) -> void:
 	if not is_finite(value):
 		return
-	camera.size = clampf(value,8.0,overview_zoom)
+	camera.size = clampf(value,8.0,neighborhood_zoom)
 	_update_camera()
 
 func reset_camera() -> void:
@@ -554,8 +557,7 @@ func plant(p: Vector3, h: float, flowers: bool = false) -> void:
 			box(p + v * h + Vector3(0, h * 0.12, 0), Vector3.ONE * h * 0.10, Color("d9ad4d"))
 
 func _garden(index: int) -> void:
-	box(Vector3(0, -0.62, -6.35), Vector3(27, 0.4, 38.3), [Color("9faa7e"),Color("ddc9a1"),Color("897a55"),Color("dfe9ed")][index])
-	box(Vector3(0, -0.33, -2.6), Vector3(27.0, 0.34, 30.8), [Color("bdbe8d"),Color("e4d2af"),Color("b3a079"),Color("e7edef")][index])
+	preload("res://scripts/world/neighborhood_backdrop.gd").build(self,index)
 	# Scattered low flowering ground cover gives the landscaped island a lived-in edge.
 	for i in range(112):
 		var x: float = sin(i * 5.7) * 12.2
@@ -577,28 +579,14 @@ func _garden(index: int) -> void:
 		for z in range(-6 - TOTAL_WINGS * 5, 7):
 			box(Vector3(side * 6.25, -0.07, z * 0.86), Vector3(0.66, 0.15, 0.72), Color("cfc3a5"))
 			plant(Vector3(side * 6.87, -0.18, z * 0.91), 0.46 + (0.1 if z % 3 else 0.0), z % 2 == 0)
-		for z in [-6.0, -3.0, 0.0, 3.0, 6.0]:
-			box(Vector3(side * 12.8, 0.20, z), Vector3(0.16, 0.85, 0.16), wood)
-		box(Vector3(side * 12.8, 0.43, -TOTAL_WINGS * 2.1), Vector3(0.13, 0.14, 12.0 + TOTAL_WINGS * 4.2), wood)
 	for x in [-5.4, -4.6, -3.8, -3.0, 2.9, 3.7, 4.5, 5.3]:
 		plant(Vector3(x, -0.12, 5.75), 0.49, true)
-	for p in [Vector3(-7.8, -0.25, -5.9), Vector3(6.9, -0.25, -6.4), Vector3(-12.0, -0.25, 0.0), Vector3(12.0, -0.25, -3.0), Vector3(-4.0, -0.25, -8.7), Vector3(3.0, -0.25, -9.0), Vector3(-12.0, -0.25, 7.0), Vector3(12.0, -0.25, 7.1)]:
-		_tree(p - Vector3(0, 0, TOTAL_WINGS * 4.2) if p.z < -5 else p, index == 1)
+	for p in [Vector3(-32,-0.25,-40),Vector3(32,-0.25,-40),Vector3(-32,-0.25,-17),Vector3(32,-0.25,-17),Vector3(-32,-0.25,4),Vector3(32,-0.25,4),Vector3(-23,-0.25,-42),Vector3(23,-0.25,-42)]:
+		_tree(p,index==1)
 	box(Vector3(-3.0, 0.10, 6.8), Vector3(2.0, 0.13, 0.70), wood.darkened(0.08))
 	box(Vector3(-3.0, 0.47, 7.12), Vector3(2.0, 0.65, 0.14), wood)
 	for x in [-3.75, -2.25]:
 		box(Vector3(x, -0.10, 6.8), Vector3(0.16, 0.48, 0.6), trim)
-	if index == 1:
-		var water = MeshInstance3D.new()
-		var plane = PlaneMesh.new()
-		plane.size = Vector2(50,12)
-		water.mesh = plane
-		water.position = Vector3(0,-0.34,20)
-		var mat = ShaderMaterial.new()
-		mat.shader = WATER
-		water.material_override = mat
-		animated_materials.append(mat)
-		building.add_child(water)
 
 func _tree(p: Vector3, palm: bool) -> void:
 	_shadow(p + Vector3(0, 0.10, 0), Vector2(3.5, 3.5), 0.20)
@@ -674,6 +662,8 @@ func handle_input(event: InputEvent) -> void:
 			if touches.size() == 1:
 				pointer_start = event.position
 				gesture_distance = 0
+			else:
+				gesture_distance = maxf(gesture_distance,10.0)
 		else:
 			if touches.size() == 1 and gesture_distance < 10:
 				_select(event.position)
@@ -697,9 +687,10 @@ func release_touch(index: int) -> void:
 
 func _pan(relative: Vector2) -> void:
 	overview = false
-	var right: Vector3 = camera.global_basis.x
-	var up: Vector3 = camera.global_basis.y
-	camera_target -= (right * relative.x - up * relative.y) * camera.size / get_viewport().get_visible_rect().size.x
+	var units := camera.size/get_viewport().get_visible_rect().size.x
+	# Invert the ground projection so the scene follows the pointer on both axes.
+	camera_target.x += (-relative.x/ISO_RIGHT.x+relative.y/ISO_UP.x)*0.5*units
+	camera_target.z += (relative.x/ISO_RIGHT.x+relative.y/ISO_UP.x)*0.5*units
 	camera_target.y = 0
 	_update_camera()
 

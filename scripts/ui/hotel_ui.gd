@@ -5,6 +5,7 @@ signal restore_requested
 signal photo_requested
 signal privacy_requested
 signal grounds_requested(action: String, payload: Dictionary)
+signal garden_edit_requested(id: String)
 signal manager_mode_requested(enabled: bool)
 signal modal_requested
 const Grounds = preload("res://scripts/core/grounds_model.gd")
@@ -231,6 +232,9 @@ func _update_grounds(data: Dictionary) -> void:
 		var allowed: bool = true
 		var index: int = int(entry.payload.get("index",0))
 		match entry.action:
+			"expand_plot":
+				var plot := Grounds.Garden.plot(entry.payload.id)
+				allowed = not state.get("plots",[]).has(plot.id) and data.coins >= plot.cost
 			"amenity":
 				var item: Dictionary = Grounds.amenity(entry.payload.id)
 				allowed = not state.amenities.has(item.id) and data.hotel_level >= item.level and data.coins >= item.cost
@@ -241,7 +245,7 @@ func _update_grounds(data: Dictionary) -> void:
 			"treats": allowed = data.coins >= 30 and seconds >= state.treat_ready
 			"yarn": allowed = seconds >= state.yarn_ready[index]
 		entry.button.disabled = not allowed or data.save_error != ""
-	var next_key: String = str(state.amenities)+str(state.dirty)+str(state.maid)+str(job.is_empty())+str(state.maid_job.is_empty())
+	var next_key: String = str(state.amenities)+str(state.get("plots",[]))+str(state.dirty)+str(state.maid)+str(job.is_empty())+str(state.maid_job.is_empty())
 	if next_key != grounds_key:
 		grounds_key = next_key
 		if tab in ["Grounds","Amenity","Manager","Kiosk"] and is_instance_valid(sheet):

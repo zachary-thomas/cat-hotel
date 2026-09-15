@@ -8,6 +8,14 @@ static func garden(ui: Control) -> void:
 	col.add_child(ui.art("grounds",150*ui.metrics.unit))
 	col.add_child(ui.paragraph("Favorite places for little paws. Every open amenity adds Cat Coins at this hotel."))
 	var state: Dictionary = ui.snapshot.grounds.hotels[ui.snapshot.hotel]
+	col.add_child(Life.action(ui,"Arrange the garden",func(): ui.garden_edit_requested.emit(""),true))
+	col.add_child(Life.heading(ui,"Room to grow"))
+	col.add_child(ui.paragraph("Open land to the west, east or behind your hotel, in any order. Move amenities onto your new grounds for free."))
+	for plot in Grounds.Garden.PLOTS:
+		var owned: bool=state.get("plots",[]).has(plot.id)
+		var button: Button = ui.grounds_button(plot.name+" · "+("Open" if owned else str(plot.cost)+" Cat Coins"),"expand_plot",{"id":plot.id})
+		button.name="ExpandPlot_"+plot.id; button.disabled=owned or ui.snapshot.coins<plot.cost
+		col.add_child(button)
 	for item in Grounds.AMENITIES:
 		var box := Life.card(ui,col)
 		box.add_child(ui.art(item.id,88*ui.metrics.unit))
@@ -29,6 +37,8 @@ static func amenity(ui: Control) -> void:
 	box.add_child(Life.heading(ui,"+%d Cat Coins / min" % item.rate))
 	if ui.snapshot.grounds.hotels[ui.snapshot.hotel].amenities.has(item.id):
 		box.add_child(ui.paragraph("Open for guests. Watch the cats make themselves at home."))
+		var move := Life.action(ui,"Move this amenity · Free",func(): ui.garden_edit_requested.emit(item.id),true)
+		move.name="MoveOwnedAmenity"; box.add_child(move)
 	else:
 		box.add_child(ui.paragraph("%d Cat Coins · Hotel level %d required" % [item.cost,item.level]))
 		box.add_child(ui.grounds_button("Open · %d Cat Coins" % item.cost,"amenity",{"id":item.id},true))

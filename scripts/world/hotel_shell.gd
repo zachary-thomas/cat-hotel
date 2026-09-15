@@ -195,20 +195,11 @@ func window_detail(parent: Node3D) -> void:
 func _build_boundary() -> void:
 	for strip in range(3):
 		var open: bool = strip < world.wings
-		var z: float = -19.25-strip*2.5
-		block(border,Vector3(0,-0.2,z),Vector3(26.8,0.20,2.5),Color("bdd09c") if open else Color("a7b29a"))
+		var z: float = -18.75-strip*2.5
+		block(border,Vector3(0,-0.2,z),Vector3(14.0,0.20,2.5),Color("bdd09c") if open else Color("a7b29a"))
 		if open:
-			block(border,Vector3(0,-0.04,z),Vector3(23.6,0.10,0.85),Color("dfccab"))
-			for x in [-8.0,8.0]:
-				block(border,Vector3(x,0.3,z-0.6),Vector3(2.1,0.55,0.65),world.wood)
-				for flower in range(5):
-					block(border,Vector3(x-0.8+flower*0.4,0.7,z-0.6),Vector3(0.27,0.22,0.3),Color("dfa6bf") if strip%2 else Color("b2a0d6"))
-	var edge: float = world.navigation_bounds().position.y
-	for x in range(-13,14):
-		block(border,Vector3(x,0.35,edge),Vector3(0.12,0.8,0.12),world.wood)
-	block(border,Vector3(0,0.56,edge),Vector3(26.8,0.12,0.12),world.trim)
-	for side in [-1,1]:
-		block(border,Vector3(side*13.5,0.2,(-18.0+edge)/2),Vector3(0.10,0.60,maxf(0.2,-18.0-edge)),world.trim)
+			block(border,Vector3(0,-0.04,z),Vector3(1.8,0.10,2.5),Color("dfccab"))
+	# Property ownership and the camera limit are separate. No fence crosses a new plot.
 
 func _process(delta: float) -> void:
 	if world == null:

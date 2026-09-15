@@ -71,6 +71,19 @@ func run() -> void:
 		return
 	app.model.coins = 2000
 	app.perform_grounds("amenity",{"id":"pool"})
+	app.garden_editor.open("pool")
+	app.garden_editor.move_to(Vector2(14,-7))
+	app.garden_editor.confirm()
+	app.garden_editor.close()
+	if app.model.grounds.hotels[0].amenity_layout.get("pool",{}).get("x",0)!=14:
+		push_error("Pack failed to move and save a garden amenity")
+		quit(1)
+		return
+	app.perform_grounds("expand_plot",{"id":"east"})
+	if not app.model.grounds.hotels[0].plots.has("east"):
+		push_error("Pack failed to expand the garden")
+		quit(1)
+		return
 	app.perform_grounds("trim",{"index":0})
 	app.model.advance(30)
 	app.world.apply_life(app.model)

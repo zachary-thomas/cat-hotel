@@ -4,6 +4,7 @@ const Layout = preload("res://scripts/core/room_layout.gd")
 const Interior = preload("res://scripts/core/furniture_layout.gd")
 const Shared = preload("res://scripts/core/shared_layout.gd")
 const Catalog = preload("res://scripts/core/furniture_catalog.gd")
+const Garden = preload("res://scripts/core/garden_layout.gd")
 const AMENITIES = [
 	{"id":"pool", "name":"Kitty splash pool", "cost":250, "level":1, "rate":5, "position":Vector2(9.3,-1.0), "copy":"A shallow splash pool with floating toys. Guests paddle and lounge by the water."},
 	{"id":"litter", "name":"Private litter nook", "cost":120, "level":1, "rate":3, "position":Vector2(-9.2,-2.4), "copy":"Fresh litter, privacy screens and a little paw-washing mat."},
@@ -31,6 +32,8 @@ func reset() -> void:
 	notices.clear()
 	for h in range(4):
 		hotels.append({"amenities":[], "yarn_ready":[0.0,0.0,0.0], "bush_ready":[0.0,25.0], "mouse_ready":0.0, "manager":[0.0,6.0], "job":{}, "dirty":[false,false,false,false,false,false,false,false], "dirt_clock":0.0, "dirt_cursor":0, "maid":false, "maid_position":[0.0,3.5], "maid_job":{}, "cleaned":0, "chores":0, "treat_ready":0.0, "treat_until":0.0})
+		hotels[-1].plots = []
+		hotels[-1].amenity_layout = {}
 
 static func amenity(id: String) -> Dictionary:
 	for item in AMENITIES:
@@ -69,6 +72,29 @@ func perform(model, action: String, payload: Dictionary) -> Dictionary:
 	var data: Dictionary = hotels[h]
 	var index: int = int(payload.get("index",-1))
 	match action:
+		"expand_plot":
+			var plot := Garden.plot(str(payload.get("id","")))
+			if plot.is_empty() or data.plots.has(plot.id): return fail("Choose a garden plot that isn't open yet.")
+			if model.coins < plot.cost: return fail("This plot needs %d Cat Coins." % plot.cost)
+			model.coins_units -= plot.cost * model.UNIT
+			data.plots.append(plot.id)
+			return ok(plot.name+" is open. Arrange your amenities here!","build")
+		"move_amenity":
+			var id := str(payload.get("id",""))
+			if not data.amenities.has(id): return fail("Open this amenity before moving it.")
+			for key in ["x","z","rotation"]:
+				if not number(payload.get(key,0),-100,100): return fail("Choose a spot on the garden.")
+			var turn := int(payload.get("rotation",0))
+			if float(payload.get("rotation",0)) != turn: return fail("Rotate a quarter turn at a time.")
+			var point := Vector2(payload.get("x",0),payload.get("z",0))
+			var result := Garden.validate(data,AMENITIES,id,point,turn,model.wing_count(h))
+			if not result.ok: return result
+			data.amenity_layout[id] = {"x":point.x,"z":point.y,"rotation":turn}
+			# Re-plan a walking job using the new obstacles, and release a covered manager.
+			var manager_point := Vector2(data.manager[0],data.manager[1])
+			if Garden.footprint(point,turn).grow(0.5).has_point(manager_point): data.manager=[0.0,6.0]
+			layout_changed(model,h)
+			return ok(amenity(id).name+" moved.","build")
 		"yarn":
 			if index < 0 or index >= YARN_SPOTS.size() or seconds < data.yarn_ready[index]:
 				return fail("More yarn will appear soon.")
@@ -137,6 +163,8 @@ func perform(model, action: String, payload: Dictionary) -> Dictionary:
 static func walkable(p: Vector2, wings: int = 0, model = null, hotel: int = 0) -> bool:
 	if model != null and _in_layout(p):
 		return not _layout_path(model,hotel,p).is_empty()
+	if model != null and (absf(p.x)>=6.15 or p.y>=5.5 or p.y < -17.8):
+		return Garden.outdoor_walkable(p,model.grounds.hotels[hotel],AMENITIES,wings)
 	if not p.is_finite() or absf(p.x) > 11.8 or p.y > 11.0 or p.y < -17.5-clampi(wings,0,3)*2.5:
 		return false
 	if p.y < -17.5:
@@ -229,6 +257,13 @@ static func _shared_walk_cell(shared: Dictionary, cell: Vector2i, masks: Diction
 	return not masks.rooms.has(cell) and not Shared._fixed(cell)
 
 static func _to_front(point: Vector2, model = null, hotel: int = 0) -> Array:
+	if model != null and (absf(point.x)>=6.15 or point.y>=5.5 or point.y < -17.8):
+		# Approach a bush from the path before the final trimming step into its leaves.
+		if BUSH_SPOTS.has(point):
+			var path: Array=Garden.outdoor_route(point+Vector2(0,1.5),model.grounds.hotels[hotel],AMENITIES,model.wing_count(hotel))
+			if not path.is_empty(): path.push_front(point)
+			return path
+		return Garden.outdoor_route(point,model.grounds.hotels[hotel],AMENITIES,model.wing_count(hotel))
 	if model != null and _in_layout(point):
 		var inside: Array = _layout_path(model,hotel,point)
 		if inside.is_empty():
@@ -427,7 +462,7 @@ static func valid_job(job: Variant, maid: bool = false) -> bool:
 	if not job.get("path") is Array or job.path.size() < 2 or job.path.size() > 256:
 		return false
 	for point in job.path:
-		if not point is Array or point.size() != 2 or not number(point[0],-14,14) or not number(point[1],-25.5,12):
+		if not point is Array or point.size() != 2 or not number(point[0],-32,32) or not number(point[1],-38,12):
 			return false
 	if maid and (job.kind != "clean" or job.get("room",-1) != job.index):
 		return false
@@ -447,6 +482,7 @@ func restore(saved: Variant) -> bool:
 			if not id is String or amenity(id).is_empty() or seen.has(id):
 				return false
 			seen.append(id)
+		if not Garden.valid_saved(data,AMENITIES): return false
 		for key in ["mouse_ready","dirt_clock","dirt_cursor","cleaned","chores","treat_ready","treat_until"]:
 			if not number(data.get(key)):
 				return false
@@ -463,11 +499,14 @@ func restore(saved: Variant) -> bool:
 			for value in data[pair[0]]:
 				if not number(value):
 					return false
-		if not data.get("maid_position") is Array or data.maid_position.size() != 2 or not number(data.maid_position[0],-14,14) or not number(data.maid_position[1],-25.5,12):
+		if not data.get("maid_position") is Array or data.maid_position.size() != 2 or not number(data.maid_position[0],-32,32) or not number(data.maid_position[1],-38,12):
 			return false
-		if not data.get("manager") is Array or data.manager.size() != 2 or not number(data.manager[0],-14,14) or not number(data.manager[1],-25.5,12):
+		if not data.get("manager") is Array or data.manager.size() != 2 or not number(data.manager[0],-32,32) or not number(data.manager[1],-38,12):
 			return false
 	seconds = float(saved.seconds)
 	hotels = saved.hotels.duplicate(true)
+	for data in hotels:
+		if not data.has("plots"): data.plots=[]
+		if not data.has("amenity_layout"): data.amenity_layout={}
 	notices.clear()
 	return true

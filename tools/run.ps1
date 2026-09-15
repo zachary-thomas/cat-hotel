@@ -11,4 +11,4 @@ if (-not (Test-Path -LiteralPath $godotPath)) {
 $arguments = @('--path', ('"' + $projectRoot + '"'))
 if ($Editor) { $arguments += '--editor' }
 if ($CommercePreview) { $arguments += @('--', '--commerce-preview') }
-Start-Process -FilePath $godotPath -ArgumentList $arguments -WorkingDirectory $projectRoot
+Start-Process -FilePath $godotPath -ArgumentList $arguments -WorkingDirectory $projectRoot -WindowStyle Hidden

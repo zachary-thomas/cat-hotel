@@ -27,6 +27,7 @@ var observed_events: Dictionary = {}
 var ad_showing: bool = false
 var activity
 var build_panel
+var garden_editor
 var build_input = preload("res://scripts/ui/build_input.gd").new()
 var draft_store
 var draft_session
@@ -66,6 +67,10 @@ func _ready() -> void:
 	build_panel.app = self
 	build_panel.ui = ui
 	layer.add_child(build_panel)
+	garden_editor=preload("res://scripts/ui/garden_editor.gd").new()
+	garden_editor.app=self; garden_editor.ui=ui; layer.add_child(garden_editor)
+	ui.garden_edit_requested.connect(func(id): garden_editor.open(id))
+	ui.modal_requested.connect(garden_editor.dismiss_for_menu)
 	ui.build_requested.connect(func(): build_panel.open())
 	ui.modal_requested.connect(build_panel.dismiss_for_menu)
 	world.room_selected.connect(func(index): build_panel.open(index) if model.started else null)
@@ -278,6 +283,7 @@ func change_setting(key: String, value: Variant) -> void:
 	if build_panel != null and build_panel.visible:
 		build_panel._resize()
 		build_panel.restore_preview()
+	if garden_editor != null and garden_editor.visible: garden_editor._refresh()
 	_update_ui()
 
 func _prepare_transaction() -> bool:
@@ -327,7 +333,9 @@ func _update_ui() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and ui != null:
-		if ui.tab == "Build":
+		if garden_editor != null and garden_editor.visible:
+			garden_editor.cancel() if garden_editor.selected_id!="" else garden_editor.close()
+		elif ui.tab == "Build":
 			build_panel.cancel() if build_panel.placing or build_panel.selected_item != "" else build_panel.close()
 		else:
 			ui.go_back()
@@ -372,6 +380,11 @@ func _notification(what: int) -> void:
 				ui.show_offline()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if garden_editor != null and garden_editor.visible:
+		if event is InputEventKey and event.pressed:
+			if event.keycode==KEY_ESCAPE: garden_editor.cancel() if garden_editor.selected_id!="" else garden_editor.close()
+			elif event.keycode==KEY_R: garden_editor.rotate()
+		return
 	if ui != null and ui.tab == "Build":
 		if event is InputEventKey and event.pressed:
 			if event.keycode == KEY_ESCAPE:
@@ -434,6 +447,9 @@ func _sync_repairs() -> void:
 func _input(event: InputEvent) -> void:
 	# GUI controls can consume releases; clear gestures even when a drag ends on a menu.
 	if world == null:
+		return
+	if garden_editor != null and garden_editor.visible:
+		garden_editor.handle_input(event)
 		return
 	if ui != null and ui.tab == "Build" and build_panel.visible:
 		for command in build_input.feed(event,build_panel.input_context()):
@@ -655,22 +671,23 @@ func select_grounds(action: String, payload: Dictionary) -> void:
 	if not model.started or model.settings.watch:
 		return
 	match action:
+		"garden_plot": ui.open_route("Grounds","Life")
 		"amenity": ui.open_amenity(str(payload.id))
 		"manager": ui._navigate("Manager")
 		"kiosk": ui._navigate("Kiosk")
 		_: perform_grounds(action,payload)
 
-func perform_grounds(action: String, payload: Dictionary = {}) -> void:
+func perform_grounds(action: String, payload: Dictionary = {}) -> bool:
 	_settle()
 	if not _prepare_transaction():
-		return
+		return false
 	var before: Dictionary = model.serialize()
 	var result: Dictionary = model.grounds.perform(model,action,payload)
 	if not result.ok:
 		ui.show_toast(result.message)
-		return
+		return false
 	if not _commit(before):
-		return
+		return false
 	world.apply_life(model)
 	_update_ui()
 	if action in ["trim","chase","clean","walk"]:
@@ -679,3 +696,4 @@ func perform_grounds(action: String, payload: Dictionary = {}) -> void:
 		ui._refresh_sheet()
 	_feedback(result.get("sound","tap"))
 	ui.show_toast(result.message)
+	return true

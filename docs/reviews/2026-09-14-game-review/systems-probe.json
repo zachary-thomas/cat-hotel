@@ -1,0 +1,124 @@
+{
+	"favorite_care": {
+		"actions": 17,
+		"bond": 100,
+		"hotel_level": 1,
+		"seconds": 192.0
+	},
+	"first_nap": {
+		"coins": 1257.5,
+		"memories": 1,
+		"trophies": [
+			"nap"
+		]
+	},
+	"objective_after_sunbeam": {
+		"detail": "2 / 2 together in one room",
+		"payload": {
+			"id": "sunbeam"
+		},
+		"route": "Discoveries",
+		"title": "Sunbeam Suite"
+	},
+	"repeat_nap": {
+		"coin_change": 7.5,
+		"memories": 1,
+		"passive_expected": 7.5
+	},
+	"seaside_gate": {
+		"cheapest_service_spend": 7187,
+		"hotel_price": 10000,
+		"level": 10,
+		"upgrade_count": 18
+	},
+	"second_combo_transaction": {
+		"already_applied": false,
+		"code": "",
+		"message": "Room updated.",
+		"ok": true,
+		"room": 1
+	},
+	"start": {
+		"bean_score": 39,
+		"clover_score": 60,
+		"coins": 1000.0,
+		"income_per_minute": 10,
+		"level": 1,
+		"miso_score": 39,
+		"purchases": 0
+	},
+	"start_events": {
+		"cardboard": 66,
+		"lantern": 30,
+		"nap": 30
+	},
+	"sunbeam": {
+		"bean_score": 40,
+		"clover_score": 52,
+		"coins": 730.0,
+		"income_per_minute": 21,
+		"level": 1,
+		"miso_score": 68,
+		"purchases": 0
+	},
+	"sunbeam_quality": {
+		"atmosphere": 24,
+		"comfort": 36,
+		"contributions": {
+			"f10": {
+				"atmosphere": 8.0,
+				"comfort": 8.0,
+				"entertainment": 20.0
+			},
+			"f3": {
+				"atmosphere": 8.0,
+				"comfort": 0.0,
+				"entertainment": 0.0
+			},
+			"f4": {
+				"atmosphere": 0.0,
+				"comfort": 0.0,
+				"entertainment": 0.0
+			},
+			"f9": {
+				"atmosphere": 8.0,
+				"comfort": 28.0,
+				"entertainment": 0.0
+			}
+		},
+		"entertainment": 20,
+		"income": 0,
+		"quality": 27
+	},
+	"sunbeam_transaction": {
+		"already_applied": false,
+		"code": "",
+		"message": "Room updated.",
+		"ok": true,
+		"room": 0
+	},
+	"ten_minute_comparison": {
+		"active_happy": 6,
+		"active_visits": 12,
+		"offline_happy": 3,
+		"offline_visits": 8
+	},
+	"two_decorated_rooms": {
+		"bean_score": 40,
+		"clover_score": 53,
+		"coins": 440.0,
+		"income_per_minute": 29,
+		"level": 1,
+		"miso_score": 68,
+		"purchases": 0
+	},
+	"two_service_upgrades": {
+		"bean_score": 44,
+		"clover_score": 60,
+		"coins": 520.0,
+		"income_per_minute": 30,
+		"level": 2,
+		"miso_score": 39,
+		"purchases": 2
+	}
+}

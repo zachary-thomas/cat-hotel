@@ -112,13 +112,15 @@ func run() -> void:
 	var bounds: Rect2 = world.navigation_bounds()
 	for zoom in [8.0,18.0,10000.0]:
 		world.set_zoom(zoom)
-		check(world.camera.size <= world.overview_zoom+0.001,"Zoom out stops at the full-property overview")
+		check(world.camera.size <= world.neighborhood_zoom+0.001,"Zoom out stops at the neighborhood limit")
 		for drag in [Vector2(1e6,0),Vector2(-1e6,0),Vector2(0,1e6),Vector2(0,-1e6)]:
 			world._pan(drag)
 			var stopped: Vector3 = world.camera_target
 			world._pan(drag)
 			check(world.camera_target.distance_to(stopped)<0.001,"Repeated dragging stops at the property boundary")
-			check(bounds.grow(0.001).has_point(Vector2(world.camera_target.x,world.camera_target.z)),"Camera cannot pan beyond the street or into locked land")
+			var screen: Vector2=world.available_world_rect().get_center()
+			var center: Vector3=Plane(Vector3.UP,0).intersects_ray(world.camera.project_ray_origin(screen),world.camera.project_ray_normal(screen))
+			check(bounds.grow(0.01).has_point(Vector2(center.x,center.z)),"The visible center cannot pan beyond the neighborhood limit")
 	world.set_zoom(14)
 	var before_pan: Vector3 = world.camera_target
 	world._pan(Vector2(80,40))
@@ -127,21 +129,19 @@ func run() -> void:
 	var wheel = InputEventMouseButton.new()
 	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
 	world.handle_input(wheel)
-	check(is_equal_approx(world.camera.size,world.overview_zoom),"Mouse-wheel zoom respects the overview limit")
+	check(world.camera.size > world.overview_zoom and world.camera.size <= world.neighborhood_zoom,"Mouse-wheel zoom explores beyond the property overview")
 	var magnify = InputEventMagnifyGesture.new()
 	magnify.factor = 0.01
 	world.handle_input(magnify)
-	check(is_equal_approx(world.camera.size,world.overview_zoom),"Trackpad zoom respects the overview limit")
+	check(is_equal_approx(world.camera.size,world.neighborhood_zoom),"Trackpad zoom respects the neighborhood limit")
 	check(not Grounds.walkable(Vector2(0,-19),0),"Locked garden land cannot be walked into")
 	check(not Grounds.walkable(Vector2(0,-6),0),"Managers cannot walk through boarded wing entrances")
-	var previous_edge: float = bounds.position.y
 	for wing in range(1,4):
 		app.model.hotels[0].wings = wing
 		app._rebuild_world()
-		check(is_equal_approx(world.navigation_bounds().position.y,previous_edge-2.5),"Restoring each wing opens the next garden strip")
-		check(is_equal_approx(world.navigation_bounds().end.y,12.8),"Expanding never moves the front street boundary")
+		check(Grounds.walkable(Vector2(0,-17.5-wing*2.5),wing),"Restoring each wing opens the next garden strip")
+		check(world.navigation_bounds()==bounds,"Land ownership does not change the neighborhood camera limits")
 		check(shell.doors.size() == 5,"Restoring floor space retains the placed rooms' working doors")
-		previous_edge = world.navigation_bounds().position.y
 	check(app.model.grounds.perform(app.model,"walk",{"x":0,"z":-24}).ok,"Expanded garden land becomes playable after repairs")
 	check(restored.restore(app.model.serialize()),"An in-progress garden walk can be saved and restored")
 	app.model.advance(50)

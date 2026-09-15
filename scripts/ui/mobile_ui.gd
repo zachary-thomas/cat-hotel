@@ -796,7 +796,7 @@ func _process(delta: float) -> void:
 		toast_label.visible = toast_timer > 0
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and tab != "Build":
+	if event.is_action_pressed("ui_cancel") and tab not in ["Build","GardenEdit"]:
 		get_viewport().set_input_as_handled()
 		go_back()
 
