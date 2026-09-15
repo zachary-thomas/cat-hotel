@@ -34,7 +34,7 @@ func _initialize() -> void:
 	var bedroom: Dictionary=model.hotel().rooms[0]
 	for object in model.hotel().objects:
 		if object.room==bedroom.id and object.item=="mat": object.item="sun_cushion"
-	model.hotel().objects.append({"id":"bonus-perch","item":"perch","room":bedroom.id,"x":-6.5,"y":-5.5,"rotation":0,"paid":0})
+	model.hotel().objects.append({"id":"bonus-perch","item":"perch","room":bedroom.id,"x":-7,"y":-8,"rotation":0,"paid":0})
 	model._invalidate()
 	check(model.room_status(bedroom.id).get("bonus",0)==8,"Ready guest room earns its existing furnishing-combination bonus")
 	for object in model.hotel().objects.duplicate():
@@ -43,7 +43,7 @@ func _initialize() -> void:
 	check(not model.room_status(bedroom.id).ready and model.room_status(bedroom.id).get("bonus",0)==0,"Unfinished bedroom contributes no room bonus")
 	check(model.guest_capacity()==2,"Only the remaining ready room contributes guest capacity")
 	model.new_game(1000)
-	check(model.commit("place_object",{"item":"bench","x":5,"y":-4,"rotation":0}).ok,"Place a garden bench directly on owned grass")
+	check(model.commit("place_object",{"item":"bench","x":-6,"y":10.5,"rotation":0}).ok,"Place a garden bench directly on owned grass")
 	var bench_id: String=model.hotel().objects[-1].id
 	var bench_open:=false
 	for venue in model.venues():
@@ -55,10 +55,10 @@ func _initialize() -> void:
 		if object.item=="reception_counter": reception=object.duplicate(); break
 	check(model.commit("store_object",{"id":reception.id}).ok,"Reception can be stored while building")
 	check(model.guest_capacity()==0,"Removing reception makes guest rooms unavailable")
-	check(model.commit("retrieve_object",{"id":reception.id,"x":-0.5,"y":5,"rotation":0}).ok,"Reception can reopen at a new position")
+	check(model.commit("retrieve_object",{"id":reception.id,"x":-3,"y":-2,"rotation":0}).ok,"Reception can reopen at a new position")
 	check(model.guest_capacity()==4,"Room readiness follows the moved working reception")
 	model.advance(0.1)
 	var guest: Dictionary=model.social.agents.get(0,{})
-	check(guest.get("venue","")==reception.id and float(guest.destination.y)>=4.5,"A fresh arrival targets the new reception position")
+	check(guest.get("venue","")==reception.id and absf(float(guest.destination.y)+1.5)<=1.25,"A fresh arrival targets the new reception position")
 	print("CREATIVE SERVICES: %d failures" % failures)
 	quit(1 if failures else 0)

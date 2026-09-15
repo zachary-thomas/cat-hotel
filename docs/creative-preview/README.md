@@ -6,6 +6,8 @@ The new hotel is a place to build, decorate and spend time with cats. It is now 
 
 Open `builds/windows/Play.cmd` or `builds/creative-social/Play Creative Hotel.cmd`. Both Windows ZIPs contain the current game. Keep the executable and resource pack together. In Godot, use project Play (F5); reopen the project if an existing editor still remembers the previous main scene.
 
+To try the revised starting arrangement with an existing preview save, use **Settings → Start fresh** and confirm. This resets preview progress. Existing layouts remain saved until you choose to reset them.
+
 Start in **Build**. The catalogue contains **Rooms, Shared spaces, Furniture, Outdoors, Storage and Land**. Choose a piece, position its preview in the world, then confirm the displayed price. Cancel only clears the preview. **Play** returns to the hotel immediately.
 
 - **Land:** choose a marked adjacent parcel or select it in the catalogue. Each map has three parcels costing 750, 750 and 1,000 earned Cat Coins.
@@ -29,7 +31,7 @@ Actual enlarged-text captures: [Settings](god-mode/settings-360x640-150.png) and
 
 | Map | Layout | Actual capture |
 |---|---|---|
-| Meadow House | Courtyard rooms, sunny shared room and garden paths | [Meadow](meadow.png) |
+| Meadow House | Connected main hotel, sunny hall and planted fountain garden beside an arrival street | [Meadow](garden-polish/meadow-overview.png) |
 | Seaside Suites | Coastal promenade and outdoor milkshake terrace | [Seaside](seaside.png) |
 | Forest Lodge | Woodland clusters, playroom and branching paths | [Forest](forest.png) |
 | Snowcap Spa | Sheltered courtyard, warm lounge and pine scenery | [Snowcap](snowcap.png) |
@@ -39,6 +41,8 @@ Actual enlarged-text captures: [Settings](god-mode/settings-360x640-150.png) and
 ## Interface review
 
 Cream panels, mint actions, readable dark text and illustrated scene cards follow the Hotel / Build / Cat Care concept board. Mobile placement leaves at least half the safe screen height for the world; browsing leaves at least 35%. Desktop uses a side catalogue. Text supports 100%, 125% and 150%.
+
+The latest voxel pass adds quilted beds, window frames and shelves, layered foliage, detailed garden seating, and a stepped animated fountain. The opening hotel has no sofas. Room problems appear in readable badges above their rooms. Walking uses direct routes where space is clear, with physical separation while arriving, passing and using activities.
 
 Actual captures cover **360×640, 360×800, 390×844, 430×932 and 1280×800**, each at 100% and 150% text, for browsing, placement, selection, room controls and expanded browsing. Additional captures show Hotel, Cats, Life, Map and Settings. Images are in `screenshots/`.
 

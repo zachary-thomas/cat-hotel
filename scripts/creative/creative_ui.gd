@@ -162,7 +162,9 @@ func _header(rect: Rect2) -> void:
 		var hotel_title: Label=_label(str(definition.get("name","Purrington Hotel")),20)
 		hotel_title.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
 		titlebox.add_child(hotel_title)
-		titlebox.add_child(_label("Level %d  ·  %d rooms" % [int(app.model.hotel().get("level",1)),_guest_count()],13,Palette.SECONDARY_INK))
+		var subtitle: Label=_label("Level %d  ·  %d rooms" % [int(app.model.hotel().get("level",1)),_guest_count()],13,Palette.SECONDARY_INK)
+		subtitle.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+		titlebox.add_child(subtitle)
 	var currency := HBoxContainer.new()
 	currency.add_theme_constant_override("separation",5)
 	row.add_child(currency)
@@ -186,6 +188,7 @@ func _header(rect: Rect2) -> void:
 
 func _wallet_text() -> String:
 	if app.model.is_god_mode(): return "FREE"
+	if safe_rect.size.x<420 and _text_scale>1.3: return _coins(float(app.model.state.get("coins",0)))
 	if build_mode and (safe_rect.size.y<800 or (safe_rect.size.x<390 and _text_scale>1.3)): return _coins(float(app.model.state.get("coins",0)))
 	return "%s\n+%d / min" % [_coins(float(app.model.state.get("coins",0))),roundi(float(app.model.rate()))]
 
@@ -251,21 +254,20 @@ func _dock(rect: Rect2) -> void:
 func _hotel_card(rect: Rect2) -> void:
 	var row: HBoxContainer = _row_in_panel(rect,Palette.CREAM,10)
 	var art: Control = Thumbnail.new()
-	art.item=_catalog().item("lounge_sofa")
+	art.item=_catalog().item("fountain")
 	art.custom_minimum_size=Vector2(83,70)
 	row.add_child(art)
 	var box := VBoxContainer.new()
 	box.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	row.add_child(box)
-	var ready: int = 0
 	var unfinished: int = 0
 	for room: Dictionary in app.model.hotel().get("rooms",[]):
-		if bool(app.model.room_status(str(room.id)).get("ready",false)): ready+=1
-		else: unfinished+=1
-	var title: Label=_label("A place for every cat",21)
-	title.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+		if not bool(app.model.room_status(str(room.id)).get("ready",false)): unfinished+=1
+	var title: Label=_label("Welcome home" if unfinished==0 else "Room to finish",20)
+	title.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(title)
-	var readiness: Label=_label("%d spaces ready · %d unfinished" % [ready,unfinished],15,Palette.SECONDARY_INK)
+	var description: String="Cozy rooms. Happy cats." if unfinished==0 else ("1 unfinished room" if unfinished==1 else "%d unfinished rooms" % unfinished)
+	var readiness: Label=_label(description,15,Palette.SECONDARY_INK)
 	readiness.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(readiness)
 	var pending: int = int(app.model.state.get("pending_coins",0))
@@ -639,6 +641,10 @@ func _settings_sheet(body: VBoxContainer) -> void:
 	for scale_value: float in [1.0,1.25,1.5]:
 		options.add_child(_button("%d%%" % roundi(scale_value*100),func(): _setting("ui_text_scale",scale_value),Palette.MINT if is_equal_approx(_text_scale,scale_value) else Color("efe8d8"),78))
 	var helper: Label=_label("Build: drag to pan, scroll or pinch to zoom. Select a room or furniture to edit it. R rotates a preview; Escape cancels it.",15,Palette.SECONDARY_INK); helper.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART; body.add_child(helper)
+	if app.has_method("request_new_game"):
+		body.add_child(_button("Start fresh",func(): app.request_new_game(),Color("efe8d8"),0))
+		var reset_help: Label=_label("Begin again with the latest starter hotel and garden. You'll confirm before your progress is reset.",13,Palette.SECONDARY_INK)
+		reset_help.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART; body.add_child(reset_help)
 
 func _setting(key: String, value: Variant) -> void:
 	if key=="god_mode":

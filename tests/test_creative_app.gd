@@ -59,6 +59,18 @@ func run() -> void:
 							check(control.get_global_rect().end.x<=dimensions.x+2 and control.get_global_rect().end.y<=dimensions.y+2,"God-mode %s panel fits %s at %d%% text: %s" % [tab,dimensions,roundi(scale_value*100),control.get_global_rect()])
 	app.ui._setting("god_mode",false)
 	check(not app.model.is_god_mode(),"The Settings switch returns to normal prices")
+	app.request_new_game()
+	check(app._reset_dialog!=null and app._reset_dialog.visible,"Start fresh presents an explicit progress-reset confirmation")
+	app._reset_dialog.hide()
+	var previous_model=app.model
+	var previous_state: Dictionary=app.model.serialize()
+	app.store=RejectingStore.new()
+	check(not app.start_new_game().ok,"A fresh start waits for a successful save")
+	check(app.model==previous_model and app.model.serialize()==previous_state,"A failed reset keeps the original model and all progress")
+	app.store=real_store
+	check(app.start_new_game().ok,"The confirmed fresh start is saved")
+	check(app.model.hotel().plots.is_empty() and not app.model.is_god_mode(),"A fresh preview restores normal starter progress")
+	check(app.world.model==app.model and app.ui.active_tab=="Hotel","The fresh hotel immediately appears in the live world")
 	app.soundscape.shutdown()
 	await create_timer(0.15).timeout
 	app.queue_free()

@@ -48,7 +48,9 @@ Double-click Play Creative Hotel.cmd. Keep all files together.
 
 Build your own cat hotel with rooms, shared spaces, garden paths and three
 optional land parcels. Meadow starts with two furnished rooms, reception,
-a sunroom and gardens. The other maps have distinct layouts and scenery.
+a sunlit hall and a planted fountain garden beside the arrival street.
+The guest rooms and reception form one connected main hotel. The other
+maps have distinct layouts and scenery.
 
 BUILD
 Rooms: place, move, rotate, copy, resize or remove room shells. Removing
@@ -74,11 +76,15 @@ improves the whole hotel, while extra counters and seats add capacity.
 Map shows destination requirements. Seaside requires Meadow level 10 plus
 10,000 earned Cat Coins. Forest, Snowcap and Cat Club can be enabled through
 the clearly labeled preview test expansions. They charge no real money.
-Settings include sound, music, inside/outside views and text up to150%.
+Settings include sound, music, inside/outside views and text up to 150%.
 Settings > God mode unlocks all maps, land, cats and item requirements.
 Building, paths, upgrades and staff changes cost nothing while it is on.
 Turn it off to restore normal prices. Creations and unlocked content stay.
 Switching modes starts a fresh Undo history. Fresh saves start with it off.
+Settings > Start fresh loads the latest starter layout after confirmation.
+It resets this preview's progress. Existing layouts otherwise stay saved.
+Room warnings appear above their rooms, and cats give each other room
+while walking. Animated voxel fountains respect the motion setting.
 
 SAVING
 Every build change saves immediately; the game also saves during play.
@@ -91,7 +97,7 @@ Existing hotel saves are not read, changed or converted.
 Opening CreativeHotel.exe directly also starts the creative game in its own
 Godot user directory. Use the launcher consistently to keep one preview profile.
 
-This Windows preview bundles the locally available Godot4.7.2 runner.
+This Windows preview bundles the locally available Godot 4.7.2 runner.
 A production release should use dedicated export templates and signing.
 No installation or new runtime downloads are needed. No mobile package is
 included. Engine, font and bundled mobile plugin notices accompany it.

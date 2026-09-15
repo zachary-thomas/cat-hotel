@@ -70,6 +70,7 @@ func run() -> void:
 	check(ui.preview_payload.rotation == 1, "Rotate edits the pending room, before payment")
 	ui.cancel_preview()
 	check(ui.preview_action.is_empty() and app.world.last_preview.is_empty(), "Cancel removes placement ghost")
+	var paths_before_preview: Dictionary=app.model.hotel().paths.duplicate(true)
 	ui.start_path("gravel")
 	check(ui._apply_button.disabled,"An empty path stroke cannot create an empty edit")
 	ui.add_path_segment(Vector2(0, 0), Vector2(5, 0))
@@ -77,7 +78,7 @@ func run() -> void:
 	check(cells.size() == 12, "A six-cell stroke covers a continuous two-cell path")
 	ui.add_path_segment(Vector2(5, 0), Vector2(0, 0))
 	check(ui.preview_payload.cells.size() == 12, "Painting back over a preview does not duplicate its charge")
-	check(not app.model.hotel().paths.has("5,1"), "A path stroke stays a preview before Apply")
+	check(app.model.hotel().paths==paths_before_preview, "A path stroke stays a preview before Apply")
 	ui.start_path("erase")
 	ui.add_path_segment(Vector2(0,0),Vector2(1,0))
 	check(app.model.quote(ui.preview_action,ui.preview_payload).ok, "Erase path uses a valid erasing command")
@@ -204,7 +205,7 @@ func capture_ui() -> void:
 				await process_frame
 				await RenderingServer.frame_post_draw
 				var name: String="%s-%dx%d-text%d" % [mode,dimensions.x,dimensions.y,roundi(text_scale*100)]
-				root.get_texture().get_image().save_png("res://docs/creative-preview/screenshots/"+name+".png")
+				await save_capture(name+".png")
 				for control: Node in app.ui._surface.get_children():
 					if control is PanelContainer or control is HBoxContainer:
 						check(control.get_global_rect().end.x<=dimensions.x+2,"Panel stays on screen at "+name)
@@ -229,7 +230,21 @@ func capture_ui() -> void:
 		if tab=="Cats": app.ui.selected_cat=0; app.ui.refresh()
 		await process_frame
 		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://docs/creative-preview/screenshots/"+tab.to_lower()+"-430x932.png")
+		await save_capture(tab.to_lower()+"-430x932.png")
 	app.queue_free()
 	await process_frame
 	print("CREATIVE UI CAPTURES: %d failures" % failures)
+
+func save_capture(filename: String) -> void:
+	# An open editor can briefly lock a previous screenshot while importing it.
+	# Render to a unique file, then retry the copy without losing the new frame.
+	var temporary: String="res://tmp/creative-ui-captures/"+str(Time.get_ticks_usec())+"-"+filename
+	var result: Error=root.get_texture().get_image().save_png(temporary)
+	check(result==OK,"Capture writes a complete PNG: "+filename)
+	if result!=OK: return
+	var destination: String="res://docs/creative-preview/screenshots/"+filename
+	for attempt in range(20):
+		result=DirAccess.copy_absolute(temporary,destination)
+		if result==OK: break
+		await create_timer(0.1).timeout
+	check(result==OK,"Current capture replaces the reviewed image: "+filename)

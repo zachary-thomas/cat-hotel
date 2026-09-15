@@ -58,25 +58,62 @@ static func _scenery(map: Dictionary, entries: Array) -> void:
 		map.scenery.append({"kind":entry[0],"x":entry[1],"y":entry[2],"size":entry[3],"color":entry[4]})
 
 static func _meadow() -> Dictionary:
-	var map := _property("meadow","Meadow House","meadow","9fbe83","e5b48b",[-12,-12,24,24],[10.5,10.5],["Orchard plot","Wildflower plot","Meadow rise"])
-	_guest(map,"guest_1","Clover Cottage",-10,-10,"mat")
-	_guest(map,"guest_2","Daisy Cottage",-10,-2,"mat")
-	_venue(map,"lobby","The Garden Welcome","lobby",-1,3)
-	_venue(map,"sunroom","Sunbeam Conservatory","sunroom",2,-10)
-	_paths(map,[[-4,-8,2,20],[10,-8,2,20],[-4,-3,16,2],[-4,10,16,2],[5,5,7,2]],"earth")
-	_object(map,"garden_fountain","fountain","",0,-0.5)
-	_object(map,"garden_bench","bench","",7,-1)
-	_object(map,"garden_shade","tree","",-10,7)
-	_object(map,"garden_border","flower_bed","",-10,5)
-	_object(map,"garden_planter","garden_planter","",-6.5,7)
-	_object(map,"garden_light","garden_lamp","",8,8.5)
+	var map := _property("meadow","Meadow House","meadow","91b57a","dfa878",[-12,-12,24,24],[8.5,11.5],["Orchard plot","Wildflower plot","Meadow rise"])
+	map.road={"rect":[-32,13,64,4],"sidewalk":true}
+	# Guest rooms open directly into the two halves of one main hotel.
+	_guest(map,"guest_1","Clover Room",-10,-10,"mat")
+	_guest(map,"guest_2","Marigold Room",-10,-4,"sun_cushion")
+	_room(map,"sunroom","shared","Sunbeam Hall",-4,-10,6,6)
+	_room(map,"lobby","shared","Purrington Reception",-4,-4,6,6)
+	_object(map,"welcome_counter","reception_counter","lobby",-3,-2.5)
+	_object(map,"welcome_rug","rug","lobby",-2.5,-0.5)
+	_object(map,"welcome_flowers","flowers","lobby",0.5,-3.5)
+	_object(map,"welcome_lamp","lamp","lobby",0.5,0.5)
+	_object(map,"welcome_seat_1","cafe_stool","lobby",-3.5,0.5)
+	_object(map,"welcome_seat_2","cafe_stool","lobby",-2.5,0.5)
+	_object(map,"sun_perch_1","perch","sunroom",-3.5,-9)
+	_object(map,"sun_perch_2","perch","sunroom",0.5,-9)
+	_object(map,"sun_scratcher","scratch","sunroom",-3.5,-5.5)
+	_object(map,"sun_flowers","flowers","sunroom",0.5,-5)
+	_object(map,"sun_rug","rug","sunroom",-2,-7.5)
+	_object(map,"sun_leaf","plant","sunroom",-3.5,-7.5)
+	for i in range(2):
+		var room_id: String="guest_%d" % (i+1)
+		var y: float=-10+6*i
+		_object(map,room_id+"_rug","rug",room_id,-9,y+3.5)
+		_object(map,room_id+"_lamp","lamp",room_id,-7.5,y+0.5)
+		_object(map,room_id+"_flowers","flowers",room_id,-6,y+4.5)
+	_paths(map,[[2,-10,2,22],[10,-10,2,22],[2,-10,10,2],[2,0,10,2],[-10,8,22,2],[-12,-10,2,20],[-2,2,2,8],[8,10,2,2]],"brick")
+	# Editable planting frames three garden pockets without occupying paths.
+	var garden: Array=[
+		["garden_fountain","fountain",6,-4,0],
+		["fountain_bench_w","bench",4,-3,1],["fountain_bench_e","bench",8.5,-5,1],
+		["fountain_blossom_nw","flower_bed",4,-8,0],["fountain_blossom_ne","flower_bed",8,-8,0],
+		["fountain_blossom_sw","flower_bed",4,-1,0],["fountain_blossom_se","flower_bed",8,-1,0],
+		["fountain_hedge_n","shrub",6.5,-7.5,0],["fountain_hedge_s","shrub",6.5,-1,0],
+		["fountain_lantern_n","garden_lamp",7,-6.5,0],["fountain_lantern_s","garden_lamp",7,-1.5,0],
+		["front_shade","tree",-10,3,0],["front_bench","bench",-7,3,0],
+		["front_border","flower_bed",-6,5,0],["front_hedge","shrub",-4,3,0],
+		["front_planter","garden_planter",-9,6,0],["front_statue","cat_statue",-6,6.5,0],
+		["front_lantern","garden_lamp",-3,6.5,0],
+		["play_perch","perch",1,3,0],["play_tunnel","tunnel",0.5,4.5,0],
+		["picnic_shade","tree",7,3,0],["picnic_border","flower_bed",4,3,0],
+		["picnic_garden","picnic",4,5,0],["picnic_bench","bench",0,6,0],
+		["picnic_planter","garden_planter",8.5,6.5,0],
+		["arrival_planter","garden_planter",6.5,10.5,0],["arrival_lamp","garden_lamp",7.5,10.5,0],
+		["north_border_1","flower_bed",-9.5,-11.5,0],["north_border_2","flower_bed",-5.5,-11.5,0],
+		["north_border_3","flower_bed",-1.5,-11.5,0]]
+	for entry in garden: _object(map,entry[0],entry[1],"",entry[2],entry[3],entry[4])
 	_scenery(map,[
-		["house",-24,-12,3.5,"e8c2a1"],["house",23,-15,3.0,"d7b9bb"],
-		["tree",-24,-4,2.5,"88ac75"],["tree",-23,5,2.8,"789c68"],
-		["tree",24,2,3.2,"83ad78"],["tree",18,-24,2.7,"9bbf7b"],
-		["pond",-6,-26,4.0,"a4cacf"],["shrub",4,-24,2.0,"92b57b"],
-		["flowers",-17,16,2.2,"e3b3ba"],["flowers",20,16,2.0,"edca82"],
-		["rock",-22,12,1.3,"b9b7a6"],["flowers",1,-22,2.0,"dba3bd"]])
+		["house",-25,-13,4.5,"e8c2a1"],["house",25,-16,4.0,"d7b9bb"],
+		["tree",-24,-5,3.7,"79a56c"],["tree",-24,3,3.9,"668f62"],
+		["tree",24,0,4.2,"729f69"],["tree",18,-24,3.6,"8bb16f"],
+		["tree",-12,-24,3.5,"87a964"],["tree",-1,-25,3.8,"759f6c"],
+		["pond",6,-26,6.0,"87bfc7"],["shrub",12,-23,2.0,"79a368"],
+		["flowers",-18,11,2.2,"e3a1ac"],["flowers",18,11,2.0,"edca82"],
+		["rock",-23,10,1.3,"b9b7a6"],["flowers",1,-22,2.0,"dba3bd"],
+		["shrub",-22,-18,2.0,"779a65"],["flowers",-25,7,1.8,"f1c67c"],
+		["shrub",23,8,2.0,"799e70"],["flowers",25,-7,1.8,"e1a7c4"]])
 	return map
 
 static func _coast() -> Dictionary:

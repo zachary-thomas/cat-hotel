@@ -343,47 +343,155 @@ func _graph(constructed: bool, index: int) -> Dictionary:
 	var bounds:=Geo.rect(map.base)
 	for plot in map.plots:
 		if data.plots.has(plot.id): bounds=bounds.merge(Geo.rect(plot.rect))
-	var floor: Dictionary={}; var blocked: Dictionary={}
+	var floor: Dictionary={}; var blocked: Dictionary={}; var solids: Array=[]
 	for room in data.rooms:
 		var r:=Geo.room_rect(room)
 		for x in range(int(r.position.x*2),int(r.end.x*2)):
 			for y in range(int(r.position.y*2),int(r.end.y*2)): floor[Vector2i(x,y)]=room
+		if room.kind!="terrace":
+			for side in range(4):
+				var vertical:=side%2==0
+				var start: Vector2=Vector2(r.end.x,r.position.y) if side==0 else (Vector2(r.position.x,r.end.y) if side==1 else r.position)
+				var length: float=r.size.y if vertical else r.size.x
+				var axis:=Vector2.DOWN if vertical else Vector2.RIGHT
+				if room.kind=="shared" or int(room.get("rotation",0))%4==side:
+					solids.append(Rect2(start,axis*(length*0.5-0.8)).grow(0.18))
+					solids.append(Rect2(start+axis*(length*0.5+0.8),axis*(length*0.5-0.8)).grow(0.18))
+				else: solids.append(Rect2(start,axis*length).grow(0.18))
 	for object in data.objects:
 		var item: Dictionary=Content.item(str(object.item))
 		if item.get("role","") in ["gate"] or item.get("shape","")=="rug": continue
 		var r:=Geo.object_rect(object).grow(0.18)
+		solids.append(r)
 		for x in range(floori(r.position.x*2),ceili(r.end.x*2)):
 			for y in range(floori(r.position.y*2),ceili(r.end.y*2)):
 				if r.has_point(Vector2(x*0.5+0.25,y*0.5+0.25)): blocked[Vector2i(x,y)]=true
+	var solid_cells: Dictionary={}
+	for solid in solids:
+		for x in range(floori(solid.position.x*2),ceili(solid.end.x*2)):
+			for y in range(floori(solid.position.y*2),ceili(solid.end.y*2)):
+				var cell:=Vector2i(x,y)
+				if not solid_cells.has(cell): solid_cells[cell]=[]
+				solid_cells[cell].append(solid)
 	var graph:=AStar2D.new(); var points: Dictionary={}; var count:=0
 	for x in range(int(bounds.position.x*2),int(bounds.end.x*2)):
 		for y in range(int(bounds.position.y*2),int(bounds.end.y*2)):
 			var cell:=Vector2i(x,y); var point:=Vector2(x*0.5+0.25,y*0.5+0.25)
 			if blocked.has(cell) or not Geo.point_owned(point,map,data): continue
 			if constructed and not floor.has(cell) and not data.paths.has(_key(Vector2i(floori(point.x),floori(point.y)))): continue
+			var inside_solid:=false
+			for solid in solid_cells.get(cell,[]):
+				if solid.has_point(point): inside_solid=true; break
+			if inside_solid: continue
 			points[cell]=count; graph.add_point(count,point); count+=1
+	var result: Dictionary={"graph":graph,"points":points,"solids":solid_cells}
 	for cell in points:
-		for step in [Vector2i(1,0),Vector2i(0,1)]:
+		for step in [Vector2i(1,0),Vector2i(0,1),Vector2i(1,1),Vector2i(1,-1)]:
 			var next: Vector2i=cell+step
 			if not points.has(next): continue
-			var source: Dictionary=floor.get(cell,{}); var target: Dictionary=floor.get(next,{})
-			if source.get("id","")!=target.get("id",""):
-				var middle: Vector2=(graph.get_point_position(points[cell])+graph.get_point_position(points[next]))*0.5
-				if not source.is_empty() and not Geo.portal(source,middle): continue
-				if not target.is_empty() and not Geo.portal(target,middle): continue
+			if not _segment_open(graph.get_point_position(points[cell]),graph.get_point_position(points[next]),result): continue
 			graph.connect_points(points[cell],points[next])
-	var result: Dictionary={"graph":graph,"points":points}
 	_navigation[cache_key]=result
+	return result
+
+# Every route shortcut and physical step uses the same expanded walls and
+# furniture. Traversing all crossed cells also preserves owned/path boundaries.
+func _segment_hits_rect(from: Vector2,to: Vector2,rect: Rect2) -> bool:
+	var delta:=to-from; var enter:=0.0; var leave:=1.0
+	for axis in range(2):
+		if absf(delta[axis])<0.000001:
+			if from[axis]<rect.position[axis] or from[axis]>rect.end[axis]: return false
+		else:
+			var a: float=(rect.position[axis]-from[axis])/delta[axis]
+			var b: float=(rect.end[axis]-from[axis])/delta[axis]
+			enter=maxf(enter,minf(a,b)); leave=minf(leave,maxf(a,b))
+			if enter>leave: return false
+	return true
+
+func _segment_open(from: Vector2,to: Vector2,nav: Dictionary,obstacles: Array=[]) -> bool:
+	var delta:=to-from
+	var cell:=Vector2i(floori(from.x*2),floori(from.y*2))
+	var last:=Vector2i(floori(to.x*2),floori(to.y*2))
+	var step:=Vector2i(signi(last.x-cell.x),signi(last.y-cell.y))
+	var increment:=Vector2(INF if step.x==0 else 0.5/absf(delta.x),INF if step.y==0 else 0.5/absf(delta.y))
+	var crossing:=Vector2(INF,INF)
+	if step.x!=0: crossing.x=((cell.x+(1 if step.x>0 else 0))*0.5-from.x)/delta.x
+	if step.y!=0: crossing.y=((cell.y+(1 if step.y>0 else 0))*0.5-from.y)/delta.y
+	for iteration in range(absi(last.x-cell.x)+absi(last.y-cell.y)+3):
+		if not nav.points.has(cell): return false
+		for solid in nav.solids.get(cell,[]):
+			if _segment_hits_rect(from,to,solid): return false
+		if cell==last: break
+		if absf(crossing.x-crossing.y)<0.000001:
+			if not nav.points.has(cell+Vector2i(step.x,0)) or not nav.points.has(cell+Vector2i(0,step.y)): return false
+			cell+=step; crossing+=increment
+		elif crossing.x<crossing.y: cell.x+=step.x; crossing.x+=increment.x
+		else: cell.y+=step.y; crossing.y+=increment.y
+	for obstacle in obstacles:
+		var center: Vector2=obstacle.position
+		var closest:=Geometry2D.get_closest_point_to_segment(center,from,to)
+		if closest.distance_to(center)<float(obstacle.radius): return false
+	return true
+
+func movement_segment_clear(from: Vector2,to: Vector2,constructed: bool=true,index: int=-1) -> bool:
+	if not from.is_finite() or not to.is_finite(): return false
+	if index<0: index=int(state.current_hotel)
+	return _segment_open(from,to,_graph(constructed,index))
+
+func _simplify_path(path: Array,nav: Dictionary,obstacles: Array=[]) -> Array:
+	if path.size()<3: return path
+	var result: Array=[path[0]]; var anchor:=0
+	while anchor<path.size()-1:
+		var next:=path.size()-1
+		while next>anchor+1 and not _segment_open(path[anchor],path[next],nav,obstacles): next-=1
+		result.append(path[next]); anchor=next
 	return result
 
 func route(from: Vector2, to: Vector2, constructed: bool=true, index: int=-1) -> Array:
 	if index<0: index=int(state.current_hotel)
 	if not from.is_finite() or not to.is_finite(): return []
-	var graph: AStar2D=_graph(constructed,index).graph
+	var nav:=_graph(constructed,index)
+	var graph: AStar2D=nav.graph
 	if graph.get_point_count()==0: return []
 	var start:=graph.get_closest_point(from); var finish:=graph.get_closest_point(to)
 	if graph.get_point_position(start).distance_to(from)>1.5 or graph.get_point_position(finish).distance_to(to)>0.8: return []
-	return Array(graph.get_point_path(start,finish))
+	return _simplify_path(Array(graph.get_point_path(start,finish)),nav)
+
+func avoidance_route(from: Vector2,to: Vector2,obstacles: Array,constructed: bool=true,index: int=-1) -> Array:
+	if not from.is_finite() or not to.is_finite(): return []
+	if index<0: index=int(state.current_hotel)
+	var nav:=_graph(constructed,index); var graph: AStar2D=nav.graph
+	if graph.get_point_count()==0: return []
+	var disabled: Array=[]
+	var edges: Array=[]
+	for obstacle in obstacles:
+		var center: Vector2=obstacle.position; var radius: float=obstacle.radius
+		for x in range(floori((center.x-radius)*2),ceili((center.x+radius)*2)):
+			for y in range(floori((center.y-radius)*2),ceili((center.y+radius)*2)):
+				var id: int=nav.points.get(Vector2i(x,y),-1)
+				if id>=0 and not graph.is_point_disabled(id) and graph.get_point_position(id).distance_to(center)<radius:
+					graph.set_point_disabled(id,true); disabled.append(id)
+		# Two clear endpoints can still cut across a body's circle, especially
+		# on diagonal grid edges. Exclude those exact segments for this search.
+		for x in range(floori((center.x-radius-0.5)*2),ceili((center.x+radius+0.5)*2)):
+			for y in range(floori((center.y-radius-0.5)*2),ceili((center.y+radius+0.5)*2)):
+				var id: int=nav.points.get(Vector2i(x,y),-1)
+				if id<0 or graph.is_point_disabled(id): continue
+				for next in graph.get_point_connections(id):
+					if graph.is_point_disabled(next): continue
+					var nearest:=Geometry2D.get_closest_point_to_segment(center,graph.get_point_position(id),graph.get_point_position(next))
+					if nearest.distance_to(center)<radius:
+						graph.disconnect_points(id,next); edges.append(Vector2i(id,next))
+	var start:=graph.get_closest_point(from); var finish:=graph.get_closest_point(to)
+	var path: Array=[]
+	if graph.get_point_position(start).distance_to(from)<=0.8 and graph.get_point_position(finish).distance_to(to)<0.1:
+		path=Array(graph.get_point_path(start,finish))
+		if not path.is_empty():
+			if _segment_open(from,path[0],nav,obstacles): path.push_front(from)
+			else: path=[]
+	for id in disabled: graph.set_point_disabled(id,false)
+	for edge in edges: graph.connect_points(edge.x,edge.y)
+	return _simplify_path(path,nav,obstacles)
 
 func activity_route(from: Vector2, to: Vector2) -> Array:
 	var path:=route(from,to,true)

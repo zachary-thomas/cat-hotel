@@ -2,6 +2,8 @@
 
 A creative cat hotel built around shared spaces: expand the lot, arrange rooms and cottages, decorate gardens, and watch cats check in, socialize and visit the milkshake bar.
 
+Meadow now opens as a connected main hotel with a planted fountain garden and an arrival street. Guests use smooth routes and give one another room while walking. See [the latest game captures](docs/creative-preview/garden-polish/hotel-390x844-100.png).
+
 ## Play the current game
 
 **Godot project Play (F5), the standard Windows launcher, and both preview packages now use the redesigned hotel.** The main project scene is `scenes/creative_hotel.tscn`.
@@ -17,6 +19,8 @@ Open **Settings → God mode**. It unlocks every map, land parcel, cat and item 
 
 Turning God mode off restores normal prices. Creations and unlocked content remain saved; switching modes restarts the 20-action Undo history. Free construction carries no paid refund value. Geometry, access and room-readiness checks remain active so you can debug real hotel behavior. Fresh saves start with God mode off.
 
+**Settings → Start fresh** loads the latest starter hotel after a confirmation. This resets the current preview's progress; existing saves otherwise keep their layouts. A failed save leaves your previous hotel intact.
+
 ## Build and hotel life
 
 The catalogue has **Rooms, Shared spaces, Furniture, Outdoors, Storage and Land**.
@@ -29,7 +33,7 @@ The catalogue has **Rooms, Shared spaces, Furniture, Outdoors, Storage and Land*
 - Preview prices before placing. Cancel clears only the preview; each confirmed change saves immediately. Undo/Redo covers 20 actions and preserves elapsed income. Removing a room stores its furnishings.
 - Drag to pan, wheel or pinch to zoom, **R** to rotate and **Escape** to cancel. Focus frames your selection; Fit lot shows all land. Mobile controls account for safe areas and support up to 150% text.
 
-All four maps have different layouts and gathering places: Meadow's courtyard and sunroom, Seaside's promenade and milkshake terrace, Forest's woodland playroom, and Snowcap's fireside courtyard. In normal play, Seaside requires Meadow level 10 and 10,000 earned coins. Expansion test buttons charge no money.
+All four maps have different layouts and gathering places: Meadow's connected hotel and fountain garden, Seaside's promenade and milkshake terrace, Forest's woodland playroom, and Snowcap's fireside courtyard. In normal play, Seaside requires Meadow level 10 and 10,000 earned coins. Expansion test buttons charge no money.
 
 See [the guide and actual screenshots](docs/creative-preview/README.md) and [verification results](docs/creative-preview/verification.md).
 

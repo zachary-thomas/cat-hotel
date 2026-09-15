@@ -160,7 +160,10 @@ func test_destinations() -> void:
 		for room in map.rooms:
 			var rect := footprint(room,true)
 			var door := Vector2i(roundi(rect.end.x),floori(rect.get_center().y))
-			check(visited.has(door) and visited.has(door + Vector2i.UP),"Each room doorway meets the connected path: " + room.id)
+			var internal_door := false
+			for neighbor in map.rooms:
+				if neighbor.id!=room.id and neighbor.kind=="shared" and footprint(neighbor,true).has_point(Vector2(rect.end.x+0.25,rect.get_center().y)): internal_door=true
+			check(internal_door or (visited.has(door) and visited.has(door + Vector2i.UP)),"Each room doorway meets a shared interior or connected path: " + room.id)
 		var signature := JSON.stringify(map.rooms)
 		check(not signatures.has(signature),"Destinations have distinct authored layouts")
 		signatures[signature] = true

@@ -13,6 +13,7 @@ var blocked_save:=false
 var _save_elapsed:=0.0
 var _active:=true
 var _close_dialog: ConfirmationDialog
+var _reset_dialog: ConfirmationDialog
 
 func _ready() -> void:
 	DisplayServer.window_set_title("Purrington Hotel · Creative Social Preview")
@@ -84,6 +85,32 @@ func set_god_mode(enabled: bool) -> Dictionary:
 	if result.ok:
 		world.clear_preview(); world.sync(); apply_settings()
 	return result
+
+func request_new_game() -> void:
+	if not is_instance_valid(_reset_dialog):
+		_reset_dialog=ConfirmationDialog.new()
+		_reset_dialog.title="Start a fresh hotel?"
+		_reset_dialog.dialog_text="Replace this preview's progress with a fresh Meadow House, its rooms and garden. Buildings, coins and unlocks will reset."
+		_reset_dialog.ok_button_text="Start fresh"
+		_reset_dialog.cancel_button_text="Keep my hotel"
+		_reset_dialog.dialog_autowrap=true
+		_reset_dialog.confirmed.connect(func():
+			var result: Dictionary=start_new_game()
+			ui._message=str(result.message); ui.refresh())
+		add_child(_reset_dialog)
+	_reset_dialog.popup_centered(Vector2i(mini(360,get_viewport().get_visible_rect().size.x-32),220))
+
+func start_new_game() -> Dictionary:
+	if blocked_save: return {"ok":false,"message":save_error}
+	var previous_model=model
+	model=Model.new(); model.new_game(int(Time.get_unix_time_from_system()))
+	if not save():
+		model=previous_model
+		return {"ok":false,"message":"Could not save the fresh start. Your hotel is still here."}
+	_save_elapsed=0.0
+	world.clear_preview(); world.setup(model)
+	ui.open_tab("Hotel"); apply_settings(); world.focus_hotel()
+	return {"ok":true,"message":"Welcome to a fresh Meadow House"}
 
 func _playdate(p: Dictionary) -> Dictionary:
 	var first:=int(p.get("cat",0)); var second:=int(p.get("other",1))

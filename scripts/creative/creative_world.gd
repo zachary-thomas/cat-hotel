@@ -24,9 +24,12 @@ var _revision: int = -1
 var _hotel: int = -1
 var _target: Vector3 = Vector3(0,FLOOR,0)
 var _size: float = 35.0
-var _camera_direction: Vector3 = Vector3(1,1.10,1).normalized()
+var _camera_direction: Vector3 = Vector3(1,1.05,1).normalized()
 var _preview_key: String = ""
 var _last_viewport: Vector2 = Vector2.ZERO
+var _status_overlay: CanvasLayer
+var _status_badges: Dictionary = {}
+var _world_rect_set: bool = false
 
 func _ready() -> void:
 	_ensure_scene()
@@ -46,23 +49,27 @@ func _ensure_scene() -> void:
 	_preview = Node3D.new()
 	_preview.name = "Preview"
 	add_child(_preview)
+	_status_overlay = CanvasLayer.new()
+	_status_overlay.name = "RoomStatusOverlay"
+	_status_overlay.layer = 0
+	add_child(_status_overlay)
 	var environment = WorldEnvironment.new()
 	_environment = Environment.new()
 	_environment.background_mode = Environment.BG_COLOR
 	_environment.background_color = Color("dce7d2")
 	_environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	_environment.ambient_light_color = Color("ece9d7")
-	_environment.ambient_light_energy = 0.34
+	_environment.ambient_light_energy = 0.47
 	_environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	environment.environment = _environment
 	add_child(environment)
 	_sun = DirectionalLight3D.new()
 	_sun.rotation_degrees = Vector3(-48,-28,0)
 	_sun.light_color = Color("fff0cf")
-	_sun.light_energy = 0.43
+	_sun.light_energy = 0.53
 	_sun.shadow_enabled = true
 	_sun.shadow_bias = 0.045
-	_sun.shadow_normal_bias = 0.8
+	_sun.shadow_normal_bias = 0.35
 	_sun.directional_shadow_max_distance = 140
 	add_child(_sun)
 	camera = Camera3D.new()
@@ -76,6 +83,12 @@ func _ensure_scene() -> void:
 	_update_camera()
 
 func setup(next_model) -> void:
+	if model!=next_model:
+		# A fresh or restored model may reuse the same revision/hotel numbers.
+		# Those counters only describe edits within one model instance.
+		_revision = -1
+		_hotel = -1
+		clear_preview()
 	model = next_model
 	_ensure_scene()
 	outside = bool(model.state.get("settings",{}).get("exterior",false))
@@ -91,6 +104,8 @@ func sync() -> void:
 	_hotel = int(model.state.current_hotel)
 	_clear(_terrain)
 	_clear(_building)
+	_clear(_status_overlay)
+	_status_badges.clear()
 	room_nodes.clear()
 	object_nodes.clear()
 	var definition: Dictionary = model.map_definition()
@@ -102,6 +117,7 @@ func sync() -> void:
 	Objects.flush(_building)
 	apply_visual_settings()
 	_apply_outside()
+	_update_status_badges()
 	if changed_hotel:
 		_clear(_cast)
 		actors.clear()
@@ -113,8 +129,8 @@ func apply_visual_settings() -> void:
 	_set_water_motion(_building,bool(model.state.get("settings",{}).get("motion",true)))
 	var evening: bool = bool(model.state.get("settings",{}).get("evening",false))
 	_sun.light_color = Color("ffd9b1") if evening else Color("fff0d8")
-	_sun.light_energy = 0.31 if evening else 0.43
-	_environment.ambient_light_energy = 0.30 if evening else 0.34
+	_sun.light_energy = 0.37 if evening else 0.53
+	_environment.ambient_light_energy = 0.37 if evening else 0.47
 
 func _clear(root: Node) -> void:
 	for child in root.get_children(): child.free()
@@ -137,6 +153,7 @@ func _grounds(definition: Dictionary, hotel: Dictionary) -> void:
 	for parcel in definition.get("plots",[]):
 		var owned: bool = hotel.get("plots",[]).has(parcel.id)
 		_parcel(_rect(parcel.rect),ground if owned else ground.darkened(0.055),accent,owned,String(parcel.get("name","Garden plot")))
+	if definition.has("road"): _road(definition.road,definition.get("arrival",[0,10]))
 	for key in hotel.get("paths",{}):
 		var split: PackedStringArray = String(key).split(",")
 		if split.size()!=2: continue
@@ -170,6 +187,36 @@ func _grounds(definition: Dictionary, hotel: Dictionary) -> void:
 		Objects.box(_terrain,Vector3(x,0.27,z),Vector3(0.11,0.48,0.11),Color("d9c49b"))
 		if x<end-0.1: Objects.box(_terrain,Vector3(x+UNIT*0.4,0.27,z),Vector3(UNIT*0.8,0.08,0.07),Color("d9c49b"))
 
+func _road(definition: Dictionary, arrival: Array) -> void:
+	var rect: Rect2 = _rect(definition.get("rect",[-32,13,64,4]))
+	var center: Vector2 = rect.get_center()*UNIT
+	var road = Node3D.new()
+	road.name = "VillageRoad"
+	_terrain.add_child(road)
+	Objects.box(road,Vector3(center.x,0.015,center.y),Vector3(rect.size.x*UNIT,0.12,rect.size.y*UNIT),Color("78857e"))
+	for side in [-1,1]:
+		var edge: float = center.y+float(side)*(rect.size.y*0.5-0.14)*UNIT
+		Objects.box(road,Vector3(center.x,0.083,edge),Vector3(rect.size.x*UNIT,0.018,0.08),Color("ced3ba"))
+	for dash in range(int(rect.size.x/2.5)):
+		var x: float = (rect.position.x+float(dash)*2.5+0.75)*UNIT
+		Objects.box(road,Vector3(x,0.084,center.y),Vector3(1.15,0.018,0.11),Color("ece2b8"))
+	if bool(definition.get("sidewalk",true)):
+		for side in [-1,1]:
+			var z: float = center.y+float(side)*(rect.size.y*0.5+0.48)*UNIT
+			for tile in range(int(rect.size.x)):
+				var x: float = (rect.position.x+float(tile)+0.5)*UNIT
+				Objects.box(road,Vector3(x,0.085,z),Vector3(UNIT-0.035,0.17,UNIT*0.92),Color("d4c9ae") if tile%2 else Color("ddd2b8"))
+			var curb: float = center.y+float(side)*(rect.size.y*0.5+0.055)*UNIT
+			Objects.box(road,Vector3(center.x,0.13,curb),Vector3(rect.size.x*UNIT,0.23,0.14),Color("eee1c3"))
+	var crossing_x: float = float(arrival[0])*UNIT
+	for stripe in range(6):
+		Objects.box(road,Vector3(crossing_x,0.089,(rect.position.y+0.40+float(stripe)*0.62)*UNIT),Vector3(1.64,0.019,0.29),Color("eee8cf"))
+	for offset in [-5.5,5.5]:
+		var lamp: Node3D = Objects.make(Content.item("garden_lamp"))
+		lamp.position = Vector3(crossing_x+offset,0.17,(rect.position.y-0.62)*UNIT)
+		lamp.scale = Vector3.ONE*1.25
+		road.add_child(lamp)
+
 func _parcel(rect: Rect2, color: Color, accent: Color, owned: bool, title: String) -> void:
 	var center: Vector2 = rect.get_center()*UNIT
 	Objects.box(_terrain,Vector3(center.x,0.01,center.y),Vector3(rect.size.x*UNIT-0.035,0.13,rect.size.y*UNIT-0.035),color)
@@ -199,7 +246,7 @@ func _room(room: Dictionary, definition: Dictionary) -> void:
 	var terrace: bool = kind=="terrace"
 	var status: Dictionary = model.room_status(String(room.id))
 	var ready: bool = bool(status.get("ready",true))
-	var floor_color: Color = Color("d4bd97") if kind in ["regular","cottage"] else Color("dec8a3")
+	var floor_color: Color = Color("cfae87") if kind in ["regular","cottage"] else Color("dfc49d")
 	if terrace: floor_color = Color("c6b18c")
 	Objects.box(root,Vector3(w*0.5,0.07,d*0.5),Vector3(w+0.10,0.20,d+0.10),Color("a48f70"))
 	for x in range(int(rect.size.x)):
@@ -219,9 +266,12 @@ func _room(room: Dictionary, definition: Dictionary) -> void:
 		cutaway.name = "CutawayWalls"
 		root.add_child(cutaway)
 		var door_side: int = posmod(int(room.get("rotation",0)),4)
+		var plaster: Color = Color("efe1c9")
+		var panel: Color = [Color("e5b2a5"),Color("acc6ad"),Color("a6c7c3"),Color("e8c58e")][posmod(String(room.id).hash(),4)]
 		for side in range(4):
-			_wall(full,w,d,side,2.46,side==door_side,Color("e5d7b9"),accent)
-			_wall(cutaway,w,d,side,1.62 if side in [2,3] else 0.30,side==door_side,Color("e5d7b9"),accent)
+			var open_side: bool = side==door_side or kind=="shared"
+			_wall(full,w,d,side,2.46,open_side,plaster,accent,panel)
+			_wall(cutaway,w,d,side,2.10 if side in [2,3] else 0.25,open_side,plaster,accent,panel)
 		var roof = Node3D.new()
 		roof.name = "Roof"
 		root.add_child(roof)
@@ -239,39 +289,111 @@ func _room(room: Dictionary, definition: Dictionary) -> void:
 	var title = Node3D.new()
 	title.name = "RoomName"
 	root.add_child(title)
-	Objects.label(title,String(room.get("name","Guest room")),Vector3(w*0.5,0.28,d+0.26),0.0041,Color("766b53"),true)
+	var name_label: Label3D = Objects.label(title,String(room.get("name","Guest room")),Vector3(w*0.50,2.65,d*0.5),0.0043,Color("fff4dc"),true)
+	name_label.name = "Name"
+	name_label.visible = bool(model.state.get("settings",{}).get("room_labels",false))
+	name_label.no_depth_test = true
+	name_label.outline_modulate = Color("685a48")
+	name_label.outline_size = 8
+	name_label.render_priority = 8
 	if not ready:
-		Objects.label(title,String(status.get("status","Unfinished")),Vector3(w*0.5,0.29,d+0.75),0.0030,Color("a07851"),true)
+		var anchor = Node3D.new()
+		anchor.name = "Status"
+		anchor.position = Vector3(w*0.5,maxf(4.5,3.4+ceil(w*0.48)*0.17),d*0.5)
+		title.add_child(anchor)
+		var badge = PanelContainer.new()
+		badge.name = "RoomStatus_"+String(room.id)
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color("fff0cf")
+		style.border_color = Color("bd8150")
+		style.set_border_width_all(1)
+		style.set_corner_radius_all(10)
+		style.content_margin_left = 10
+		style.content_margin_right = 10
+		style.content_margin_top = 6
+		style.content_margin_bottom = 6
+		style.shadow_color = Color(0.20,0.14,0.09,0.16)
+		style.shadow_size = 3
+		badge.add_theme_stylebox_override("panel",style)
+		var message = Label.new()
+		message.text = String(status.get("status","Room needs attention"))
+		message.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		message.add_theme_font_override("font",Objects.FONT)
+		message.add_theme_color_override("font_color",Color("86502e"))
+		badge.add_child(message)
+		_status_overlay.add_child(badge)
+		_status_badges[String(room.id)] = {"panel":badge,"label":message,"anchor":anchor}
 	Objects.flush(root)
 
-func _wall(parent: Node3D, w: float, d: float, side: int, height: float, has_door: bool, plaster: Color, accent: Color) -> void:
+func _wall(parent: Node3D, w: float, d: float, side: int, height: float, has_door: bool, plaster: Color, accent: Color, panel: Color) -> void:
 	var east_west: bool = side in [0,2]
 	var length: float = d if east_west else w
 	var center: Vector3 = Vector3(w if side==0 else 0.0,FLOOR+height*0.5,d*0.5) if east_west else Vector3(w*0.5,FLOOR+height*0.5,d if side==1 else 0.0)
 	var axis: Vector3 = Vector3(0,0,1) if east_west else Vector3(1,0,0)
-	var thickness: float = 0.13
+	var inward: Vector3 = Vector3(-1 if side==0 else 1,0,0) if east_west else Vector3(0,0,-1 if side==1 else 1)
+	var sections: Array = []
 	if has_door:
-		var section: float = (length-1.17)*0.5
-		for sign_value in [-1,1]:
-			var location: Vector3 = center+axis*float(sign_value)*(length*0.5-section*0.5)
-			Objects.box(parent,location,Vector3(thickness,height,section) if east_west else Vector3(section,height,thickness),plaster)
-		if height>2.0: Objects.box(parent,Vector3(center.x,2.47,center.z),Vector3(thickness,0.37,1.17) if east_west else Vector3(1.17,0.37,thickness),plaster)
+		# The navigation portal describes a cat's centre, so visible door jambs
+		# leave extra room for its voxel head when it turns through the opening.
+		var opening: float=minf(length-0.44,2.06)
+		var segment: float = (length-opening)*0.5
+		for sign_value in [-1,1]: sections.append({"at":center+axis*float(sign_value)*(length*0.5-segment*0.5),"length":segment})
+		if height>2.20: Objects.box(parent,Vector3(center.x,2.50,center.z),Vector3(0.17,0.29,opening) if east_west else Vector3(opening,0.29,0.17),plaster)
 		if height>1.0:
 			for sign_value in [-1,1]:
-				var post: Vector3 = center+axis*float(sign_value)*0.64
-				Objects.box(parent,post,Vector3(0.20,height,0.20),accent)
-	else:
-		Objects.box(parent,center,Vector3(thickness,height,length) if east_west else Vector3(length,height,thickness),plaster)
-		if height>1.0:
-			var trim: Vector3 = Vector3(center.x,FLOOR+height+0.035,center.z)
-			Objects.box(parent,trim,Vector3(0.19,0.11,length+0.08) if east_west else Vector3(length+0.08,0.11,0.19),accent)
-			for section in range(maxi(1,int(length/3.5))):
-				var offset: float = (float(section)+0.5)*length/float(maxi(1,int(length/3.5)))-length*0.5
-				var point: Vector3 = center+axis*offset
-				point.y = 1.28
-				Objects.box(parent,point,Vector3(0.18,0.65,1.18) if east_west else Vector3(1.18,0.65,0.18),accent.lightened(0.12))
-				Objects.box(parent,point+Vector3(0,0.035,0),Vector3(0.196,0.49,0.94) if east_west else Vector3(0.94,0.49,0.196),Color("a9c8bd"))
-				Objects.box(parent,point,Vector3(0.21,0.68,0.045) if east_west else Vector3(0.045,0.68,0.21),Color("f1e1c1"))
+				var post: Vector3 = center+axis*float(sign_value)*(opening*0.5+0.11)
+				Objects.box(parent,post,Vector3(0.22,height,0.22),accent)
+	else: sections.append({"at":center,"length":length})
+	for section in sections:
+		var point: Vector3 = section.at
+		var span: float = float(section.length)
+		Objects.box(parent,point,Vector3(0.14,height,span) if east_west else Vector3(span,height,0.14),plaster)
+		var band_height: float = minf(0.73,height)
+		point.y = FLOOR+band_height*0.5
+		Objects.box(parent,point,Vector3(0.16,band_height,span) if east_west else Vector3(span,band_height,0.16),panel)
+		for rail_y in [FLOOR+0.065,FLOOR+band_height]:
+			point.y = rail_y
+			Objects.box(parent,point,Vector3(0.20,0.085,span) if east_west else Vector3(span,0.085,0.20),Color("f4e6cd"))
+		if height<1.0: continue
+		point.y = FLOOR+height+0.015
+		Objects.box(parent,point,Vector3(0.22,0.12,span+0.05) if east_west else Vector3(span+0.05,0.12,0.22),accent)
+		for batten in range(maxi(1,int(span/0.60))):
+			var location: Vector3 = Vector3(section.at)+axis*((float(batten)+0.5)/maxi(1,int(span/0.60))*span-span*0.5)
+			location.y = FLOOR+0.38
+			Objects.box(parent,location,Vector3(0.185,0.62,0.033) if east_west else Vector3(0.033,0.62,0.185),panel.lightened(0.14))
+		if span<1.4: continue
+		var windows: int = maxi(1,int(span/3.0))
+		for window in range(windows):
+			var point_window: Vector3 = Vector3(section.at)+axis*((float(window)+0.5)/float(windows)*span-span*0.5)
+			point_window.y = 1.52
+			Objects.box(parent,point_window,Vector3(0.19,0.97,1.38) if east_west else Vector3(1.38,0.97,0.19),accent)
+			Objects.box(parent,point_window,Vector3(0.205,0.80,1.20) if east_west else Vector3(1.20,0.80,0.205),Color("90bfc0"))
+			for pane in [-1,1]:
+				Objects.box(parent,point_window+axis*pane*0.30+Vector3(0,0.21,0),Vector3(0.219,0.28,0.46) if east_west else Vector3(0.46,0.28,0.219),Color("b5ddcf"))
+			Objects.box(parent,point_window,Vector3(0.23,0.95,0.065) if east_west else Vector3(0.065,0.95,0.23),Color("fff0d5"))
+			Objects.box(parent,point_window,Vector3(0.23,0.065,1.37) if east_west else Vector3(1.37,0.065,0.23),Color("fff0d5"))
+			Objects.box(parent,point_window+Vector3(0,-0.53,0),Vector3(0.43,0.12,1.56) if east_west else Vector3(1.56,0.12,0.43),Color("f1dcbb"))
+			# Small planter shelf decorates the wall without blocking a floor cell.
+			var pot: Vector3 = point_window+axis*0.49+inward*0.20+Vector3(0,-0.41,0)
+			Objects.box(parent,pot,Vector3(0.22,0.22,0.22),Color("b87c62"))
+			Objects._foliage(parent,pot+Vector3(0,0.20,0),Vector3(0.32,0.32,0.30),Color("6e9b62"))
+			for leaf in range(3):
+				var vine: Vector3 = pot+axis*0.18+inward*0.07+Vector3(0,-0.10-float(leaf)*0.17,0)
+				Objects.box(parent,vine,Vector3(0.13,0.13,0.13),Color("88ab72"))
+			if span/float(windows)>2.3:
+				var picture: Vector3 = point_window-axis*0.97+inward*0.12+Vector3(0,-0.12,0)
+				Objects.box(parent,picture,Vector3(0.08,0.47,0.38) if east_west else Vector3(0.38,0.47,0.08),accent)
+				Objects.box(parent,picture+inward*0.048,Vector3(0.023,0.37,0.28) if east_west else Vector3(0.28,0.37,0.023),Color("fff0d1"))
+				var art = Node3D.new()
+				parent.add_child(art)
+				art.position = picture+inward*0.066
+				art.rotation = Vector3(0,0,-PI*0.5*inward.x) if east_west else Vector3(PI*0.5*inward.z,0,0)
+				Objects.paw(art,Vector3.ZERO,0.22,Color("e3b366"))
+	if height>1.0:
+		for edge in [-1,1]:
+			var pillar: Vector3 = center+axis*float(edge)*(length*0.5-0.025)
+			Objects.box(parent,pillar,Vector3(0.22,height+0.06,0.22),Color("f3e3c7"))
 
 func _object(item: Dictionary) -> void:
 	var definition: Dictionary = Content.item(String(item.item))
@@ -293,6 +415,7 @@ func _process(delta: float) -> void:
 	var viewport: Vector2 = get_viewport().get_visible_rect().size
 	if viewport!=_last_viewport: _update_camera()
 	_sync_actors(delta)
+	_update_status_badges()
 
 func _sync_actors(delta: float) -> void:
 	if model.social==null: return
@@ -311,7 +434,10 @@ func _sync_actors(delta: float) -> void:
 			if int(id)>=1000 and int(data.get("staff_role",2))!=2:
 				var stand = Node3D.new()
 				cat.add_child(stand)
-				Objects.box(stand,Vector3(0,-0.19,0),Vector3(0.78,0.38,0.80),Color("b69a73"))
+				stand.name = "StaffPlatform"
+				Objects.box(stand,Vector3(0,-0.373,0),Vector3(0.92,0.747,0.89),Color("b99268"))
+				Objects.box(stand,Vector3(0,-0.045,0),Vector3(0.98,0.09,0.95),Color("d7b68a"))
+				for step in range(3): Objects.box(stand,Vector3(0,-0.68+float(step)*0.17,-0.59-float(2-step)*0.11),Vector3(0.82,0.13,0.22),Color("c5a277"))
 				Objects.flush(stand)
 			var cup = Node3D.new()
 			cup.name = "Milkshake"
@@ -322,7 +448,7 @@ func _sync_actors(delta: float) -> void:
 		var actor = actors[id]
 		var position_2d: Vector2 = data.position
 		var visual_position: Vector3 = Vector3(position_2d.x*UNIT,FLOOR,position_2d.y*UNIT)
-		if int(id)>=1000 and int(data.get("staff_role",2))!=2: visual_position.y += 0.315
+		if int(id)>=1000 and int(data.get("staff_role",2))!=2: visual_position.y += 0.62
 		var facing: float = float(data.get("face",0.0))
 		if not String(data.phase) in ["walk","walk_seat","walk_clean","walk_depart","wander"] and object_nodes.has(String(data.venue)):
 			var toward: Vector3 = object_nodes[String(data.venue)].position-visual_position
@@ -332,13 +458,15 @@ func _sync_actors(delta: float) -> void:
 			visual_position = pose.position
 			facing = pose.face
 		if actor.has_meta("placed"):
-			actor.position = actor.position.lerp(visual_position,minf(1.0,delta*9.0))
+			# The simulation already follows clear path segments. Interpolating X/Z
+			# here would round doorway corners back into solid walls.
+			actor.position = Vector3(visual_position.x,lerpf(actor.position.y,visual_position.y,minf(1.0,delta*9.0)),visual_position.z)
 		else:
 			actor.position = visual_position
 			actor.set_meta("placed",true)
 		actor.rotation.y = lerp_angle(actor.rotation.y,facing,minf(1.0,delta*9.0))
 		actor.motion_enabled = motion
-		actor.moving = String(data.phase) in ["walk","walk_seat","walk_clean","walk_depart","wander"]
+		actor.moving = String(data.phase) in ["walk","walk_seat","walk_clean","walk_depart","wander"] and Vector2(data.get("velocity",Vector2.ZERO)).length()>0.025
 		actor.action = {"drink":"eat","sit":"rest","sunbathe":"sleep","order":"greet","wait":"rest","clean":"work","serve":"work"}.get(String(data.action),String(data.action))
 		actor.get_node("Milkshake").visible = bool(data.get("drink",false))
 		actor.thought.text = {"order":"One shake, please","serve":"Coming right up","drink":"mmm…","sleep":"z z z","play":"!","clean":"Fresh linens"}.get(String(data.action),"")
@@ -354,27 +482,46 @@ func _furniture_pose(actor: Dictionary) -> Dictionary:
 	var node: Node3D = object_nodes[id]
 	var shape: String = String(node.get_meta("shape",""))
 	var dimensions: Vector2 = node.get_meta("footprint",Vector2.ONE)
+	# Only active occupants take a physical surface position; approaching cats
+	# retain their distinct reserved destinations until they arrive.
+	var occupants: Array[int] = []
+	for data in model.social.agents.values():
+		if int(data.cat)<1000 and String(data.venue)==id and String(data.phase) in ["activity","sit"]: occupants.append(int(data.cat))
+	occupants.sort()
+	var slot_index: int = maxi(0,occupants.find(int(actor.cat)))
 	var local: Vector3 = Vector3.ZERO
-	var slot_index: int = 0
-	var capacity: int = 1
-	for venue in model.venues():
-		if String(venue.id)!=id: continue
-		capacity = maxi(1,int(venue.get("capacity",1)))
-		for index in range(venue.slots.size()):
-			if String(venue.slots[index].key)==String(actor.slot): slot_index=index
-		break
+	var face: float = node.rotation.y
 	match shape:
-		"cafe_stool": local = Vector3(0,0.71,0.04)
+		"cafe_stool":
+			if slot_index>0: return {}
+			local = Vector3(0,0.78,0.04)
 		"cloud_sofa", "lounge_sofa", "bench":
-			local = Vector3((float(slot_index)+0.5)/float(capacity)*dimensions.x*0.72-dimensions.x*0.36,0.52,dimensions.y*0.10)
-		"mat", "sun_cushion", "heated", "blanket", "cave", "canopy_bed": local = Vector3(0,0.34,dimensions.y*0.11)
-		"perch": local = Vector3(0,1.01,0)
-		"table", "picnic": local = Vector3(0,0.50,dimensions.y*0.40*(1.0 if slot_index%2 else -1.0))
+			var count: int = maxi(1,int(floor((dimensions.x-0.70)/0.80))+1)
+			if slot_index>=count: return {}
+			local = Vector3((float(slot_index)-float(mini(count,occupants.size())-1)*0.5)*0.80,0.59,dimensions.y*0.12)
+		"mat", "sun_cushion", "heated", "blanket", "cave", "canopy_bed":
+			if slot_index>0: return {}
+			local = Vector3(0,0.55,dimensions.y*0.11)
+		"perch":
+			if slot_index>0: return {}
+			local = Vector3(0,1.05,0.06)
+		"picnic":
+			if slot_index>=4: return {}
+			local = Vector3(dimensions.x*0.32*(-1.0 if slot_index<2 else 1.0),0.26,dimensions.y*0.32*(-1.0 if slot_index%2==0 else 1.0))
+			face += PI if slot_index%2 else 0.0
+		"table":
+			var per_side: int = maxi(1,int(floor((dimensions.x-0.70)/0.80))+1)
+			if slot_index>=per_side*2: return {}
+			var side: float = 1.0 if slot_index%2 else -1.0
+			var row_count: int = mini(per_side,ceili(float(occupants.size())/2.0))
+			local = Vector3((float(slot_index/2)-float(row_count-1)*0.5)*0.80,0.50,dimensions.y*0.40*side)
+			face += PI if side>0 else 0.0
 		_: return {}
-	return {"position":node.transform*local,"face":node.rotation.y}
+	return {"position":node.transform*local,"face":face}
 
 func _set_water_motion(root: Node, enabled: bool) -> void:
 	for child in root.get_children():
+		if child.has_method("set_motion_enabled"): child.set_motion_enabled(enabled)
 		if child is MeshInstance3D:
 			var material = child.material_override
 			if material is ShaderMaterial and material.shader==Objects.WATER: material.set_shader_parameter("motion",1.0 if enabled else 0.0)
@@ -389,9 +536,12 @@ func _apply_outside() -> void:
 		if room.has_node("Roof"): room.get_node("Roof").visible = outside
 		if room.has_node("FullWalls"): room.get_node("FullWalls").visible = outside
 		if room.has_node("CutawayWalls"): room.get_node("CutawayWalls").visible = not outside
-		if room.has_node("RoomName"): room.get_node("RoomName").visible = not outside
+		if room.has_node("RoomName"):
+			var title: Node3D = room.get_node("RoomName")
+			if title.has_node("Name"): title.get_node("Name").visible = not outside and bool(model.state.get("settings",{}).get("room_labels",false))
 
 func set_world_rect(rect: Rect2) -> void:
+	_world_rect_set = true
 	world_rect = rect
 	_update_camera()
 
@@ -411,6 +561,32 @@ func _update_camera() -> void:
 	var center: Vector2 = _visible_rect().get_center()-viewport*0.5
 	var shift: Vector3 = -camera.basis.x*center.x*_size/viewport.y+camera.basis.y*center.y*_size/viewport.y
 	camera.position += shift
+	_update_status_badges()
+
+func _update_status_badges() -> void:
+	if camera==null or model==null: return
+	var area: Rect2 = _visible_rect().grow(-6)
+	var enabled: bool = is_visible_in_tree() and (not _world_rect_set or world_rect.has_area())
+	var text_scale: float = clampf(float(model.state.get("settings",{}).get("ui_text_scale",1.0)),1.0,1.5)
+	var placed: Array[Rect2] = []
+	for data in _status_badges.values():
+		var badge: PanelContainer = data.panel
+		var anchor: Node3D = data.anchor
+		var screen: Vector2 = camera.unproject_position(anchor.global_position)
+		badge.visible = enabled and area.grow(120).has_point(screen)
+		if not badge.visible: continue
+		var message: Label = data.label
+		message.add_theme_font_size_override("font_size",roundi(15.0*text_scale))
+		badge.reset_size()
+		var dimensions: Vector2 = badge.get_combined_minimum_size()
+		var at: Vector2 = screen-Vector2(dimensions.x*0.5,dimensions.y)
+		at.x = clampf(at.x,area.position.x,maxf(area.position.x,area.end.x-dimensions.x))
+		at.y = clampf(at.y,area.position.y,maxf(area.position.y,area.end.y-dimensions.y))
+		for previous in placed:
+			if previous.grow(3).intersects(Rect2(at,dimensions)):
+				at.y = minf(area.end.y-dimensions.y,previous.end.y+6)
+		badge.position = at.round()
+		placed.append(Rect2(at,dimensions))
 
 func focus_hotel() -> void:
 	if model==null: return
@@ -421,7 +597,11 @@ func focus_hotel() -> void:
 		bounds = rect if first else bounds.merge(rect)
 		first = false
 	if first: bounds = _rect(model.map_definition().get("base",[-12,-12,24,24]))
-	focus_bounds(bounds.grow(1.6))
+	# Include the inhabited courtyard without expanding to every empty parcel.
+	for item in model.hotel().get("objects",[]):
+		if not String(item.get("room","")).is_empty(): continue
+		bounds = bounds.merge(Geometry.object_rect(item))
+	focus_bounds(bounds.grow(0.7))
 	var visible: Rect2 = _visible_rect()
 	if visible.size.x<620:
 		# A phone opens on the inhabited welcome area at a readable scale.
@@ -431,6 +611,11 @@ func focus_hotel() -> void:
 			for room in model.hotel().get("rooms",[]):
 				if String(room.id)!=String(object.get("room","")): continue
 				var center: Vector2 = Geometry.room_rect(room).get_center()*UNIT
+				for garden_item in model.hotel().get("objects",[]):
+					if String(garden_item.item)!="fountain": continue
+					var fountain: Vector2=Geometry.object_rect(garden_item).get_center()*UNIT
+					if center.distance_to(fountain)<14.0: center=center.lerp(fountain,0.16)
+					break
 				_target = Vector3(center.x,FLOOR+0.4,center.y)
 				break
 			break

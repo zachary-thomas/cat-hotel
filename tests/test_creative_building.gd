@@ -14,17 +14,18 @@ func _initialize() -> void:
 	check(model.commit("store_object",{"id":bed_id}).ok,"Can store the last bed while building in stages")
 	check(not model.room_status(str(room.id)).ready,"An empty bedroom is inactive")
 	check(model.undo().ok and model.room_status(str(room.id)).ready,"Undo restores both bed and readiness")
-	var before_coins:float=model.state.coins
-	check(model.commit("resize_room",{"id":room.id,"w":8,"h":6}).ok,"Rooms resize across owned land")
-	check(is_equal_approx(model.state.coins,before_coins-300),"Extra 12 cells cost300")
-	check(model.commit("resize_room",{"id":room.id,"w":6,"h":6}).ok,"Rooms shrink again")
-	check(is_equal_approx(model.state.coins,before_coins),"Shrinking refunds only purchased extra floor")
+	check(not model.quote("resize_room",{"id":room.id,"w":8,"h":6}).ok,"Connected rooms cannot resize through the neighboring hall")
 	check(model.commit("buy_plot",{"id":"east"}).ok,"Open land for a cottage copy")
 	var object_count:int=model.hotel().objects.size()
 	check(model.commit("copy_room",{"id":room.id,"x":12,"y":-10,"rotation":0}).ok,"Copy a fully furnished cottage onto expanded land")
 	check(model.hotel().objects.size()>object_count,"Copied room has distinct editable furniture")
 	var copy_room=model.hotel().rooms[-1]
 	check(not model.room_status(str(copy_room.id)).ready,"Disconnected cottage stays unfinished")
+	var before_coins:float=model.state.coins
+	check(model.commit("resize_room",{"id":copy_room.id,"w":8,"h":6}).ok,"Rooms resize across clear owned land")
+	check(is_equal_approx(model.state.coins,before_coins-300),"Extra 12 cells cost 300")
+	check(model.commit("resize_room",{"id":copy_room.id,"w":6,"h":6}).ok,"Rooms shrink again")
+	check(is_equal_approx(model.state.coins,before_coins),"Shrinking refunds only purchased extra floor")
 	var cells:Array=[]
 	for x in range(10,20):
 		for y in range(-3,-1): cells.append([x,y])

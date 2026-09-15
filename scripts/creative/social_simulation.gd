@@ -2,6 +2,7 @@ extends RefCounted
 ## Simulation owns activities and rewards. The scene only reads these records.
 const Content = preload("res://scripts/core/game_content.gd")
 const WALK_SPEED: float = 1.35
+const ACTOR_SPACING: float = 0.72
 var _model_ref: WeakRef
 var model:
 	get: return _model_ref.get_ref() if _model_ref != null else null
@@ -41,6 +42,7 @@ func advance(seconds: float) -> void:
 		var step: float = minf(remaining,0.2)
 		_roster_clock += step
 		for actor in agents.values():
+			actor.velocity = Vector2.ZERO
 			if int(actor.cat)>=1000: _advance_staff(actor,step)
 			else: _advance_actor(actor,step)
 		remaining -= step
@@ -51,6 +53,32 @@ func _arrival() -> Vector2:
 
 func _activity_route(from: Vector2, to: Vector2) -> Array:
 	return model.activity_route(from,to) if model.has_method("activity_route") else model.route(from,to)
+
+func _position_free(point: Vector2,except: int=-1,reserved: bool=false,spacing: float=ACTOR_SPACING) -> bool:
+	for other in agents.values():
+		if int(other.cat)==except: continue
+		if point.distance_to(Vector2(other.position))<spacing: return false
+		if reserved and String(other.get("slot",""))!="" and point.distance_to(Vector2(other.destination))<ACTOR_SPACING: return false
+	return true
+
+func _free_arrival(except: int=-1) -> Vector2:
+	var origin:=_arrival()
+	# Physical arrival places fill outwards. A newly unlocked roster cannot
+	# appear inside one cat, even when a frame admits all eighteen guests.
+	for ring in range(12):
+		for offset in range(1 if ring==0 else ring*8):
+			var angle:=TAU*float(offset)/float(maxi(1,ring*8))
+			var candidate:=origin+Vector2(cos(angle),sin(angle))*float(ring)*0.8
+			var path:=_activity_route(origin,candidate)
+			if path.is_empty(): continue
+			var point: Vector2=path[-1]
+			# Leave a walking lane between arrivals, not just body clearance.
+			if not _position_free(point,except,false,ACTOR_SPACING*2.0+0.5): continue
+			var staffed:=false
+			for venue in _venues:
+				if venue.has("staff_slot") and point.distance_to(Vector2(float(venue.staff_slot.x),float(venue.staff_slot.y)))<ACTOR_SPACING: staffed=true; break
+			if not staffed: return point
+	return Vector2(INF,INF)
 
 func _sync_guests() -> void:
 	var cats: Array = model.state.get("cats",[])
@@ -78,7 +106,9 @@ func _sync_guests() -> void:
 			var cat: Dictionary = cats[index]
 			var id: int = int(cat.get("id",index))
 			if not known.has(id) or agents.has(id): continue
-			agents[id] = {"cat":id,"name":cat.get("name",Content.CAT_NAMES[posmod(id,18)]),"position":_arrival(),"action":"arrival","venue":"","phase":"idle","time":float(id%4)*0.45,"route":[],"waypoint":0,"slot":"","destination":Vector2.ZERO,"tags":[],"recent":[],"preference":cat.get("preference",Content.PREFERENCES[posmod(id,18)]),"drink":false,"completed":false,"face":0.0,"checked_in":false,"friend":int(cat.get("friend",-1))}
+			var arrival:=_free_arrival(id)
+			if not arrival.is_finite(): break
+			agents[id] = {"cat":id,"name":cat.get("name",Content.CAT_NAMES[posmod(id,18)]),"position":arrival,"action":"arrival","venue":"","phase":"idle","time":float(id%4)*0.45,"route":[],"waypoint":0,"slot":"","destination":Vector2.ZERO,"tags":[],"recent":[],"preference":cat.get("preference",Content.PREFERENCES[posmod(id,18)]),"drink":false,"completed":false,"face":0.0,"checked_in":false,"friend":int(cat.get("friend",-1)),"velocity":Vector2.ZERO}
 			_roster_cursor = (index+1)%cats.size()
 			staying += 1
 			admitted = true
@@ -93,8 +123,10 @@ func _replan() -> void:
 		# A moved wall or object may cover a guest's old position. Return that
 		# guest to the real entrance if the graph no longer accepts the start.
 		var point: Vector2 = actor.position
-		var safe: Array = _activity_route(point,point)
-		actor.position = _arrival() if safe.is_empty() else Vector2(safe[0])
+		var safe: bool=model.movement_segment_clear(point,point,false) if model.has_method("movement_segment_clear") else not _activity_route(point,point).is_empty()
+		if not safe or not _position_free(point,int(actor.cat)):
+			var replacement:=_free_arrival(int(actor.cat))
+			if replacement.is_finite(): actor.position=replacement
 		actor.venue = ""
 		actor.slot = ""
 		actor.phase = "idle"
@@ -103,6 +135,8 @@ func _replan() -> void:
 		actor.route = []
 		actor.drink = false
 		actor.completed = false
+		actor.velocity = Vector2.ZERO
+		actor.blocked_time = 0.0
 
 func _advance_actor(actor: Dictionary, seconds: float) -> void:
 	if actor.phase in ["walk","walk_seat","walk_depart","wander"]:
@@ -159,6 +193,7 @@ func _choose(actor: Dictionary) -> void:
 			var key: String = String(slot.key)
 			if reservations.has(key): continue
 			var destination: Vector2 = Vector2(float(slot.x),float(slot.y))
+			if not _position_free(destination,int(actor.cat),true): continue
 			var path: Array = _activity_route(actor.position,destination)
 			if path.is_empty(): continue
 			_reserve(actor,venue,slot,path,false)
@@ -184,6 +219,7 @@ func _wander(actor: Dictionary) -> bool:
 		actor.action = "walk"
 		actor.venue = ""
 		actor.slot = ""
+		actor.destination = path[-1]
 		_turn += 1
 		return true
 	return false
@@ -213,14 +249,67 @@ func _reserve(actor: Dictionary, venue: Dictionary, slot: Dictionary, path: Arra
 	actor.action = "walk"
 	actor.role = String(venue.get("role","seat"))
 	actor.slot_action = String(slot.get("action","rest"))
+	actor.blocked_time = 0.0
 	if not seating:
 		actor.activity_venue = String(venue.id)
 		actor.source_room = String(venue.get("room",""))
 		actor.source_position = Vector2(actor.position)
 
-func _walk(actor: Dictionary, seconds: float) -> void:
+func _step_clear(actor: Dictionary,from: Vector2,to: Vector2) -> bool:
+	if model.has_method("movement_segment_clear") and not model.movement_segment_clear(from,to,false): return false
+	for other in agents.values():
+		if int(other.cat)==int(actor.cat): continue
+		var nearest:=Geometry2D.get_closest_point_to_segment(Vector2(other.position),from,to)
+		if nearest.distance_to(Vector2(other.position))<ACTOR_SPACING-0.0001: return false
+	return true
+
+func _avoid_crowd(actor: Dictionary) -> void:
+	if actor.route.is_empty(): return
+	var obstacles: Array=[]
+	for other in agents.values():
+		if int(other.cat)!=int(actor.cat): obstacles.append({"position":Vector2(other.position),"radius":ACTOR_SPACING})
+	var destination: Vector2=actor.route[-1]
+	var path: Array=[]
+	if model.has_method("avoidance_route"):
+		path=model.avoidance_route(actor.position,destination,obstacles,true)
+		if path.is_empty(): path=model.avoidance_route(actor.position,destination,obstacles,false)
+	if not path.is_empty(): actor.route=path; actor.waypoint=0; return
+	# Guests waiting to check in must not become permanent entrance walls.
+	# Ask an idle neighbour to make room using an ordinary collision-checked
+	# walk, while its reception/activity reservation remains unclaimed.
+	for other in agents.values():
+		if int(other.cat)==int(actor.cat) or other.phase!="idle" or String(other.get("slot",""))!="": continue
+		var waiting: Vector2=other.position
+		if waiting.distance_to(Vector2(actor.position))>1.5: continue
+		var away:=Vector2(actor.position).direction_to(waiting)
+		for turn in [0.0,PI*0.5,-PI*0.5,PI*0.25,-PI*0.25]:
+			var target:=waiting+away.rotated(turn)*1.25
+			if not _step_clear(other,waiting,target): continue
+			other.route=[target]; other.waypoint=0; other.destination=target
+			other.phase="wander"; other.action="walk"
+			return
+	# Keep the same passing side relative to travel for opposing walkers.
+	# A short physical step can free a narrow entrance when no complete
+	# alternative route exists yet. It never crosses geometry or another cat.
+	var from: Vector2=actor.position
+	var forward:=from.direction_to(actor.route[mini(int(actor.waypoint),actor.route.size()-1)])
+	for turn in [PI*0.5,-PI*0.5,PI*0.75,-PI*0.75,PI]:
+		var point:=from+forward.rotated(turn)*0.8
+		if not _step_clear(actor,from,point): continue
+		actor.route=actor.route.slice(int(actor.waypoint))
+		actor.route.push_front(point)
+		actor.waypoint=0
+		return
+
+func _follow_route(actor: Dictionary,seconds: float) -> bool:
 	var distance: float = seconds*WALK_SPEED
 	var path: Array = actor.route
+	var previous: Vector2=actor.position
+	actor.velocity=Vector2.ZERO
+	# Routes retain snapped endpoints for readiness and interaction slots.
+	# A walker between cells can join the next clear segment directly instead
+	# of briefly walking backwards to the snapped starting point.
+	if int(actor.waypoint)==0 and path.size()>1 and _step_clear(actor,previous,path[1]): actor.waypoint=1
 	while distance>0 and int(actor.waypoint)<path.size():
 		var next: Vector2 = path[int(actor.waypoint)]
 		var point: Vector2 = actor.position
@@ -229,12 +318,24 @@ func _walk(actor: Dictionary, seconds: float) -> void:
 			actor.waypoint = int(actor.waypoint)+1
 			continue
 		var direction: Vector2 = point.direction_to(next)
-		actor.face = atan2(direction.x,direction.y)
 		var movement: float = minf(gap,distance)
-		actor.position = point+direction*movement
+		var candidate:=point+direction*movement
+		if not _step_clear(actor,point,candidate):
+			actor.blocked_time=float(actor.get("blocked_time",0.0))+seconds
+			if float(actor.blocked_time)>=0.35+float(posmod(int(actor.cat),3))*0.08:
+				_avoid_crowd(actor)
+				actor.blocked_time=0.0
+			break
+		actor.face = atan2(direction.x,direction.y)
+		actor.position = candidate
+		actor.blocked_time = 0.0
 		distance -= movement
 		if movement>=gap-0.001: actor.waypoint = int(actor.waypoint)+1
-	if int(actor.waypoint)<path.size(): return
+	actor.velocity=(Vector2(actor.position)-previous)/seconds
+	return int(actor.waypoint)>=actor.route.size()
+
+func _walk(actor: Dictionary, seconds: float) -> void:
+	if not _follow_route(actor,seconds): return
 	if actor.phase=="wander":
 		actor.phase = "idle"
 		actor.action = "rest"
@@ -276,6 +377,7 @@ func _find_seat(actor: Dictionary) -> bool:
 		for slot in venue.get("slots",[]):
 			if reservations.has(String(slot.key)): continue
 			var target: Vector2 = Vector2(float(slot.x),float(slot.y))
+			if not _position_free(target,int(actor.cat),true): continue
 			var path: Array = _activity_route(actor.position,target)
 			if not path.is_empty(): seats.append({"venue":venue,"slot":slot,"path":path,"distance":Vector2(actor.position).distance_to(target)})
 	seats.sort_custom(func(a: Dictionary,b: Dictionary) -> bool: return float(a.distance)<float(b.distance))
@@ -329,6 +431,7 @@ func _consider_departure(actor: Dictionary) -> void:
 	if departure.is_empty(): return
 	_roster_clock = 0.0
 	actor.route = departure
+	actor.destination = departure[-1]
 	actor.waypoint = 0
 	actor.phase = "walk_depart"
 	actor.action = "departure"
@@ -348,6 +451,11 @@ func _sync_staff() -> void:
 			var slot: Dictionary = venue.staff_slot
 			var station: String = String(slot.get("key","staff:"+String(venue.id)))
 			if reservations.has(station) and int(reservations[station])!=id: continue
+			var staff_point:=Vector2(float(slot.x),float(slot.y))
+			var station_taken:=false
+			for other_id in wanted:
+				if agents.has(other_id) and staff_point.distance_to(Vector2(agents[other_id].position))<ACTOR_SPACING: station_taken=true; break
+			if station_taken: continue
 			wanted[id] = true
 			if not agents.has(id):
 				var names: Array = ["Pippin","Poppy","Cedar","Wren","Robin","Willow"] if role=="reception" else ["Saffron","Honey","Nutmeg","Cinnamon","Ginger","Cocoa"]
@@ -357,7 +465,12 @@ func _sync_staff() -> void:
 			actor.venue = String(venue.id)
 			actor.slot = station
 			reservations[actor.slot] = id
-			actor.position = Vector2(float(slot.x),float(slot.y))
+			actor.position = staff_point
+			actor.destination = staff_point
+			for guest in agents.values():
+				if int(guest.cat)==id or Vector2(guest.position).distance_to(staff_point)>=ACTOR_SPACING: continue
+				var replacement:=_free_arrival(int(guest.cat))
+				if replacement.is_finite(): guest.position=replacement; guest.route=[]; guest.phase="idle"; guest.time=0.1; _release(guest)
 			actor.phase = "service"
 			actor.role = role
 			var facing: Vector2 = Vector2(float(venue.x),float(venue.y))-Vector2(actor.position)
@@ -365,7 +478,9 @@ func _sync_staff() -> void:
 			number += 1
 	if model.has_method("housekeeping_targets") and model.has_method("hotel") and bool(model.hotel().get("maid",false)):
 		wanted[1000] = true
-		if not agents.has(1000): agents[1000] = _staff_record(1000,"Buttons",2)
+		if not agents.has(1000):
+			var point:=_free_arrival(1000)
+			if point.is_finite(): agents[1000]=_staff_record(1000,"Buttons",2); agents[1000].position=point
 	for id in agents.keys():
 		if int(id)>=1000 and not wanted.has(id):
 			_release(agents[id])
@@ -380,20 +495,15 @@ func _advance_staff(actor: Dictionary, seconds: float) -> void:
 		for guest in agents.values():
 			if int(guest.cat)<1000 and guest.venue==actor.venue and guest.phase=="serve": actor.action = "serve"
 		return
+	if actor.phase=="wander":
+		if _follow_route(actor,seconds):
+			actor.phase="idle"
+			actor.action="work"
+			actor.time=0.5
+			actor.route=[]
+		return
 	if actor.phase=="walk_clean":
-		# Follow the same dynamic navigation graph as every guest.
-		var route: Array = actor.route
-		var distance: float = seconds*WALK_SPEED
-		while distance>0 and int(actor.waypoint)<route.size():
-			var target: Vector2 = route[int(actor.waypoint)]
-			var from: Vector2 = actor.position
-			var gap: float = from.distance_to(target)
-			var amount: float = minf(distance,gap)
-			actor.position = from.move_toward(target,amount)
-			if gap>0.001: actor.face = atan2(target.x-from.x,target.y-from.y)
-			distance -= amount
-			if gap<=amount+0.001: actor.waypoint = int(actor.waypoint)+1
-		if int(actor.waypoint)>=route.size():
+		if _follow_route(actor,seconds):
 			actor.phase = "clean"
 			actor.action = "clean"
 			actor.time = 5.0
@@ -411,12 +521,14 @@ func _advance_staff(actor: Dictionary, seconds: float) -> void:
 	for target in model.housekeeping_targets():
 		var key: String = String(target.get("key","cell:%.2f,%.2f" % [float(target.x),float(target.y)]))
 		if reservations.has(key): continue
+		if not _position_free(Vector2(float(target.x),float(target.y)),int(actor.cat),true): continue
 		var path: Array = _activity_route(actor.position,Vector2(float(target.x),float(target.y)))
 		if path.is_empty(): continue
 		actor.venue = String(target.id)
 		actor.slot = key
 		reservations[key] = int(actor.cat)
 		actor.route = path
+		actor.destination = path[-1]
 		actor.waypoint = 0
 		actor.phase = "walk_clean"
 		actor.action = "walk"
