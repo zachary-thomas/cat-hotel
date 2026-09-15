@@ -10,7 +10,8 @@ func run() -> void:
 	await create_timer(0.3).timeout
 	check(app.model.state.version=="creative-hotel-1","Pack opens creative schema")
 	check(ProjectSettings.get_setting("application/run/main_scene")=="res://scenes/creative_hotel.tscn","Pack default entry is creative even without launcher")
-	check(ProjectSettings.get_setting("application/config/name")=="Purrington Creative Social Preview","Direct executable uses its own Godot save directory")
+	var expected_name := "Purrington Hotel Preview" if OS.get_cmdline_user_args().has("--android-package") else "Purrington Creative Social Preview"
+	check(ProjectSettings.get_setting("application/config/name")==expected_name,"Pack uses its own Godot save directory")
 	check(app.save_path=="user://creative-package-smoke","Pack keeps explicit isolated save location")
 	check(app.world.room_nodes.size()==app.model.hotel().rooms.size(),"Pack renders dynamic rooms")
 	check(not FileAccess.file_exists("res://docs/mobile-ui-redesign/01-hotel-build-cat-care.png"),"Pack excludes design boards")

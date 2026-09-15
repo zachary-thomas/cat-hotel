@@ -27,6 +27,8 @@ var reaction_time: float = 0.0
 var reaction_duration: float = 4.0
 var is_staff: bool = false
 var stroke_direction: Vector2 = Vector2.ZERO
+var social_pose: String = ""
+var social_time: float = 0.0
 static var cube: BoxMesh
 static var materials: Dictionary = {}
 
@@ -150,6 +152,21 @@ func react(kind: String, seconds: float = 4.0) -> void:
 func stroke(direction: Vector2) -> void:
 	stroke_direction = direction.limit_length(1.0)
 
+func set_social_pose(kind: String, elapsed: float) -> void:
+	social_pose=kind
+	social_time=maxf(0.0,elapsed)
+
+func _still_pose() -> void:
+	body.position=Vector3.ZERO; body.rotation=Vector3.ZERO
+	body.scale=Vector3(1,0.68 if action=="sleep" else 1.0,1)
+	head.rotation=Vector3.ZERO; tail.rotation=Vector3.ZERO
+	mouth.scale=Vector3(0.02,0.055,0.02)
+	for leg in legs: leg.rotation=Vector3.ZERO
+	for ear in ears: ear.rotation=Vector3.ZERO
+	for eye in eyes: eye.scale.y=0.012 if action=="sleep" else 0.09
+	for prop in props.values(): prop.visible=false
+	thought.position.y=1.45
+
 func part(parent: Node3D, pos: Vector3, dimensions: Vector3, color: Color) -> MeshInstance3D:
 	var key: String = color.to_html()
 	if not materials.has(key):
@@ -196,6 +213,7 @@ func _process(delta: float) -> void:
 			reaction = ""
 			thought.text = "z z z" if action == "sleep" else ""
 	if not motion_enabled:
+		_still_pose()
 		return
 	phase += delta
 	walking = moving and reaction == ""
@@ -263,7 +281,72 @@ func _process(delta: float) -> void:
 			pose = action
 		pose_time = fmod(phase,4.0)
 	_animate_pose(pose,pose_time)
+	if social_pose!="" and not moving and reaction=="": _animate_social(social_pose,social_time)
 	thought.position.y = 1.45 + sin(phase * 1.8) * 0.06
+
+func _animate_social(kind: String, time: float) -> void:
+	# Local rig motion only: the simulation retains the ground/collision position.
+	match kind:
+		"wave":
+			legs[1].rotation.x=-0.85
+			legs[1].rotation.z=sin(time*11.0)*0.22
+			head.rotation.z=-0.10
+		"talk":
+			head.rotation.y=sin(time*3.5)*0.12
+			head.rotation.x=sin(time*6.0)*0.055
+			mouth.scale.y=0.055+maxf(0,sin(time*10))*0.035
+			legs[1].rotation.x=-0.18-absf(sin(time*3))*0.18
+		"listen":
+			head.rotation.z=0.12+sin(time*1.7)*0.035
+			head.rotation.x=sin(time*2.4)*0.045
+			tail.rotation.z=sin(time*2)*0.24
+		"happy":
+			_close_eyes()
+			body.position.y=maxf(0,sin(time*5.0))*0.08 if time<1.3 else 0.0
+			head.rotation.z=sin(time*3)*0.10
+			tail.rotation.z=sin(time*4)*0.27
+		"warm":
+			_close_eyes()
+			legs[1].rotation.x=-0.45; legs[3].rotation.x=-0.45
+			head.rotation.x=-0.08
+		"curious":
+			head.rotation.y=sin(time*2.1)*0.23
+			head.rotation.z=0.14
+			legs[1].rotation.x=-maxf(0,sin(time*2.8))*0.65
+		"dig":
+			head.rotation.x=0.26; body.scale.y=0.84
+			for marker in [1.1,2.3,3.5]:
+				var kick: float=maxf(0.0,1.0-absf(time-float(marker))/0.32)
+				legs[0].rotation.x=kick*0.85; legs[2].rotation.x=kick*0.5
+				if kick>0.0: break
+			if time>4.5: head.rotation.z=sin(time*2.0)*0.12
+		"scratch":
+			head.rotation.x=0.20
+			legs[1].rotation.x=-0.72+sin(time*9)*0.30
+			legs[3].rotation.x=-0.72-sin(time*9)*0.30
+		"peek":
+			props.toy.visible=false
+			var peek: float=clampf(sin(time*1.7)*0.5+0.5,0,1)
+			body.scale.y=0.72+peek*0.28
+			head.rotation.z=sin(time*2)*0.16
+		"knead":
+			legs[1].rotation.x=sin(time*7)*0.30
+			legs[3].rotation.x=-sin(time*7)*0.30
+			body.scale.y=0.87+sin(time*7)*0.018
+			_close_eyes()
+		"play_object":
+			props.toy.visible=false
+			body.position.z=0.0; body.position.y=maxf(0,sin(time*3))*0.06
+			legs[1].rotation.x=-maxf(0,sin(time*5))*0.8
+			head.rotation.y=sin(time*2)*0.12
+		"serve":
+			props.spoon.visible=false
+			legs[1].rotation.x=-0.60+sin(time*7)*0.1
+			head.rotation.x=0.18
+		"handoff":
+			props.spoon.visible=false
+			legs[1].rotation.x=-0.95
+			head.rotation.x=-0.06
 
 func _close_eyes() -> void:
 	for eye in eyes:

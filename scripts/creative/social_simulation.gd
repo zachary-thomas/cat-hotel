@@ -1,6 +1,7 @@
 extends RefCounted
 ## Simulation owns activities and rewards. The scene only reads these records.
 const Content = preload("res://scripts/core/game_content.gd")
+const Moments = preload("res://scripts/creative/creative_moments.gd")
 const WALK_SPEED: float = 1.35
 const ACTOR_SPACING: float = 0.72
 var _model_ref: WeakRef
@@ -16,8 +17,12 @@ var _turn: int = 0
 var _staff_ids: Dictionary = {}
 var _roster_cursor: int = 0
 var _roster_clock: float = 0.0
+var moments = Moments.new()
+var _activity_serial: int = 0
 
 func reset() -> void:
+	moments.reset()
+	_activity_serial = 0
 	agents.clear()
 	reservations.clear()
 	_venues = []
@@ -44,7 +49,15 @@ func advance(seconds: float) -> void:
 		for actor in agents.values():
 			actor.velocity = Vector2.ZERO
 			if int(actor.cat)>=1000: _advance_staff(actor,step)
-			else: _advance_actor(actor,step)
+			elif not (String(actor.phase) in ["idle","activity","sit"] and moments.holds(int(actor.cat))): _advance_actor(actor,step)
+			var activity_key: String=String(actor.phase)+":"+String(actor.action)+":"+String(actor.venue)
+			if activity_key!=String(actor.get("life_key","")):
+				_activity_serial+=1
+				actor.life_key=activity_key
+				actor.life_elapsed=0.0
+				actor.life_token=str(_hotel)+":"+str(_activity_serial)
+			else: actor.life_elapsed=float(actor.get("life_elapsed",0.0))+step
+		moments.advance(step,model)
 		remaining -= step
 
 func _arrival() -> Vector2:
@@ -116,6 +129,7 @@ func _sync_guests() -> void:
 		if not admitted: break
 
 func _replan() -> void:
+	moments.cancel()
 	_revision = int(model.revision)
 	_venues = model.venues().duplicate(true)
 	reservations.clear()
@@ -357,7 +371,7 @@ func _walk(actor: Dictionary, seconds: float) -> void:
 		actor.time = 2.0
 	else:
 		actor.phase = "activity"
-		actor.action = {"bed":"sleep","play":"play","sun":"sunbathe","warm":"rest","seat":"sit","reception":"greet"}.get(String(actor.role),actor.slot_action)
+		actor.action = {"bed":"sleep","sun":"sunbathe","warm":"rest","seat":"sit","reception":"greet"}.get(String(actor.role),actor.slot_action)
 		actor.time = 2.0 if actor.role=="reception" else (11.0 if actor.action=="sleep" else 7.0)
 	# Face the activity, rather than freezing in the direction of the path.
 	for venue in _venues:

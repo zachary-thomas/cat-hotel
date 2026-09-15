@@ -6,6 +6,8 @@ Meadow opens as a connected main hotel with a planted fountain garden and an arr
 
 The neighborhood and lower desks appear when loading an existing save; no reset is needed.
 
+Cats now trade little conversations in readable speech bubbles, with matching waves, head tilts and happy reactions. Fireplaces flicker and spark, fountains spurt, litter scatters during digging, and milkshake machines vibrate during service. Boxes, scratchers, toys, cushions and garden decorations also respond with small movements. See [the in-game animations](docs/creative-preview/lively-hotel/README.md). Existing furnishings gain these details automatically, and the Animated motion setting controls them.
+
 ## Play the current game
 
 **Godot project Play (F5), the standard Windows launcher, and both preview packages now use the redesigned hotel.** The main project scene is `scenes/creative_hotel.tscn`.
@@ -14,6 +16,12 @@ The neighborhood and lower desks appear when loading an existing save; no reset 
 - Or use [Play Creative Hotel.cmd](builds/creative-social/Play%20Creative%20Hotel.cmd).
 - The [Windows ZIP](builds/PurringtonHotel-WindowsPreview.zip) and [Creative ZIP](builds/PurringtonHotel-CreativeSocialPreview.zip) contain the same current game.
 - In Godot, run the project with **F5**. Reopen the project after updating if an already-running editor retains its old main-scene setting. Enable **Input** in Godot's embedded Game view so clicks reach the game.
+
+## Test on Android
+
+Download the APK from [GitHub Releases](https://github.com/zachary-thomas/cat-hotel/releases) and open it on your phone to install **Purrington Hotel Preview**. Requires a 64-bit ARM Android device running Android 7.0 or newer with OpenGL ES 3.0.
+
+See [Android installation, testing and build instructions](docs/ANDROID-TESTING.md). This debug-signed preview has its own saves and includes no live billing or advertising SDK.
 
 ## God mode for development
 
@@ -47,10 +55,11 @@ See [the guide and actual screenshots](docs/creative-preview/README.md) and [ver
 .\tools\test-creative.ps1             # Current game suites, including God mode
 .\tools\test.ps1                      # Retained legacy regression suites
 .\tools\package.ps1                   # Rebuild both current Windows packages
+.\tools\package-android.ps1           # Build and verify the Android test APK
 .\tools\test-creative-package.ps1 -Rendered
 ```
 
-Godot 4.7.2 binaries are bundled locally under ignored `.tools/godot`. The Windows preview uses the locally available editor-capable runner. Production export templates, signing, live billing and physical-device testing remain outside this development preview.
+Godot 4.7.2 binaries are bundled locally under ignored `.tools/godot`. The Windows preview uses the locally available editor-capable runner; the Android test APK uses the matching Android export template. Store release signing, live billing and physical-device testing remain outside this development preview.
 
 ## Saves
 

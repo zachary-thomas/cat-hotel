@@ -145,8 +145,11 @@ func apply_settings() -> void:
 	if world!=null:
 		world.set_outside(bool(model.state.settings.get("exterior",false)))
 		if world.has_method("apply_visual_settings"): world.apply_visual_settings()
+		world.set_life_context(_active and not blocked_save,ui!=null and ui.active_tab=="Hotel" and not ui.build_mode)
+		if world.life!=null: world.life.update(0.0)
 
 func _process(delta: float) -> void:
+	if world!=null and ui!=null: world.set_life_context(_active and not blocked_save,ui.active_tab=="Hotel" and not ui.build_mode)
 	if model==null or not _active or blocked_save: return
 	model.advance(delta)
 	_save_elapsed+=delta

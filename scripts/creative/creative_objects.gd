@@ -4,6 +4,7 @@ const SURFACE = preload("res://assets/shaders/voxel_surface.gdshader")
 const WATER = preload("res://assets/shaders/water.gdshader")
 const FONT = preload("res://assets/fonts/Fredoka.ttf")
 const WaterMotion = preload("res://scripts/creative/creative_water_motion.gd")
+const ObjectMotion = preload("res://scripts/creative/creative_object_motion.gd")
 const COUNTER_HEIGHT: float = 0.74
 const STAFF_STEP_HEIGHT: float = 0.18
 static var _cube: BoxMesh
@@ -68,11 +69,12 @@ static func make(definition: Dictionary) -> Node3D:
 			_bed(root,w,d,c,shape)
 		"cloud_sofa", "lounge_sofa", "bench":
 			_legs(root,w,d,0.37,wood)
-			box(root,Vector3(0,0.47,0),Vector3(w,0.22,d*0.88),c)
+			var sofa_cushions: Node3D = _life_part(root,"Cushions") if shape!="bench" else root
+			box(sofa_cushions,Vector3(0,0.47,0),Vector3(w,0.22,d*0.88),c)
 			box(root,Vector3(0,0.81,-d*0.37),Vector3(w,0.55,d*0.20),c.darkened(0.12))
 			for side in [-1,1]:
 				box(root,Vector3(side*w*0.43,0.63,0),Vector3(w*0.13,0.38,d),wood if shape=="bench" else c.darkened(0.06))
-				if shape!="bench": box(root,Vector3(side*w*0.26,0.66,-d*0.10),Vector3(w*0.22,0.30,d*0.25),cream if side==1 else Color("dfa697"))
+				if shape!="bench": box(sofa_cushions,Vector3(side*w*0.26,0.66,-d*0.10),Vector3(w*0.22,0.30,d*0.25),cream if side==1 else Color("dfa697"))
 			if shape=="bench":
 				for plank in range(4):
 					box(root,Vector3(0,0.590,(float(plank)-1.5)*d*0.17),Vector3(w*0.77,0.025,d*0.14),c.lightened(0.055 if plank%2 else 0.0))
@@ -114,14 +116,17 @@ static func make(definition: Dictionary) -> Node3D:
 			if shape=="milkshake_counter": label(root,"MILKSHAKES",Vector3(0,0.53,d*0.465),minf(0.0034,w/150.0),cream)
 			if shape=="milkshake_counter":
 				for x in [-0.15,0.13,0.37]: drink(root,Vector3(x*w,COUNTER_HEIGHT+0.02,d*0.17),Color("e9a7aa") if x<0 else Color("edcc92"))
-				box(root,Vector3(-w*0.35,0.94,-d*0.21),Vector3(w*0.18,0.40,d*0.34),Color("d4e0d4"))
-				box(root,Vector3(-w*0.35,1.05,-d*0.03),Vector3(w*0.12,0.17,0.03),Color("6e9088"))
+				var machine: Node3D = _life_part(root,"MilkshakeMachine")
+				machine.set_meta("effect_anchor",Vector3(-w*0.35,1.16,-d*0.12))
+				box(machine,Vector3(-w*0.35,0.94,-d*0.21),Vector3(w*0.18,0.40,d*0.34),Color("d4e0d4"))
+				box(machine,Vector3(-w*0.35,1.05,-d*0.03),Vector3(w*0.12,0.17,0.03),Color("6e9088"))
 				box(root,Vector3(w*0.32,0.98,-d*0.24),Vector3(w*0.25,0.46,0.06),wood)
 				label(root,"SHAKE\n& PURR",Vector3(w*0.32,1.0,-d*0.198),minf(0.0027,w/240.0),cream)
 			else:
 				box(root,Vector3(w*0.32,0.88,0),Vector3(w*0.21,0.28,d*0.30),Color("6b8174"))
 				box(root,Vector3(w*0.32,0.91,d*0.162),Vector3(w*0.16,0.18,0.035),Color("bbd9c9"))
-				box(root,Vector3(-w*0.24,0.82,d*0.08),Vector3(0.17,0.15,0.17),Color("d9b65b"))
+				var bell: Node3D = _life_part(root,"ReceptionBell")
+				box(bell,Vector3(-w*0.24,0.82,d*0.08),Vector3(0.17,0.15,0.17),Color("d9b65b"))
 				# A framed front plaque, ledger, bell and amber desk lantern.
 				box(root,Vector3(0,0.34,d*0.438),Vector3(w*0.63,0.39,0.05),wood)
 				box(root,Vector3(0,0.34,d*0.475),Vector3(w*0.58,0.32,0.034),cream)
@@ -137,14 +142,13 @@ static func make(definition: Dictionary) -> Node3D:
 			box(root,Vector3(0,0.65,0),Vector3(w*0.91,1.30,d*0.90),c)
 			box(root,Vector3(0,0.47,d*0.46),Vector3(w*0.62,0.66,0.04),Color("655953"))
 			box(root,Vector3(0,1.3,0),Vector3(w,0.17,d),cream)
-			for x in [-0.18,0.06,0.23]:
-				box(root,Vector3(x*w,0.28,d*0.5),Vector3(w*0.14,0.30+absf(x),0.09),Color("f2be67"))
 		"plant", "garden_planter", "shrub", "flowers", "flower_bed":
 			_planter(root,w,d,c,shape)
 		"lamp", "garden_lamp":
 			box(root,Vector3(0,0.13,0),Vector3(w*0.70,0.24,d*0.7),wood)
 			box(root,Vector3(0,0.85,0),Vector3(0.11,1.45,0.11),wood)
-			box(root,Vector3(0,1.54,0),Vector3(w*0.64,0.46,d*0.64),Color("f3d893"))
+			var glow: Node3D = _life_part(root,"LanternGlow")
+			box(glow,Vector3(0,1.54,0),Vector3(w*0.64,0.46,d*0.64),Color("f3d893"))
 			box(root,Vector3(0,1.83,0),Vector3(w*0.81,0.13,d*0.81),c)
 			box(root,Vector3(0,1.30,0),Vector3(w*0.75,0.10,d*0.75),c)
 		"box":
@@ -152,16 +156,20 @@ static func make(definition: Dictionary) -> Node3D:
 			for side in [-1,1]:
 				box(root,Vector3(side*w*0.45,0.37,0),Vector3(w*0.1,0.72,d),c)
 				box(root,Vector3(0,0.37,side*d*0.45),Vector3(w,0.72,d*0.1),c)
-			box(root,Vector3(0,0.80,-d*0.54),Vector3(w,0.08,d*0.4),c.lightened(0.12),Vector3(-0.35,0,0))
+			var flap: Node3D = _life_part(root,"BoxFlap")
+			flap.position = Vector3(0,0.80,-d*0.54)
+			box(flap,Vector3.ZERO,Vector3(w,0.08,d*0.4),c.lightened(0.12),Vector3(-0.35,0,0))
 		"tunnel":
 			box(root,Vector3(0,0.05,0),Vector3(w,0.1,d),c)
 			for side in [-1,1]: box(root,Vector3(0,0.39,side*d*0.43),Vector3(w,0.72,d*0.14),c)
 			box(root,Vector3(0,0.80,0),Vector3(w,0.16,d),c.lightened(0.13))
+			box(_life_part(root,"PlayToy"),Vector3(0.1,0.27,0),Vector3(0.3,0.3,0.3),Color("dc9d86"))
 		"tower", "adventure_tree", "scratch":
 			box(root,Vector3(0,0.09,0),Vector3(w,0.18,d),wood)
 			var high: float = 1.0 if shape=="scratch" else 1.7
-			box(root,Vector3(0,high*0.5,0),Vector3(w*0.20,high,d*0.23),cream)
-			for rung in range(6): box(root,Vector3(0,0.25+float(rung)*high/7.0,0),Vector3(w*0.23,0.055,d*0.26),Color("c1a17a"))
+			var rope: Node3D = _life_part(root,"ScratchRope") if shape=="scratch" else root
+			box(rope,Vector3(0,high*0.5,0),Vector3(w*0.20,high,d*0.23),cream)
+			for rung in range(6): box(rope,Vector3(0,0.25+float(rung)*high/7.0,0),Vector3(w*0.23,0.055,d*0.26),Color("c1a17a"))
 			box(root,Vector3(0,high,0),Vector3(w*0.85,0.13,d*0.85),c)
 			if shape=="adventure_tree":
 				box(root,Vector3(w*0.30,0.58,d*0.22),Vector3(w*0.58,0.82,d*0.59),c)
@@ -203,17 +211,30 @@ static func make(definition: Dictionary) -> Node3D:
 				for i in range(6):
 					box(root,Vector3(side*w*0.46,0.43,(-0.43+float(i)*0.17)*d),Vector3(0.06,0.76,0.06),c)
 				box(root,Vector3(side*w*0.46,0.82,0),Vector3(0.09,0.09,d),c)
-			box(root,Vector3(0.1,0.27,0),Vector3(0.3,0.3,0.3),Color("dc9d86"))
+			box(_life_part(root,"PlayToy"),Vector3(0.1,0.27,0),Vector3(0.3,0.3,0.3),Color("dc9d86"))
 		_:
 			box(root,Vector3(0,0.23,0),Vector3(w,0.45,d),c)
 	root.set_meta("shape",shape)
 	root.set_meta("footprint",Vector2(w,d))
 	flush(root)
+	var life_motion = ObjectMotion.new()
+	life_motion.name = "LifeMotion"
+	root.add_child(life_motion)
+	life_motion.configure(shape,Vector2(w,d))
 	return root
 
 static func _legs(root: Node3D, w: float, d: float, height: float, color: Color) -> void:
 	for x in [-1,1]:
 		for z in [-1,1]: box(root,Vector3(x*w*0.36,height*0.5,z*d*0.34),Vector3(0.10,height,0.10),color)
+
+static func _life_part(root: Node3D, part_kind: String) -> Node3D:
+	var existing: Node3D = root.get_node_or_null("LifePart")
+	if existing: return existing
+	var part := Node3D.new()
+	part.name = "LifePart"
+	part.set_meta("part_kind",part_kind)
+	root.add_child(part)
+	return part
 
 static func _bed(root: Node3D, w: float, d: float, color: Color, shape: String) -> void:
 	var wood: Color = Color("b58259")
@@ -221,9 +242,10 @@ static func _bed(root: Node3D, w: float, d: float, color: Color, shape: String) 
 	_legs(root,w,d,0.18,wood.darkened(0.16))
 	box(root,Vector3(0,0.19,0),Vector3(w,0.19,d),wood)
 	# Stepped edge and piping give the cushion volume while retaining cube faces.
-	box(root,Vector3(0,0.29,0),Vector3(w*0.96,0.10,d*0.95),linen)
-	box(root,Vector3(0,0.40,0),Vector3(w*0.89,0.20,d*0.88),color)
-	box(root,Vector3(0,0.50,0),Vector3(w*0.80,0.07,d*0.79),color.lightened(0.045))
+	var cushion: Node3D = _life_part(root,"BedCushion")
+	box(cushion,Vector3(0,0.29,0),Vector3(w*0.96,0.10,d*0.95),linen)
+	box(cushion,Vector3(0,0.40,0),Vector3(w*0.89,0.20,d*0.88),color)
+	box(cushion,Vector3(0,0.50,0),Vector3(w*0.80,0.07,d*0.79),color.lightened(0.045))
 	var cols: int = 6
 	var rows: int = 7
 	for x in range(cols):
@@ -232,7 +254,7 @@ static func _bed(root: Node3D, w: float, d: float, color: Color, shape: String) 
 			if shape=="blanket":
 				patch = [color,linen,color.lightened(0.18),Color("a9bba6")][posmod(x+z*2,4)]
 			elif (x+z)%2==0: patch = color.lightened(0.26)
-			box(root,Vector3((float(x)+0.5)/cols*w*0.79-w*0.395,0.540,(float(z)+0.5)/rows*d*0.76-d*0.38),Vector3(w*0.79/cols-0.012,0.022,d*0.76/rows-0.012),patch)
+			box(cushion,Vector3((float(x)+0.5)/cols*w*0.79-w*0.395,0.540,(float(z)+0.5)/rows*d*0.76-d*0.38),Vector3(w*0.79/cols-0.012,0.022,d*0.76/rows-0.012),patch)
 	for side in [-1,1]:
 		for stitch in range(8):
 			box(root,Vector3(side*w*0.448,0.42,(float(stitch)/7.0-0.5)*d*0.72),Vector3(0.012,0.075,0.023),linen.darkened(0.06))
@@ -297,19 +319,21 @@ static func _planter(root: Node3D, w: float, d: float, color: Color, shape: Stri
 		for side in [-1,1]:
 			for band in [0.27,0.64]: box(root,Vector3(0,height*band,side*d*0.386),Vector3(w*0.79,0.034,0.025),pot.darkened(0.14))
 	if shape in ["plant","garden_planter"]:
+		var leaves: Node3D = _life_part(root,"Foliage")
 		for leaf in range(7):
 			var angle: float = float(leaf)*TAU/7.0
 			var at: Vector3 = Vector3(cos(angle)*w*0.21,height+0.10+float(leaf%3)*0.10,sin(angle)*d*0.19)
 			box(root,Vector3(0,height+0.23,0),Vector3(0.045,0.49,0.045),Color("628453"))
-			_foliage(root,at,Vector3(w*0.43,0.30+float(leaf%2)*0.14,d*0.36),Color("71a268").lightened(float(leaf%3)*0.055))
+			_foliage(leaves,at,Vector3(w*0.43,0.30+float(leaf%2)*0.14,d*0.36),Color("71a268").lightened(float(leaf%3)*0.055))
 	elif shape=="shrub":
-		_foliage(root,Vector3(0,height+0.33,0),Vector3(w*0.97,0.69,d*0.96),color)
+		_foliage(_life_part(root,"Foliage"),Vector3(0,height+0.33,0),Vector3(w*0.97,0.69,d*0.96),color)
 	else:
+		var blossoms: Node3D = _life_part(root,"Foliage")
 		var count: int = 10 if shape=="flower_bed" else 4
 		for i in range(count):
 			var x: float = (float(i%5)/4.0-0.5)*w*0.66 if count>4 else (float(i%2)-0.5)*w*0.43
 			var z: float = (float(i/5)-0.5)*d*0.44 if count>4 else (float(i/2)-0.5)*d*0.43
-			_flower(root,Vector3(x,height,z),0.30+float(i%3)*0.065,color.lightened(float(i%2)*0.12))
+			_flower(blossoms,Vector3(x,height,z),0.30+float(i%3)*0.065,color.lightened(float(i%2)*0.12))
 
 static func _picnic(root: Node3D, w: float, d: float, color: Color) -> void:
 	var cream: Color = Color("f5e6c6")
@@ -394,8 +418,9 @@ static func _tree(root: Node3D, scale_value: float, color: Color, pine: bool, sn
 	else:
 		for branch in [-1,1]:
 			box(root,Vector3(branch*scale_value*0.19,scale_value*1.10,0),Vector3(scale_value*0.45,scale_value*0.14,scale_value*0.13),Color("9e7456"))
-		_foliage(root,Vector3(0,scale_value*1.47,0),Vector3(scale_value*1.42,scale_value*1.0,scale_value*1.33),color)
-		_foliage(root,Vector3(-scale_value*0.26,scale_value*1.97,scale_value*0.03),Vector3(scale_value*0.82,scale_value*0.65,scale_value*0.88),color.lightened(0.05))
+		var canopy: Node3D = _life_part(root,"Foliage")
+		_foliage(canopy,Vector3(0,scale_value*1.47,0),Vector3(scale_value*1.42,scale_value*1.0,scale_value*1.33),color)
+		_foliage(canopy,Vector3(-scale_value*0.26,scale_value*1.97,scale_value*0.03),Vector3(scale_value*0.82,scale_value*0.65,scale_value*0.88),color.lightened(0.05))
 
 static func scenery(kind: String, size: float, color: Color, snowy: bool = false) -> Node3D:
 	var root = Node3D.new()

@@ -133,7 +133,10 @@ func refresh() -> void:
 		_hotel_card(Rect2(12,bottom-card_h,canvas.x-24,card_h))
 	if not build_mode: _dock(Rect2(8,canvas.y-90,canvas.x-16,82))
 	world_rect.position+=safe_rect.position
-	if is_instance_valid(app.world): app.world.set_world_rect(world_rect)
+	if is_instance_valid(app.world):
+		app.world.set_world_rect(world_rect)
+		if app.world.has_method("set_life_context"):
+			app.world.set_life_context(app.get("_active")!=false and not bool(app.blocked_save),active_tab=="Hotel" and not build_mode)
 	_toast_label = _label(_message,14,Palette.ERROR_INK)
 	_toast_label.position = world_rect.position-safe_rect.position+Vector2(8,8)
 	_toast_label.size = Vector2(maxf(40,world_rect.size.x-16),54)

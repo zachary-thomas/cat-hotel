@@ -8,6 +8,8 @@ const Content = preload("res://scripts/creative/creative_content.gd")
 const Geometry = preload("res://scripts/creative/lot_geometry.gd")
 const Cat = preload("res://scripts/world/voxel_cat.gd")
 const Legacy = preload("res://scripts/core/game_content.gd")
+const Life = preload("res://scripts/creative/creative_life.gd")
+var life
 var model
 var camera: Camera3D
 var neighborhood: Node3D
@@ -58,6 +60,7 @@ func _ensure_scene() -> void:
 	_status_overlay.name = "RoomStatusOverlay"
 	_status_overlay.layer = 0
 	add_child(_status_overlay)
+	life=Life.new(); life.name="HotelLife"; add_child(life)
 	var environment = WorldEnvironment.new()
 	_environment = Environment.new()
 	_environment.background_mode = Environment.BG_COLOR
@@ -409,6 +412,8 @@ func _object(item: Dictionary) -> void:
 	node.name = "Item_"+String(item.id)
 	node.set_meta("id",String(item.id))
 	node.set_meta("item",String(item.item))
+	node.set_meta("room",String(item.get("room","")))
+	if node.has_node("LifeMotion"): node.get_node("LifeMotion").set_phase_seed(String(item.id).hash())
 	var rect: Rect2 = Geometry.object_rect(item)
 	var center: Vector2 = rect.get_center()*UNIT
 	node.position = Vector3(center.x,FLOOR,center.y)
@@ -423,6 +428,10 @@ func _process(delta: float) -> void:
 	if viewport!=_last_viewport: _update_camera()
 	_sync_actors(delta)
 	_update_status_badges()
+	life.update(delta)
+
+func set_life_context(active: bool, show_chatter: bool) -> void:
+	if life!=null: life.set_context(active,show_chatter)
 
 func _sync_actors(delta: float) -> void:
 	if model.social==null: return
@@ -472,7 +481,8 @@ func _sync_actors(delta: float) -> void:
 		else:
 			actor.position = visual_position
 			actor.set_meta("placed",true)
-		actor.rotation.y = lerp_angle(actor.rotation.y,facing,minf(1.0,delta*9.0))
+		if life!=null: facing=life.facing_for(data,visual_position,facing)
+		actor.rotation.y = lerp_angle(actor.rotation.y,facing,minf(1.0,delta*9.0)) if motion else facing
 		actor.motion_enabled = motion
 		actor.moving = String(data.phase) in ["walk","walk_seat","walk_clean","walk_depart","wander"] and Vector2(data.get("velocity",Vector2.ZERO)).length()>0.025
 		actor.action = {"drink":"eat","sit":"rest","sunbathe":"sleep","order":"greet","wait":"rest","clean":"work","serve":"work"}.get(String(data.action),String(data.action))

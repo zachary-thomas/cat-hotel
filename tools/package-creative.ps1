@@ -90,6 +90,12 @@ along sidewalks outside the hotel, with houses and gardens beyond the lot.
 Camera limits keep your hotel central while revealing nearby streets.
 These visual improvements apply to existing saves; no fresh start is needed.
 
+Nearby cats share readable speech bubbles and little replies with matching
+waves, head tilts and happy gestures. Fireplaces flicker and spark, fountains
+spurt, litter puffs during digging, and milkshake machines vibrate during
+service. Boxes, scratchers, toys, cushions and garden decorations also move.
+Animated motion controls these effects; text size also applies to bubbles.
+
 SAVING
 Every build change saves immediately; the game also saves during play.
 Offline income is capped at eight hours and can be collected from Hotel.

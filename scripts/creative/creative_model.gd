@@ -536,7 +536,8 @@ func venues(index: int=-1) -> Array:
 		var maximum:=maxi(1,int(item.get("capacity",1)))
 		for i in range(approaches.size()):
 			var point: Vector2=approaches[i]
-			slots.append({"key":"cell:%.2f,%.2f" % [point.x,point.y],"x":point.x,"y":point.y,"action":"eat" if role=="bar" else ("play" if role=="play" else "loaf")})
+			var activity: String={"litter":"dig","box":"peek","scratch":"scratch"}.get(str(object.item),"eat" if role=="bar" else ("play" if role=="play" else "loaf"))
+			slots.append({"key":"cell:%.2f,%.2f" % [point.x,point.y],"x":point.x,"y":point.y,"action":activity})
 		if role=="bar" and staff_slot.is_empty(): slots.clear()
 		var status:="Open" if not slots.is_empty() else "Needs access"
 		var venue: Dictionary={"id":str(object.id),"item":str(object.item),"name":str(item.name),"x":float(object.x),"y":float(object.y),"tags":item.get("tags",[]),"role":role,"service":int(item.get("service",-1)),"open":not slots.is_empty(),"status":status,"capacity":maximum,"slots":slots,"room":object.get("room","")}

@@ -33,6 +33,7 @@ func build(width: float, depth: float) -> void:
 
 func set_motion_enabled(enabled: bool) -> void:
 	motion_enabled = enabled
+	set_process(enabled and visible)
 
 func _process(delta: float) -> void:
 	if not motion_enabled: return
