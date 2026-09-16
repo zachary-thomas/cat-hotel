@@ -26,6 +26,9 @@ var active_tab: String = "Hotel"
 var selected_id: String = ""
 var selected_type: String = ""
 var selected_cat: int = -1
+var care_screen
+var _care_return: Dictionary = {}
+var _cat_scroll: ScrollContainer
 var path_width: int = 2
 var _preview_name: String = ""
 var _quote: Dictionary = {}
@@ -71,6 +74,10 @@ func _catalog() -> Script:
 
 func refresh() -> void:
 	if _refreshing or not is_inside_tree() or app == null: return
+	if is_instance_valid(care_screen):
+		_layout_care()
+		care_screen.update_progress()
+		return
 	_refreshing = true
 	_text_scale = clampf(float(app.model.state.get("settings",{}).get("ui_text_scale",1.0)),1.0,1.5)
 	for child: Node in get_children():
@@ -520,6 +527,7 @@ func _detail_sheet(rect: Rect2) -> void:
 	var title: Label=_label(active_tab,26); title.size_flags_horizontal=Control.SIZE_EXPAND_FILL; header.add_child(title)
 	header.add_child(_button("Close",func(): open_tab("Hotel"),Color("efe8d8"),64))
 	var scroll:=ScrollContainer.new(); scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL; scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED; body.add_child(scroll)
+	if active_tab=="Cats": _cat_scroll=scroll
 	var inner:=VBoxContainer.new(); inner.size_flags_horizontal=Control.SIZE_EXPAND_FILL; inner.add_theme_constant_override("separation",12); scroll.add_child(inner)
 	match active_tab:
 		"Cats": _cats_sheet(inner)
@@ -531,40 +539,13 @@ func _detail_sheet(rect: Rect2) -> void:
 
 func _cats_sheet(body: VBoxContainer) -> void:
 	var cats: Array=app.model.state.get("cats",[])
-	if selected_cat>=0 and selected_cat<cats.size():
-		var cat: Dictionary=cats[selected_cat]
-		body.add_child(_button("‹ All cats",func(): selected_cat=-1; refresh(),Color("efe8d8"),0))
-		var art:=TextureRect.new(); art.texture=Portraits.portrait(selected_cat); art.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; art.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED; art.custom_minimum_size=Vector2(180,220); body.add_child(art)
-		var title: Label=_label(str(cat.get("name",Legacy.CAT_NAMES[selected_cat])),28); title.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER; body.add_child(title)
-		body.add_child(_label(str(Legacy.CAT_TRAITS[selected_cat]),19))
-		var meter:=ProgressBar.new(); meter.min_value=0; meter.max_value=100; meter.value=int(cat.get("bond",0)); meter.custom_minimum_size.y=24; body.add_child(meter)
-		var preference: String=str(cat.get("preference",Legacy.PREFERENCES[selected_cat]))
-		var hint: Label=_label("Loves %s." % str(Legacy.PREFERENCE_COPY.get(preference,preference)),15,Palette.SECONDARY_INK); hint.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART; body.add_child(hint)
-		var grid: GridContainer=_grid(body,3)
-		var actions: Array[String]=["pet","brush","wand","yarn","cushion","box"]
-		for i in range(actions.size()):
-			var action: String=actions[i]
-			_catalog_card(grid,"Feather" if action=="wand" else action.capitalize(),"Care",Portraits.toy(i),func(): _care(action),68)
-		body.add_child(_label("Invite a friend",19))
-		var friend_hint: Label=_label("Choose a friend for a playdate in your open social lounge." if app.model.is_god_mode() else "A friendship of 10 with each cat and an open social lounge makes a playdate possible.",13,Palette.SECONDARY_INK)
-		friend_hint.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-		body.add_child(friend_hint)
-		for i in range(cats.size()):
-			if i==selected_cat or not bool(cats[i].get("known",false)): continue
-			body.add_child(_button("Invite "+str(cats[i].get("name",Legacy.CAT_NAMES[i])),func(): _perform("playdate",{"cat":selected_cat,"other":i}),Color("efe8d8"),0))
-	else:
-		var grid: GridContainer=_grid(body,2)
-		for i in range(cats.size()):
-			var cat: Dictionary=cats[i]
-			if not bool(cat.get("known",false)): continue
-			var art:=TextureRect.new(); art.texture=Portraits.portrait(i); art.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; art.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			_catalog_card(grid,str(cat.get("name",Legacy.CAT_NAMES[i])),"%d / 100 bond" % int(cat.get("bond",0)),art,func(): selected_cat=i; refresh(),122)
-		var hint: Label=_label("Cats discover your hotel through comfortable rooms and welcoming social spaces.",14,Palette.SECONDARY_INK); hint.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART; body.add_child(hint)
-
-func _care(action: String) -> void:
-	var result: Dictionary=app.care(selected_cat,action)
-	_message=str(result.get("message","A happy little moment."))
-	refresh()
+	var grid: GridContainer=_grid(body,2)
+	for i in range(cats.size()):
+		var cat: Dictionary=cats[i]
+		if not bool(cat.get("known",false)): continue
+		var art:=TextureRect.new(); art.texture=Portraits.portrait(i); art.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; art.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		_catalog_card(grid,str(cat.get("name",Legacy.CAT_NAMES[i])),"%d / 100 bond" % int(cat.get("bond",0)),art,func(): open_cat_care(i),122)
+	var hint: Label=_label("Cats discover your hotel through comfortable rooms and welcoming social spaces.",14,Palette.SECONDARY_INK); hint.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART; body.add_child(hint)
 
 func _life_sheet(body: VBoxContainer) -> void:
 	var hotel: Dictionary=app.model.hotel()
@@ -632,6 +613,9 @@ func _settings_sheet(body: VBoxContainer) -> void:
 	var settings: Dictionary=app.model.state.get("settings",{})
 	for entry: Array in [["god_mode","God mode",false],["music","Music",true],["sound","Sound effects",true],["motion","Animated motion",true],["exterior","Show exterior walls",false]]:
 		var checkbox:=CheckButton.new(); checkbox.text=str(entry[1]); checkbox.button_pressed=bool(settings.get(str(entry[0]),bool(entry[2]))); checkbox.custom_minimum_size.y=52; checkbox.add_theme_font_override("font",_font()); checkbox.add_theme_font_size_override("font_size",roundi(18*_text_scale))
+		checkbox.mouse_filter=Control.MOUSE_FILTER_PASS
+		# Wait for release so the parent can cancel a toggle when a swipe starts.
+		checkbox.action_mode=BaseButton.ACTION_MODE_BUTTON_RELEASE
 		checkbox.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS; checkbox.tooltip_text=str(entry[1])
 		for state: String in ["font_color","font_pressed_color","font_hover_color","font_hover_pressed_color","font_focus_color"]: checkbox.add_theme_color_override(state,Palette.INK)
 		checkbox.toggled.connect(func(value: bool): _setting(str(entry[0]),value))
@@ -662,12 +646,44 @@ func _setting(key: String, value: Variant) -> void:
 	refresh()
 
 func open_tab(tab: String) -> void:
+	if is_instance_valid(care_screen):
+		care_screen.suspend()
+		remove_child(care_screen); care_screen.queue_free(); care_screen=null
+	selected_cat=-1
 	if tab!=active_tab: cancel_preview(false)
 	active_tab=tab
 	build_mode=tab=="Build"
 	selected_id=""
 	_message=""
 	refresh()
+
+func open_cat_care(cat_id: int, return_context: Dictionary = {}) -> void:
+	if cat_id<0 or cat_id>=app.model.state.cats.size() or not app.model.state.cats[cat_id].known: return
+	if build_mode or is_instance_valid(care_screen): return
+	_care_return={"tab":active_tab,"scroll":_cat_scroll.scroll_vertical if active_tab=="Cats" and is_instance_valid(_cat_scroll) else 0}
+	_care_return.merge(return_context,true)
+	_pointer_down=false; _pointer_moved=false; _pan_gesture=false; _touches.clear()
+	selected_cat=cat_id; active_tab="Care"
+	_surface.hide()
+	care_screen=load("res://scripts/creative/creative_care_screen.gd").new()
+	care_screen.ui=self; care_screen.cat_index=cat_id
+	add_child(care_screen); _layout_care()
+	app.apply_settings()
+
+func _layout_care() -> void:
+	var requested: Rect2=safe_area_override if safe_area_override.has_area() else Metrics.safe_area(self)
+	var bounds: Rect2=requested.intersection(Rect2(Vector2.ZERO,size))
+	if not bounds.has_area(): bounds=Rect2(Vector2.ZERO,size)
+	care_screen.position=bounds.position; care_screen.size=bounds.size
+
+func close_cat_care() -> void:
+	if not is_instance_valid(care_screen): return
+	care_screen.suspend(); remove_child(care_screen); care_screen.queue_free(); care_screen=null
+	active_tab=str(_care_return.get("tab","Hotel")); selected_cat=-1
+	refresh()
+	if active_tab=="Cats" and is_instance_valid(_cat_scroll):
+		_cat_scroll.set_deferred("scroll_vertical",int(_care_return.get("scroll",0)))
+	app.apply_settings()
 
 func _change_category(value: String) -> void:
 	category=value
@@ -781,10 +797,15 @@ func add_path_segment(from: Vector2,to: Vector2) -> void:
 	_update_quote()
 
 func world_input_allowed(point: Vector2) -> bool:
-	return world_rect.has_point(point) and world_rect.size.x>0 and world_rect.size.y>0
+	return not is_instance_valid(care_screen) and world_rect.has_point(point) and world_rect.size.x>0 and world_rect.size.y>0
 
 func _input(event: InputEvent) -> void:
 	if app==null: return
+	if is_instance_valid(care_screen):
+		if event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+			care_screen.back(); get_viewport().set_input_as_handled()
+		return
+	if event is InputEventMouse and (event.device==InputEvent.DEVICE_ID_EMULATION or OS.has_feature("mobile")): return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode==KEY_ESCAPE:
 			if not preview_action.is_empty(): cancel_preview()
@@ -856,6 +877,12 @@ func _pointer_move(point: Vector2) -> void:
 	_pointer_last=point
 
 func _pointer_end(point: Vector2) -> void:
+	# A release beyond the drag threshold is never a selection, even when the
+	# platform coalesced its intermediate move events.
+	if point.distance_to(_pointer_origin)>8: _pointer_moved=true
+	if _pointer_down and not _pointer_moved and not build_mode and active_tab=="Hotel" and not _pan_gesture and world_input_allowed(point):
+		var guest: int=app.world.pick_guest(point)
+		if guest>=0: open_cat_care(guest)
 	if _pointer_down and not _pointer_moved and preview_action.is_empty() and not _pan_gesture and world_input_allowed(point) and build_mode:
 		var hit: Dictionary=_hit_test(app.world.world_point(point))
 		if str(hit.get("type",""))=="plot": _select_plot(hit.data)
@@ -936,6 +963,7 @@ func _catalog_card(parent: Control,title: String,subtitle: String,art: Control,a
 
 func _inline_panel(parent: Control) -> VBoxContainer:
 	var panel:=PanelContainer.new(); panel.add_theme_stylebox_override("panel",Palette.panel(Color("f3ebdb"),0.8,18)); parent.add_child(panel)
+	panel.mouse_filter=Control.MOUSE_FILTER_PASS
 	var box:=VBoxContainer.new(); box.add_theme_constant_override("separation",7); panel.add_child(box); return box
 
 func _scroll_column(parent: Control) -> VBoxContainer:
@@ -968,6 +996,9 @@ func _label(value: String,font_size: int=16,color: Color=Palette.INK) -> Label:
 
 func _button(value: String,action: Callable,fill: Color=Palette.CREAM,width: float=0) -> Button:
 	var button:=Button.new(); button.text=value; button.custom_minimum_size=Vector2(width,42); button.add_theme_font_override("font",_font()); button.add_theme_font_size_override("font_size",roundi(15*_text_scale)); button.add_theme_color_override("font_color",Palette.INK); button.add_theme_color_override("font_hover_color",Palette.INK); button.add_theme_color_override("font_pressed_color",Palette.INK); button.add_theme_color_override("font_disabled_color",Palette.SECONDARY_INK)
+	# Let ScrollContainer receive touch-emulated mouse drags from cards/tabs.
+	# Its scroll-begin notification cancels the button press after the deadzone.
+	button.mouse_filter=Control.MOUSE_FILTER_PASS
 	button.add_theme_stylebox_override("normal",Palette.button_style(fill,0.75)); button.add_theme_stylebox_override("hover",Palette.button_style(fill.lightened(0.04),0.75)); button.add_theme_stylebox_override("pressed",Palette.button_style(fill.darkened(0.03),0.75,true)); button.add_theme_stylebox_override("disabled",Palette.button_style(Color("e7e1d4"),0.75)); button.add_theme_stylebox_override("focus",Palette.focus_style(0.8)); button.pressed.connect(action); return button
 
 func _font(display: bool=false) -> FontVariation:

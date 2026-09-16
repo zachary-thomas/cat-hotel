@@ -34,14 +34,14 @@ func _ready() -> void:
 	soundscape=load("res://scripts/audio/audio_director.gd").new(); add_child(soundscape)
 	apply_settings(); ui.refresh(); world.focus_hotel()
 
-func save(_value=null) -> bool:
+func save(_value=null, refresh_ui: bool=true) -> bool:
 	if blocked_save: return false
 	var previous_error:=save_error
 	model.state.last_seen=int(Time.get_unix_time_from_system())
 	var success: bool=store.save_model(model)
 	save_error="" if success else store.error_message
 	if not success and save_error.is_empty(): save_error="Your progress could not be saved. Please retry."
-	if previous_error!=save_error and is_instance_valid(ui): ui.refresh.call_deferred()
+	if refresh_ui and previous_error!=save_error and is_instance_valid(ui): ui.refresh.call_deferred()
 	return success
 
 func perform(action: String, payload: Dictionary={}) -> Dictionary:
@@ -70,13 +70,16 @@ func travel(index: int) -> Dictionary:
 		world.clear_preview(); world.sync(); world.focus_hotel(); apply_settings()
 	return result
 
-func care(cat: int, action: String) -> Dictionary:
+func care(cat: int, action: String, feedback: bool=true) -> Dictionary:
+	if blocked_save: return {"ok":false,"message":save_error,"progress_changed":false}
 	var before: Dictionary=model.serialize()
 	var result: Dictionary=model.care(cat,action)
-	if result.ok and not save(): model.state=before; return {"ok":false,"message":"Could not save. Try again."}
-	if result.ok:
+	if result.get("progress_changed",false) and not save(null,false):
+		model.state=before
+		return {"ok":false,"message":"Could not save. Try again.","progress_changed":false}
+	if result.ok and feedback:
 		if soundscape!=null: soundscape.play_effect("purr" if action in ["pet","brush"] else "toy")
-		if world.get("actors")!=null and world.actors.has(cat): world.actors[cat].react("purr" if action in ["pet","brush"] else "play",3)
+		if world!=null and world.get("actors")!=null and world.actors.has(cat): world.actors[cat].react("purr" if action in ["pet","brush"] else "play",3)
 	return result
 
 func set_god_mode(enabled: bool) -> Dictionary:
@@ -141,7 +144,7 @@ func test_purchase(product: String) -> Dictionary:
 
 func apply_settings() -> void:
 	if model==null: return
-	if soundscape!=null: soundscape.configure(model.state.settings,int(model.state.current_hotel),_active,true)
+	if soundscape!=null: soundscape.configure(model.state.settings,int(model.state.current_hotel),_active,ui==null or ui.active_tab!="Care")
 	if world!=null:
 		world.set_outside(bool(model.state.settings.get("exterior",false)))
 		if world.has_method("apply_visual_settings"): world.apply_visual_settings()

@@ -31,11 +31,19 @@ var voice_index: int = 0
 var meow_index: int = 0
 var recent_events: Array[String] = []
 var purr_player: AudioStreamPlayer
+var care_purr_active: bool = false
+var _care_purr_tween: Tween
+var _care_purr_stream: AudioStreamWAV
 
 func _ready() -> void:
 	purr_player = AudioStreamPlayer.new()
 	purr_player.volume_db = -8
 	add_child(purr_player)
+	# Never enable looping on the shared one-shot resource.
+	_care_purr_stream = EFFECTS.purr.duplicate()
+	_care_purr_stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	_care_purr_stream.loop_begin = 0
+	_care_purr_stream.loop_end = roundi(_care_purr_stream.get_length() * _care_purr_stream.mix_rate)
 	for i in range(2):
 		var player = AudioStreamPlayer.new()
 		player.volume_db = -17
@@ -51,7 +59,7 @@ func configure(settings: Dictionary, hotel: int, foreground: bool, hotel_visible
 	effects_enabled = settings.get("sound", true)
 	active = foreground
 	if not active or not effects_enabled:
-		purr_player.stop()
+		stop_care_purr(true)
 	ambience = hotel_visible
 	for voice in voices:
 		if not active or not effects_enabled:
@@ -94,6 +102,7 @@ func play_effect(kind: String) -> void:
 	if kind == "purr":
 		if not purr_player.playing:
 			purr_player.stream = EFFECTS.purr
+			purr_player.volume_db = -8
 			purr_player.play()
 			recent_events.append("purr")
 		return
@@ -102,6 +111,39 @@ func play_effect(kind: String) -> void:
 			return
 		last_tap = Time.get_ticks_msec()
 	_play(EFFECTS[kind], kind, -17 if kind in ["tap", "income"] else -10, 1.0 + (voice_index % 3 - 1) * 0.035)
+
+func start_care_purr() -> void:
+	if not active or not effects_enabled or purr_player == null or care_purr_active:
+		return
+	care_purr_active = true
+	if _care_purr_tween != null:
+		_care_purr_tween.kill()
+		_care_purr_tween = null
+	# Resuming during the fade keeps the current playback position.
+	if purr_player.stream != _care_purr_stream or not purr_player.playing:
+		purr_player.stream = _care_purr_stream
+		purr_player.play()
+		recent_events.append("purr")
+		if recent_events.size() > 24: recent_events.pop_front()
+	purr_player.volume_db = -8
+
+func stop_care_purr(immediate: bool=false) -> void:
+	care_purr_active = false
+	if purr_player == null: return
+	if immediate:
+		if _care_purr_tween != null:
+			_care_purr_tween.kill()
+			_care_purr_tween = null
+		purr_player.stop()
+		purr_player.volume_db = -8
+		return
+	if not purr_player.playing or _care_purr_tween != null: return
+	_care_purr_tween = create_tween()
+	_care_purr_tween.tween_property(purr_player, "volume_db", -55.0, 0.35)
+	_care_purr_tween.tween_callback(func():
+		purr_player.stop()
+		purr_player.volume_db = -8
+		_care_purr_tween = null)
 
 func meow() -> void:
 	if not active or not effects_enabled or Time.get_ticks_msec() - last_meow < 1500:
@@ -141,8 +183,7 @@ func _process(delta: float) -> void:
 
 func shutdown() -> void:
 	active = false
-	if purr_player != null:
-		purr_player.stop()
+	stop_care_purr(true)
 	if music_tween != null:
 		music_tween.kill()
 	for player in music_players + voices:

@@ -77,7 +77,10 @@ func _ensure_scene() -> void:
 	_sun.light_energy = 0.53
 	_sun.shadow_enabled = true
 	_sun.shadow_bias = 0.045
-	_sun.shadow_normal_bias = 0.35
+	# Low normal bias stamps shadow-map stripes onto sunlit voxel faces in
+	# Compatibility (including Android). Keep depth bias small so contact
+	# shadows stay attached, and offset along the face normal instead.
+	_sun.shadow_normal_bias = 1.5
 	_sun.directional_shadow_max_distance = 140
 	add_child(_sun)
 	camera = Camera3D.new()
@@ -730,6 +733,29 @@ func world_point(screen: Vector2) -> Vector2:
 	if absf(direction.y)<0.0001: return Vector2.ZERO
 	var point: Vector3 = origin+direction*((FLOOR-origin.y)/direction.y)
 	return Vector2(point.x/UNIT,point.z/UNIT)
+
+func pick_guest(screen_position: Vector2) -> int:
+	if camera==null or not _visible_rect().has_point(screen_position): return -1
+	var closest: int=-1
+	var depth: float=INF
+	for id in actors:
+		if int(id)<0 or int(id)>=model.state.cats.size() or not model.state.cats[int(id)].known: continue
+		var actor: Node3D=actors[id]
+		if not actor.is_visible_in_tree() or camera.is_position_behind(actor.global_position): continue
+		if outside and life!=null and life._roofed(Vector2(actor.position.x,actor.position.z)/UNIT): continue
+		var bounds:=Rect2()
+		var first: bool=true
+		for x in [-0.5,0.5]:
+			for y in [0.05,1.35]:
+				for z in [-0.5,0.6]:
+					var point: Vector2=camera.unproject_position(actor.global_transform*Vector3(x,y,z))
+					if first: bounds=Rect2(point,Vector2.ZERO); first=false
+					else: bounds=bounds.expand(point)
+		var dimensions: Vector2=bounds.size.max(Vector2(44,44))
+		bounds=Rect2(bounds.get_center()-dimensions*0.5,dimensions)
+		var distance: float=camera.global_position.distance_squared_to(actor.global_position)
+		if bounds.has_point(screen_position) and distance<depth: closest=int(id); depth=distance
+	return closest
 
 func set_preview(action: String, payload: Dictionary, valid: bool) -> void:
 	_ensure_scene()

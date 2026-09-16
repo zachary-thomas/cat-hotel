@@ -4,7 +4,7 @@ Download the APK from [GitHub Releases](https://github.com/zachary-thomas/cat-ho
 
 ## Install on your phone
 
-1. Open the release page on your Android phone and download `PurringtonHotel-0.1.0-test.1.apk`.
+1. Open the release page on your Android phone and download `PurringtonHotel-0.1.0-test.4.apk`.
 2. Open the downloaded file. If Android asks, allow **Install unknown apps** for the browser or file manager you used.
 3. Tap **Install**, then open **Purrington Hotel Preview**.
 
@@ -14,6 +14,7 @@ The Android package is `com.purrington.hotel.preview`. It has its own saves. Upd
 
 ## Things to try
 
+- In a build with hands-on care, tap a hotel guest or a Cats portrait. Try strokes, brushing, feather dragging and yarn flicking; release outside the scene and background the app to check that purring stops.
 - Pan the neighborhood, pinch to zoom, and check the lowered employee counters.
 - Open Build → Land and expand the lot. Place, move, rotate and resize rooms; connect them to reception with paths or shared floor.
 - Use Settings → God mode to try all maps and free construction.

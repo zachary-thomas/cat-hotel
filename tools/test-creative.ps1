@@ -9,7 +9,7 @@ $oldCreativeLocalData=$env:LOCALAPPDATA
 try {
     $env:APPDATA=$creativeProfile
     $env:LOCALAPPDATA=$creativeProfile
-    if (-not $Suites) { $Suites=@('test_creative_content','test_creative_model','test_creative_building','test_creative_maps_integration','test_creative_save_integrity','test_creative_services','test_creative_god_mode','test_creative_social','test_creative_movement','test_creative_meadow','test_creative_world','test_creative_voxel_polish','test_creative_counter_camera','test_creative_neighborhood','test_creative_ui','test_creative_app','test_creative_moments','test_creative_speech','test_creative_gestures','test_creative_object_motion','test_creative_life','test_creative_dense') }
+    if (-not $Suites) { $Suites=@('test_creative_content','test_creative_model','test_creative_building','test_creative_maps_integration','test_creative_save_integrity','test_creative_services','test_creative_god_mode','test_creative_social','test_creative_movement','test_creative_meadow','test_creative_world','test_creative_voxel_polish','test_creative_counter_camera','test_creative_neighborhood','test_creative_ui','test_creative_menu_scroll','test_creative_app','test_creative_care_state','test_creative_care','test_creative_moments','test_creative_speech','test_creative_gestures','test_creative_object_motion','test_creative_life','test_creative_dense') }
     foreach ($suite in $Suites) {
         if ($suite -notmatch '^test_creative_[a-z_]+$') { throw 'Invalid creative suite name' }
         $creativeArgs=@('--headless','--path',$creativeRoot,'--script',"tests/$suite.gd")

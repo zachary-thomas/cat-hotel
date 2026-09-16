@@ -669,12 +669,15 @@ func finish_visit(cat: int, tags: Array) -> void:
 			if not other.known and other.preference==guest.preference and int(other.id)<12: other.known=true; break
 
 func care(cat: int, action: String) -> Dictionary:
-	if cat<0 or cat>=state.cats.size() or not state.cats[cat].known: return _result(false,"Meet this cat first.")
-	if action not in ["pet","brush","wand","yarn","cushion","box"]: return _result(false,"Choose a toy.")
+	if cat<0 or cat>=state.cats.size() or not state.cats[cat].known: return {"ok":false,"message":"Meet this cat first.","progress_changed":false}
+	if action not in ["pet","brush","wand","yarn","cushion","box"]: return {"ok":false,"message":"Choose a toy.","progress_changed":false}
 	var guest: Dictionary=state.cats[cat]
-	if float(state.time)-float(guest.last_care)>=12:
+	var progress_changed:=int(guest.bond)<100 and float(state.time)-float(guest.last_care)>=12
+	if progress_changed:
 		guest.bond=mini(100,int(guest.bond)+(6 if str(Legacy.FAVORITE_ACTIONS[cat])==action else 3)); guest.last_care=state.time
-	return _result(true,str(guest.name)+" is enjoying your company")
+	var result:=_result(true,str(guest.name)+" is enjoying your company")
+	result.progress_changed=progress_changed
+	return result
 
 func can_travel(index: int) -> Dictionary:
 	if index<0 or index>=4: return _result(false,"Choose a destination.")

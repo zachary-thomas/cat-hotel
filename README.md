@@ -31,6 +31,19 @@ Turning God mode off restores normal prices. Creations and unlocked content rema
 
 **Settings → Start fresh** loads the latest starter hotel after a confirmation. This resets the current preview's progress; existing saves otherwise keep their layouts. A failed save leaves your previous hotel intact.
 
+## Spend time with a cat
+
+Tap a guest in the hotel or choose a portrait in **Cats** to open a live care room. The illustrated portraits remain in the collection.
+
+- **Pet:** stroke the cat or rest your finger gently to hear a purr.
+- **Brush:** select Brush and drag across its coat.
+- **Feather:** drag the feather for the cat to follow and pounce toward.
+- **Yarn:** drag and flick the ball for a short chase.
+- **Cushion / Box:** select the tool and tap the room to offer it.
+- **Use selected tool** provides the same activities with a button or keyboard. **About & friends** contains preferences and playdate invitations.
+
+Back returns to your hotel camera or collection position. Sound effects and Animated motion settings also apply to care. The room follows your current hotel's theme, and normal hotel life continues while you play. See [care screenshots and verification](docs/creative-preview/cat-care/README.md).
+
 ## Build and hotel life
 
 The catalogue has **Rooms, Shared spaces, Furniture, Outdoors, Storage and Land**.

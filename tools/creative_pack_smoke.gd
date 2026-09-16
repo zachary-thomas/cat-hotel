@@ -15,6 +15,17 @@ func run() -> void:
 	check(app.save_path=="user://creative-package-smoke","Pack keeps explicit isolated save location")
 	check(app.world.room_nodes.size()==app.model.hotel().rooms.size(),"Pack renders dynamic rooms")
 	check(not FileAccess.file_exists("res://docs/mobile-ui-redesign/01-hotel-build-cat-care.png"),"Pack excludes design boards")
+	# Load care from the exported resources, including its live model and tools.
+	app.ui.open_cat_care(0)
+	await process_frame
+	check(is_instance_valid(app.ui.care_screen),"Pack opens live cat care")
+	if is_instance_valid(app.ui.care_screen):
+		var care=app.ui.care_screen
+		for tool in ["pet","brush","wand","yarn","cushion","box"]:
+			care.select_tool(tool); care.stage.use_selected_tool()
+			check(care.stage.tool==tool and care.stage.cat!=null,"Pack supports care tool "+tool)
+		app.ui.close_cat_care()
+		check(not app.soundscape.purr_player.playing,"Pack stops purring when care closes")
 	if OS.get_cmdline_user_args().has("--verify-reopen"):
 		check(app.model.hotel(0).plots.has("east"),"Pack restart retains land")
 		check(is_equal_approx(float(app.model.state.settings.ui_text_scale),1.5),"Pack restart retains text preference")
