@@ -44,6 +44,7 @@ Follow-up fixes preserve the in-memory hotel when Retry follows an initial save-
 - Pet, Brush, Feather (wand), Yarn, Cushion, and Box use gesture input: stroke/hold, brush strokes, feather drag, yarn flick, and tap-to-place cushion/box. Friendship stays +3/+6 (favorite), 12s cooldown, cap 100. Deeper physics toy play can still improve.
 - Pointer/device acceptance harness drives real Input System mouse/touch through UI (including care strokes/flicks). Physical-device sign-off and the full resolution matrix remain outstanding.
 - Two-slot checksummed journal writes replace only the older slot (atomic replace) and keep Retry messaging when a write fails; corrupt-slot recovery and blocked-write-until-reset are covered by EditMode tests. Offline reconciliation, full device lifecycle matrix, and Godot migration parity still need verification.
+
 - Seaside, Forest, and Snowcap are shown as future destinations. No live commerce, advertising, accounts, or cloud saves are included.
 - Layout, accessibility, performance, and platform compatibility are targets until measured. Device Simulator does not replace physical-device testing.
 
