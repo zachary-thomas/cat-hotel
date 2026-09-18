@@ -79,12 +79,12 @@ namespace Purrington.Presentation
                     Check("cat is hittable inside care viewport",app.World.CareHit(catPoint),catPoint.ToString());
                     double elapsed=app.Model.State.elapsed;int bond=app.Model.State.cats.Sum(c=>c.bond);
                     Vector3 carePosition=app.World.WorldCamera.transform.position;float careZoom=app.World.WorldCamera.orthographicSize;
-                    yield return TouchGesture(catPoint,catPoint+new Vector2(18,4),1.1f);
+                    yield return TouchGesture(catPoint,catPoint+new Vector2(48,6),1.15f);
                     Check("hotel simulation continues during care",app.Model.State.elapsed>elapsed+.5);
                     Check("care friendship does not regress",app.Model.State.cats.Sum(c=>c.bond)>=bond);
                     yield return Click("Brush");yield return MouseGesture(catPoint+Vector2.left*12,catPoint+Vector2.right*15,.35f);
                     yield return Click("Feather");yield return MouseGesture(stage.center+Vector2.left*30,stage.center+Vector2.right*35,.35f);
-                    yield return Click("Yarn");yield return TouchGesture(stage.center+Vector2.left*25,stage.center+Vector2.right*45,.2f);
+                    yield return Click("Yarn");yield return TouchGesture(stage.center+Vector2.left*40,stage.center+Vector2.right*50,.12f);
                     yield return Click("Cushion");yield return TouchGesture(stage.center,stage.center,.1f);
                     yield return Click("Box");yield return MouseGesture(stage.center,stage.center,.1f);yield return MouseGesture(stage.center,stage.center,.1f);
                     Check("care gestures retain persistent stage",app.UI.GetComponentInChildren<CareGestureInput>().GetInstanceID()==gestureId);

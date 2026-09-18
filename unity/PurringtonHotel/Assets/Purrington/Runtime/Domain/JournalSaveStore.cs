@@ -62,6 +62,14 @@ namespace Purrington.Domain
             } catch(IOException){recoveryBlocked=priorBlocked;sequence=priorSequence;return false;}
               catch(UnauthorizedAccessException){recoveryBlocked=priorBlocked;sequence=priorSequence;return false;}
         }
+        void CleanupTemps()
+        {
+            for(int i=0;i<2;i++)
+            {
+                string temporary=path+"."+i+".save.tmp";
+                if(File.Exists(temporary))File.Delete(temporary);
+            }
+        }
         static string Hash(string value){using(var sha=SHA256.Create()){return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(value))).Replace("-","").ToLowerInvariant();}}
     }
 }
