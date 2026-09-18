@@ -39,8 +39,8 @@ Follow-up fixes preserve the in-memory hotel when Retry follows an initial save-
 
 ## Known limits and next work
 
-- Cat views follow reception → play → bedside-rest routines. These are visual routines without exclusive venue reservations; the authoritative Godot service/seating simulation, capacity rotation, housekeeping, conversations, gatherings, and scrapbook remain to port.
-- Income and arrivals use a simplified ready-room model, not full Godot economy/capacity parity. The catalogue is a subset; land expansion, paths, room copy/resize, furnished templates, complete unlocks, and God mode remain later work.
+- Meadow life density is improved for playable readability (faster guest routines, closer Hotel fit, guest activity speech) but still uses reception → play → bedside-rest visual routines without exclusive venue reservations; full Godot service/seating simulation, capacity rotation, housekeeping, conversations, gatherings, and scrapbook remain to port.
+- Income and arrivals are more readable in the Hotel header (`+N / min` under coins) and Hotel/Life panels (staying/capacity/arriving counts), but still use a simplified ready-room economy model, not full Godot economy/capacity parity. The catalogue is a subset; land expansion, paths, room copy/resize, furnished templates, complete unlocks, and God mode remain later work.
 - Pet, Brush, Feather (wand), Yarn, Cushion, and Box use gesture input: stroke/hold, brush strokes, feather drag, yarn flick, and tap-to-place cushion/box. Friendship stays +3/+6 (favorite), 12s cooldown, cap 100. Deeper physics toy play can still improve.
 - Pointer/device acceptance harness drives real Input System mouse/touch through UI (including care strokes/flicks). Physical-device sign-off and the full resolution matrix remain outstanding.
 - Two-slot checksummed journal writes replace only the older slot (atomic replace) and keep Retry messaging when a write fails; corrupt-slot recovery and blocked-write-until-reset are covered by EditMode tests. Offline reconciliation, full device lifecycle matrix, and Godot migration parity still need verification.

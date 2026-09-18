@@ -194,9 +194,17 @@ namespace Purrington.Presentation
 
         {
 
-            var content=Sheet("Hotel life","A hotel full of little stories",.70f);var hotel=JObject.FromObject(app.Model.Hotel());
-
-            Info(content,"HOTEL LIFE",(hotel["visits"]??0)+" visits · "+(hotel["happy"]??0)+" happy guests\n"+app.Model.Rate().ToString("N1")+" coins / minute · capacity "+app.Model.GuestCapacity());
+            var mapName=(string)app.Model.Map()["name"];
+            var content=Sheet("Hotel life","Life at "+mapName,.70f);var hotel=JObject.FromObject(app.Model.Hotel());
+            int staying=app.Model.Actors.Count(a=>a.catId<1000);
+            int arriving=app.Model.Actors.Count(a=>a.catId<1000&&!a.checkedIn);
+            int capacity=app.Model.GuestCapacity();
+            Info(content,"LIFE AT "+mapName.ToUpperInvariant(),
+                "+"+Math.Round(app.Model.Rate()).ToString("N0")+" / min · "+Math.Floor(app.Model.State.coins).ToString("N0")+" coins
+"+
+                staying+" guests staying · "+capacity+" capacity · "+(arriving>0?arriving+" arriving":"reception ready")+"
+"+
+                (hotel["visits"]??0)+" visits · "+(hotel["happy"]??0)+" happy guests");
 
             Info(content,"HOTEL LEVEL "+(hotel["level"]??1),"Upgrade your services to grow your hotel. Every two service upgrades increase your hotel level.");
 

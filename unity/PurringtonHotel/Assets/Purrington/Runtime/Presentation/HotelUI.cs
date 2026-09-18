@@ -36,7 +36,7 @@ namespace Purrington.Presentation
 
         TMP_FontAsset body, heading;
 
-        TextMeshProUGUI wallet, toast;
+        TextMeshProUGUI wallet, walletRate, toast;
 
         string tab = "Hotel", category = "All", placement = "", selectedObject = "", careTool = "pet";
 
@@ -139,7 +139,11 @@ namespace Purrington.Presentation
 
         {
 
-            if (wallet != null) wallet.text = "<b>" + Math.Floor(app.Model.State.coins).ToString("N0") + "</b> coins · "+app.Model.Rate().ToString("N1")+" / min";
+            if (wallet == null) return;
+            double rate = app.Model.Rate();
+            wallet.text = "<b>" + Math.Floor(app.Model.State.coins).ToString("N0") + "</b>";
+            if (walletRate != null) walletRate.text = "<color=#17612F>+" + Math.Round(rate).ToString("N0") + " / min</color>";
+            else wallet.text += " · +" + Math.Round(rate).ToString("N0") + " / min";
 
         }
 
@@ -150,6 +154,7 @@ namespace Purrington.Presentation
             if (careCat >= 0) app.World.SetCareMode(careCat,false);
 
             careCat = -1; settings=false; tab=destination; CancelPlacement(false); Rebuild();
+            if (destination == "Hotel") app.World.FitHotel();
 
         }
 
@@ -459,6 +464,8 @@ namespace Purrington.Presentation
             wallet=Text(panel,"",12,Ink);
 
             Pin(wallet.rectTransform,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(14,7),new Vector2(-86,34));
+            walletRate=Text(panel,"",11,new Color(0.09f,0.38f,0.19f));
+            Pin(walletRate.rectTransform,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(14,34),new Vector2(-86,52));
 
             var gear=Button(panel,careCat>=0?"Back":"Menu",careCat>=0?(Action)CloseCare:()=>{settings=!settings;Rebuild();},Mint,14);
 
@@ -570,7 +577,14 @@ namespace Purrington.Presentation
             Pin(collapse,new Vector2(1,1),Vector2.one,Vector2.one,new Vector2(-54,-51),new Vector2(-6,-3));
             if(compactObjective)return;
             int ready=app.Model.State.rooms.Count(r=>app.Model.IsRoomReady(r));
-            var copy=Text(panel,ready+" ready rooms / "+app.Model.State.rooms.Count+" spaces - "+app.Model.GuestCapacity()+" guest capacity\n"+app.Model.Rate().ToString("N1")+" coins per minute",13,Ink);
+            int staying=app.Model.Actors.Count(a=>a.catId<1000);
+            int arriving=app.Model.Actors.Count(a=>a.catId<1000&&!a.checkedIn);
+            int capacity=app.Model.GuestCapacity();
+            string lifeLine=staying+" staying · "+capacity+" capacity · +"+Math.Round(app.Model.Rate()).ToString("N0")+" / min";
+            string arrivalLine=arriving>0
+                ? arriving+" arriving at reception · "+ready+"/"+app.Model.State.rooms.Count+" rooms ready"
+                : ready+"/"+app.Model.State.rooms.Count+" rooms ready · guests rotate in through reception";
+            var copy=Text(panel,lifeLine+"\n"+arrivalLine,13,Ink);
             Pin(copy.rectTransform,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(14,62),new Vector2(-14,-50));
             var actions=Rect("Hotel actions",panel);Pin(actions,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,8),new Vector2(-10,58));
             var row=Horizontal(actions,6,0);Button(row,"Build",()=>Navigate("Build"),Gold,14);Button(row,"Life",()=>Navigate("Life"),Mint,14);
