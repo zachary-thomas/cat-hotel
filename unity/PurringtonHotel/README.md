@@ -41,7 +41,7 @@ Follow-up fixes preserve the in-memory hotel when Retry follows an initial save-
 
 - Cat views follow reception → play → bedside-rest routines. These are visual routines without exclusive venue reservations; the authoritative Godot service/seating simulation, capacity rotation, housekeeping, conversations, gatherings, and scrapbook remain to port.
 - Income and arrivals use a simplified ready-room model, not full Godot economy/capacity parity. The catalogue is a subset; land expansion, paths, room copy/resize, furnished templates, complete unlocks, and God mode remain later work.
-- Pet, Brush, Feather, Yarn, Cushion, and Box use selected-tool/tap actions and visual responses. Full stroke, hold, drag/flick, and physics interaction parity remains outstanding.
+- Pet, Brush, Feather (wand), Yarn, Cushion, and Box use gesture input: stroke/hold, brush strokes, feather drag, yarn flick, and tap-to-place cushion/box. Friendship stays +3/+6 (favorite), 12s cooldown, cap 100. Deeper physics toy play can still improve.
 - The two-slot journal and rollback/history implementation do not establish complete migration parity. Offline reconciliation, all failure/recovery states, lifecycle reliability, and Unity serialization/device behavior need further verification.
 - Seaside, Forest, and Snowcap are shown as future destinations. No live commerce, advertising, accounts, or cloud saves are included.
 - Layout, accessibility, performance, and platform compatibility are targets until measured. Device Simulator does not replace physical-device testing.
