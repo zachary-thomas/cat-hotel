@@ -1,1 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net9.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup><ItemGroup><Compile Include="../../unity/PurringtonHotel/Assets/Purrington/Runtime/Domain/*.cs"/><Compile Include="Program.cs"/><Reference Include="Newtonsoft.Json"><HintPath>../../unity/PurringtonHotel/Library/PackageCache/com.unity.nuget.newtonsoft-json@4dfd81071c64/Runtime/Newtonsoft.Json.dll</HintPath></Reference></ItemGroup></Project>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../unity/PurringtonHotel/Assets/Purrington/Runtime/Domain/*.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="ConstructionSuites.cs" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+</Project>

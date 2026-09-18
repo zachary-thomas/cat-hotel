@@ -40,9 +40,10 @@ Follow-up fixes preserve the in-memory hotel when Retry follows an initial save-
 ## Known limits and next work
 
 - Cat views follow reception → play → bedside-rest routines. These are visual routines without exclusive venue reservations; the authoritative Godot service/seating simulation, capacity rotation, housekeeping, conversations, gatherings, and scrapbook remain to port.
-- Income and arrivals use a simplified ready-room model, not full Godot economy/capacity parity. The catalogue is a subset; land expansion, paths, room copy/resize, furnished templates, complete unlocks, and God mode remain later work.
-- Pet, Brush, Feather, Yarn, Cushion, and Box use selected-tool/tap actions and visual responses. Full stroke, hold, drag/flick, and physics interaction parity remains outstanding.
-- The two-slot journal and rollback/history implementation do not establish complete migration parity. Offline reconciliation, all failure/recovery states, lifecycle reliability, and Unity serialization/device behavior need further verification.
+- Income and arrivals use a simplified ready-room model, not full Godot economy/capacity parity. Domain construction now covers land plots, earth/gravel/brick paths, room copy/resize/move/remove, furnished templates, catalogue placement, storage, and God mode (see tests/unity-domain ConstructionSuites); presentation polish and visual/input evidence remain open.
+- Pet, Brush, Feather (wand), Yarn, Cushion, and Box use gesture input: stroke/hold, brush strokes, feather drag, yarn flick, and tap-to-place cushion/box. Friendship stays +3/+6 (favorite), 12s cooldown, cap 100. Deeper physics toy play can still improve.
+- Pointer/device acceptance harness drives real Input System mouse/touch through UI (including care strokes/flicks). Physical-device sign-off and the full resolution matrix remain outstanding.
+- Two-slot checksummed journal writes replace only the older slot (atomic replace) and keep Retry messaging when a write fails; corrupt-slot recovery and blocked-write-until-reset are covered by EditMode tests. Offline reconciliation, full device lifecycle matrix, and Godot migration parity still need verification.
 - Seaside, Forest, and Snowcap are shown as future destinations. No live commerce, advertising, accounts, or cloud saves are included.
 - Layout, accessibility, performance, and platform compatibility are targets until measured. Device Simulator does not replace physical-device testing.
 
