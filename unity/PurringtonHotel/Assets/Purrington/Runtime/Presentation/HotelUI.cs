@@ -752,7 +752,7 @@ namespace Purrington.Presentation
 
                     string id=stored.id;var item=Catalog.Find(stored.itemId);
 
-                    CatalogCard(content,item.name,"Ready to place",0,()=>BeginRetrieve(id),Mint,item.role);
+                    CatalogCard(content,item.name,"Ready to place",0,()=>BeginRetrieve(id),Mint,item.role,item.id);
 
                 }
 
@@ -764,7 +764,7 @@ namespace Purrington.Presentation
 
                 var chosen=item;
 
-                CatalogCard(content,item.name,item.role+" · "+(item.indoorOnly?"Indoors":"Any floor")+(item.bond>0?" · "+item.bond+" bond":""),app.Model.State.settings.godMode?0:item.price,()=>BeginPlace(chosen.id),Mint,item.role);
+                CatalogCard(content,item.name,item.role+" · "+(item.indoorOnly?"Indoors":"Any floor")+(item.bond>0?" · "+item.bond+" bond":""),app.Model.State.settings.godMode?0:item.price,()=>BeginPlace(chosen.id),Mint,item.role,chosen.id);
 
             }
 
@@ -938,29 +938,43 @@ namespace Purrington.Presentation
 
         }
 
-        void CatalogCard(Transform parent,string title,string categoryName,double price,Action callback,Color accent,string role)
+        void CatalogCard(Transform parent,string title,string categoryName,double price,Action callback,Color accent,string role,string itemId="")
 
         {
 
-            var card=Panel(title,parent,Color.white);Height(card,Mathf.Lerp(108,152,(textScale-1)*2));
+            var card=Panel(title,parent,Color.white);Height(card,Mathf.Lerp(128,172,(textScale-1)*2));
 
             var icon=Panel("Voxel illustration",card,role=="room"?Gold:role=="bed"?Lilac:Mint);
 
-            Pin(icon,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(10,-64),new Vector2(64,-10));
+            Pin(icon,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(10,-84),new Vector2(84,-10));
 
             icon.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
 
-            VoxelIcon(icon,role);
+            string key="build-previews/"+(itemId??"").Replace('_','-');
+
+            Sprite preview=Art(key);
+
+            if(preview!=null)
+
+            {
+
+                icon.GetComponent<UnityEngine.UI.Image>().color=Cream;
+
+                var img=Image(icon,preview);Stretch(img.rectTransform,4,4,4,4);
+
+            }
+
+            else VoxelIcon(icon,role);
 
             var label=Text(card,title,16,Ink,true);
 
-            Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(74,-72),new Vector2(-10,-8));
+            Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(94,-80),new Vector2(-10,-8));
 
             var meta=Text(card,categoryName,12,Ink);
 
             Pin(meta.rectTransform,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(12,10),new Vector2(-128,48));
 
-            var add=Button(card,price==0?"Place · free":price.ToString("N0")+"  +",callback,accent,13);
+            var add=Button(card,price==0?"Place · free":price.ToString("N0")+"  +",callback,price>0?Gold:accent,13);
 
             Pin(add,new Vector2(1,0),new Vector2(1,0),new Vector2(1,0),new Vector2(-126,8),new Vector2(-8,56));
 
