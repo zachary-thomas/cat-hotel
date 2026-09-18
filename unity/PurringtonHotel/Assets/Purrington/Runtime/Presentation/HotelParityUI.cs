@@ -224,9 +224,19 @@ namespace Purrington.Presentation
 
                 int index=i;var map=app.Model.Content.Maps[i];var gate=app.Model.CanTravel(i);
 
-                Card(content,(string)map["name"],i==app.Model.State.currentHotel?"You are here":gate.message,i==app.Model.State.currentHotel?"Here":gate.cost>0?"Unlock":"Travel",()=>{var result=app.Model.Travel(index);app.Report(result);if(result.success){app.World.FitHotel();Navigate("Hotel");}else ShowNotice(result.message,true,false);},Mint);
+                bool here=i==app.Model.State.currentHotel;
 
-                if(i>=2)Card(content,"Preview expansion","Test unlock · no real payment","Unlock",()=>{app.Report(app.Model.GrantEntitlement(index==2?"purrington.forest_lodge":"purrington.snowcap_spa"));Rebuild();},Gold);
+                string detail=here?"You are here":gate.message;
+
+                if(!here&&index==1&&!gate.success&&!app.Model.Hotel(1).owned)
+
+                    detail=gate.message+"\nMeadow level "+app.Model.Hotel(0).level+"/10 · coins "+Math.Floor(app.Model.State.coins).ToString("N0")+"/10,000";
+
+                string action=here?"Here":gate.cost>0?"Unlock · "+gate.cost.ToString("N0"):"Travel";
+
+                Card(content,(string)map["name"],detail,action,()=>{var result=app.Model.Travel(index);app.Report(result);if(result.success){app.World.FitHotel();Navigate("Hotel");}else ShowNotice(result.message,true,false);},Mint,here||gate.success);
+
+                if(i>=2&&!gate.success)Card(content,"Preview expansion","Preview expansion · no real payment","Preview unlock",()=>{app.Report(app.Model.GrantEntitlement(index==2?"purrington.forest_lodge":"purrington.snowcap_spa"));Rebuild();},Gold);
 
             }
 

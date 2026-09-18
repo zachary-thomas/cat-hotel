@@ -951,7 +951,7 @@ namespace Purrington.Presentation
 
         public void ClearSaveFailure(){if(!saveError)return;saveError=false;persistentSaveError="";if(toast)toast.transform.parent.gameObject.SetActive(false);}
 
-        void Card(Transform parent,string title,string description,string action,Action callback,Color accent)
+        void Card(Transform parent,string title,string description,string action,Action callback,Color accent,bool enabled=true)
 
         {
 
@@ -962,6 +962,10 @@ namespace Purrington.Presentation
             var desc=Text(card,description,12,Ink);Pin(desc.rectTransform,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(12,8),new Vector2(-99,-15-46*textScale));
 
             var btn=Button(card,action,callback,accent,14);
+
+            btn.GetComponent<UnityEngine.UI.Button>().interactable=enabled;
+
+            if(!enabled)btn.GetComponent<UnityEngine.UI.Image>().color=new Color(accent.r*.82f,accent.g*.82f,accent.b*.82f,.72f);
 
             Pin(btn,new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(-91,-28),new Vector2(-7,28));
 
