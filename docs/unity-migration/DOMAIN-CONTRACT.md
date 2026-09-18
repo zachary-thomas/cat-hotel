@@ -1,0 +1,15 @@
+# Domain contract (parity v2)
+
+`ParityContent.LoadJson(string)` returns content with `Maps` (JObject[]), `Templates`, `Cats`, `Services`, `Staff`, `Starter` and installs full `Catalog.All`. Create `new HotelModel(store, content)` then `LoadOrCreate()`. Save with `NewtonsoftSaveCodec` (do not use JsonUtility; paths/dirt are dictionaries).
+
+State retains `coins`, `elapsed`, `rooms`, `objects`, `storage`, `cats`, `settings`; rooms/objects are current hotel's live lists. `State.hotels` holds four `HotelData`; `State.currentHotel` selects active map. `model.Content`, `model.Hotel(index=-1)`, `model.Map(index=-1)` expose content/state. Room width/depth are unrotated; `HotelModel.RoomSize` returns rotated footprint; source y maps to z. Object has `room` membership. Cats include `known`, `preference`, `favoriteAction`.
+
+Commands: `Quote(string action, JObject payload)` and `Execute(string action, JObject payload)` accept source snake_case actions/keys: buy_plot, place_room, move_room, resize_room, copy_room, remove_room, place_template, place_object, move_object, retrieve_object, store_object, paint_path, erase_path, upgrade_service, hire_staff, level_up, hire_maid. Existing Preview/Place/Move/Remove/Undo/Redo convenience APIs remain. Path payload uses cells:[[x,y]], style. Quote never mutates.
+
+Other actions: `Travel(int)`, `CanTravel(int)`, `SetGodMode(bool)`, `GrantEntitlement(string)`, `Reconcile(long now)`, `ClaimOffline()`, `Care(int,string)`, `SetSettings(...)`, `Save()`. `Rate(index=-1)`, `GuestCapacity(index=-1)`, `RoomStatus(id,index=-1)` return authoritative progression.
+
+Life: `model.Actors` read-only snapshots contain id, catId, name, role, x,z, facing, action, venueId, activityToken, activityElapsed, activityDuration, speech, gesture. `Tick(seconds)` owns all life/progress. Rendering must not award coins or friendship. `Route(from,to,constructed=true,index=-1)` and `MovementSegmentClear` use `LotPoint`. `Venues(index=-1)` exposes access and slots. Snapshot contracts are stable; additional fields may be added.
+
+UI integration: HotelUI exposes Navigate/OpenSettings/OpenCare/Back/SelectObject/SelectRoom/GroundClicked/GroundDragged/Confirm and ActiveTab/IsPlacing/IsInCare. HotelApp opens the manifest through ParityProfile.TryOpen and exposes RequestExit/ExitWithoutSaving/RetrySave. CareGestureInput emits select, begin, move, end, cancel to the world; Model.Tick continues in care. `SetViewSettings(exterior, evening)` persists cutaway/evening; `CatalogPrice(action,payload)` gives catalogue-only price without a placement. Source upgrade/train/hire_housekeeper names are supported. Levels increase with upgrade purchases; there is no standalone level_up purchase in the source.
+
+Successful saves checkpoint lastSeen. First-time profiles receive no epoch-based offline windfall. Confirmed Reset preserves journal originals as before-reset backups and permits recovery of corrupt profiles. Construction undo is rejected if the build has changed outside its expected history snapshot.

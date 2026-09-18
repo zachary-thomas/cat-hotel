@@ -1,0 +1,1 @@
+{"name":"Purrington.Editor","rootNamespace":"Purrington.Editor","references":["Purrington.Domain","Purrington.Presentation","Unity.TextMeshPro","Unity.RenderPipelines.Universal.Runtime","Unity.RenderPipelines.Core.Runtime"],"includePlatforms":["Editor"]}

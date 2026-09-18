@@ -1,0 +1,223 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed91ad5cf41abcd42ba2f3ebc50df6ff, type: 3}
+  m_Name: Catalogue
+  m_EditorClassIdentifier: 
+  items:
+  - id: mat
+    name: Linen mat
+    category: Beds
+    role: bed
+    price: 0
+    width: 1.5
+    depth: 2
+    indoorOnly: 0
+  - id: sun_cushion
+    name: Sunshine cushion
+    category: Beds
+    role: bed
+    price: 120
+    width: 1.5
+    depth: 2
+    indoorOnly: 0
+  - id: cave
+    name: Sheltered cat bed
+    category: Beds
+    role: bed
+    price: 180
+    width: 1.5
+    depth: 2
+    indoorOnly: 1
+  - id: heated
+    name: Heated cloud bed
+    category: Beds
+    role: bed
+    price: 320
+    width: 1.5
+    depth: 2
+    indoorOnly: 1
+  - id: canopy_bed
+    name: Canopy bed
+    category: Beds
+    role: bed
+    price: 900
+    width: 2
+    depth: 2
+    indoorOnly: 1
+  - id: box
+    name: Delivery box
+    category: Play
+    role: play
+    price: 0
+    width: 1
+    depth: 1
+    indoorOnly: 0
+  - id: perch
+    name: Window perch
+    category: Play
+    role: play
+    price: 150
+    width: 1
+    depth: 1
+    indoorOnly: 0
+  - id: tunnel
+    name: Play tunnel
+    category: Play
+    role: play
+    price: 190
+    width: 1.5
+    depth: 1
+    indoorOnly: 0
+  - id: tower
+    name: Climbing tower
+    category: Play
+    role: play
+    price: 260
+    width: 1
+    depth: 1
+    indoorOnly: 0
+  - id: scratch
+    name: Rope scratcher
+    category: Play
+    role: play
+    price: 140
+    width: 0.5
+    depth: 1
+    indoorOnly: 0
+  - id: adventure_tree
+    name: Adventure tree
+    category: Play
+    role: play
+    price: 650
+    width: 1.5
+    depth: 1.5
+    indoorOnly: 0
+  - id: reception_counter
+    name: Welcome counter
+    category: Hotel
+    role: reception
+    price: 240
+    width: 3
+    depth: 1
+    indoorOnly: 0
+  - id: lounge_sofa
+    name: Lounge sofa
+    category: Hotel
+    role: seat
+    price: 180
+    width: 2.5
+    depth: 1.5
+    indoorOnly: 0
+  - id: cafe_table
+    name: Cafe table
+    category: Hotel
+    role: seat
+    price: 90
+    width: 1.5
+    depth: 1.5
+    indoorOnly: 0
+  - id: plant
+    name: Leafy planter
+    category: Decor
+    role: decoration
+    price: 0
+    width: 0.5
+    depth: 0.5
+    indoorOnly: 0
+  - id: rug
+    name: Whisper-soft rug
+    category: Decor
+    role: decoration
+    price: 110
+    width: 2
+    depth: 1
+    indoorOnly: 0
+  - id: lamp
+    name: Amber lantern
+    category: Decor
+    role: decoration
+    price: 230
+    width: 0.5
+    depth: 0.5
+    indoorOnly: 0
+  - id: flowers
+    name: Welcome flowers
+    category: Decor
+    role: decoration
+    price: 160
+    width: 0.5
+    depth: 0.5
+    indoorOnly: 0
+  - id: garden_planter
+    name: Garden planter
+    category: Garden
+    role: decoration
+    price: 30
+    width: 1
+    depth: 1
+    indoorOnly: 0
+  - id: shrub
+    name: Round shrub
+    category: Garden
+    role: decoration
+    price: 35
+    width: 1
+    depth: 1
+    indoorOnly: 0
+  - id: flower_bed
+    name: Flower bed
+    category: Garden
+    role: decoration
+    price: 40
+    width: 2
+    depth: 1
+    indoorOnly: 0
+  - id: garden_lamp
+    name: Garden lamp
+    category: Garden
+    role: decoration
+    price: 70
+    width: 0.5
+    depth: 0.5
+    indoorOnly: 0
+  - id: bench
+    name: Garden bench
+    category: Garden
+    role: seat
+    price: 90
+    width: 2
+    depth: 1
+    indoorOnly: 0
+  - id: tree
+    name: Shade tree
+    category: Garden
+    role: decoration
+    price: 100
+    width: 2
+    depth: 2
+    indoorOnly: 0
+  - id: cat_statue
+    name: Little cat statue
+    category: Garden
+    role: decoration
+    price: 120
+    width: 1
+    depth: 1
+    indoorOnly: 0
+  - id: fountain
+    name: Paw fountain
+    category: Garden
+    role: decoration
+    price: 200
+    width: 2
+    depth: 2
+    indoorOnly: 0

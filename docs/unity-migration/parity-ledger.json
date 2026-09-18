@@ -1,0 +1,1506 @@
+{
+  "schema": 1,
+  "sourceRevision": "4be10cc8bd4979b2ccaaad7e2ce6c3708a7ba1ec",
+  "sourceHashes": {
+    "res://scripts/audio/audio_director.gd": "1d5ba717406c88b0fad4d2b97044c31df9ced08d8c5c206de229c6ec8573c670",
+    "res://scripts/core/build_draft_store.gd": "d4213f2ac75679449ee30f2f0ddeb86f28bdcc15871f8502d86d42ea121f6fa8",
+    "res://scripts/core/build_history.gd": "a580eeb620ff00365c7d1b8e86d26e614dbe02ebb76892824b8f0bb18846680a",
+    "res://scripts/core/build_session.gd": "ef58e332cc9e928eb8f3bd2fc65010f8d34a1d5d76ed804bcef759aad90c430f",
+    "res://scripts/core/furniture_catalog.gd": "51c4d3ae1cfe528410ec1d99f8e8e0ca2cd93f56284e361c691d0a5d5985c71f",
+    "res://scripts/core/furniture_inventory.gd": "5a5110a0c3d1c9d990cde995b651eae1fd2db23527a5815b8857909df5d6f9ae",
+    "res://scripts/core/furniture_layout.gd": "41dabb02b3f08329133472e978f40b8ae9cec4f612ae82b9767660277b151ffd",
+    "res://scripts/core/game_content.gd": "55188b4478ad416c855e343f1ae6e99be2e41d9a5d739cbbc3e0317d719ee4f7",
+    "res://scripts/core/game_store.gd": "ba24adb145e4f76f3e4eeea81f890b23884b389224e5fbdbf95713e956c29493",
+    "res://scripts/core/garden_layout.gd": "b43939c12098696d0fe058d6f88a4fd950b3dda9629998fc978c6fd67d1e4a16",
+    "res://scripts/core/grounds_model.gd": "a433ad92482ea0ad0aff064b98df7bb7c5515a152041e3d4b5495a40fc3f6024",
+    "res://scripts/core/hotel_life.gd": "678ae5e1fc57ce5b48f1b8e6ccd03cae633df306f642efd486365d3092140321",
+    "res://scripts/core/hotel_model.gd": "e40ab03ea08302dadcd43b23f792f803574344c7567a4bf5b87b58dfcc206f20",
+    "res://scripts/core/room_blueprint.gd": "5d93646222b9c454040e590b1a003d6f64b8f03711b01d7a266a96a3259799cc",
+    "res://scripts/core/room_layout.gd": "69f23c9da56eff0801daf3d417bfb6ac998eb64ff8c238f9cdcbd998d5cde6f5",
+    "res://scripts/core/room_quality.gd": "115241235f83a4fd88a3e575d4d0ab303a2c4a86c54e08a535d1f23abb48e84e",
+    "res://scripts/core/save_journal.gd": "c8432eddbc8f171b7c60957c094c21ae925cac6be41ac13f64eb5d606dd24be0",
+    "res://scripts/core/shared_layout.gd": "47abee19a48fde0c30f83e7c0fce753b736a0adb6113f71686b2d388ed0dc97e",
+    "res://scripts/creative/creative_app.gd": "8a937de23ae26b492c294d67c7da666b1f53d7189e2b08900ce26c8a1b22ad98",
+    "res://scripts/creative/creative_care_room.gd": "a98664de283ec25823221a23f11e3e448a51c2ff689eee5516bb0069c7fa3c8d",
+    "res://scripts/creative/creative_care_screen.gd": "7138b77327bda8732c0d570a1223d0a223ba6a48ec6597368b669206e64db671",
+    "res://scripts/creative/creative_care_stage.gd": "2109ce5c47917dc008fb9afc0f7688b75dc50f856904c4f530fbf4c3686e2ae1",
+    "res://scripts/creative/creative_content.gd": "a152163ecab00cf0178caa0b7e384ab12913107f4653b80e68e732c5b9a33565",
+    "res://scripts/creative/creative_dialogue.gd": "8064a8c13ec5b23ad0010c35b86a83c6c499d7768564da2ea3cde064631503fa",
+    "res://scripts/creative/creative_life.gd": "f528d070cee4d6c8c1d11093767e04d46ffb342e0f17246d27da7ae7b24e2e40",
+    "res://scripts/creative/creative_maps.gd": "cc57635ecf111979a5a6cfcb7c11bb73aed8f311e2b846a274fe62620d52724f",
+    "res://scripts/creative/creative_model.gd": "2fb76e2623f14d0aa5378be150ffb2d6bd5a126151dd7ccfb2a4caf9d27032de",
+    "res://scripts/creative/creative_moments.gd": "9373ebc0a0886afa713f06924a91c75f600c51c4e2c67e1a3cf7cb6ff7a82d14",
+    "res://scripts/creative/creative_neighborhood.gd": "f923fbfa73b4bb5f05ab3eaa6904e2059ce10897d3473272d7404e904405d059",
+    "res://scripts/creative/creative_object_motion.gd": "58fcbe1957ad37681034137263391deb5dda6d61c1789c0a186b4d229d85b575",
+    "res://scripts/creative/creative_objects.gd": "3d77893a4d6d2f11c18e153a009643f287c7f28fa298fdf6b3f0241b71ba1594",
+    "res://scripts/creative/creative_speech_overlay.gd": "ac8273129463e9e6daa49a0ccfef2cb17f8d7089b47c96e85ce58abef0dcc7d3",
+    "res://scripts/creative/creative_thumbnail.gd": "aa04808d720576b80e1be068afafc3c0ad2c887deb98d9ee73e9a729151561d1",
+    "res://scripts/creative/creative_ui.gd": "198452e116193960dfebb4bd97f6ecad9c62ae1ae45365e9cb0d96289ca76cb0",
+    "res://scripts/creative/creative_water_motion.gd": "287945baa1ba172f7780ebe4895c0a13aa8bf0cf974f2f4c73f0507742fe4212",
+    "res://scripts/creative/creative_world.gd": "5db6eb2ff90e6072ee57d798fe3079fa9b758d90dad450ef0151c584a8518eb6",
+    "res://scripts/creative/lot_geometry.gd": "2f0638a528c282aeaa73e3e77b79b993a79ca4cf0bf36509065fea5b8d41fe36",
+    "res://scripts/creative/social_simulation.gd": "4f4d365ba6b725dcfd5908bed3d9f36d94bb2364cc58a034612883a30459b202",
+    "res://scripts/world/cat_navigation.gd": "90787c0236cc47413be295a03bf49d5662a1dc9967457bd83da6434b9a433411",
+    "res://scripts/world/furniture_renderer.gd": "bcba3d2e0e23da4f5ae8692b6b24cada5288e7feba9e2f5e54aead2add889c54",
+    "res://scripts/world/hotel_shell.gd": "dc5967c2973aded37f491280520c0ca79dd02cb5b99da11bb02264daf68e6b63",
+    "res://scripts/world/hotel_world.gd": "f211af497621bfeb18f3794296d761cb97f9139d466ce3ccfb38daede519e877",
+    "res://scripts/world/neighborhood.gd": "e7686600427877105ca92478f777f17766ad2f467ffe12d18b431796c8afa1fd",
+    "res://scripts/world/neighborhood_backdrop.gd": "f01929fc28f1a79e0ef4f285461434e02e7a346635b8520faf4226c6b24c1d18",
+    "res://scripts/world/room_builder.gd": "1611b8adbe7d530e7be9e55412aa4f673f5e15e94d82a29424128e51addebcbd",
+    "res://scripts/world/tree_canopy.gd": "ac20cf388bb5a1e12ef3b5e743a96cd4078b704481c2cb0e4749dd6ffdb69180",
+    "res://scripts/world/voxel_cat.gd": "0e534206502ddae8e3a9b560cfa028c27ac8aad4af8240e0942bcbe96432f490"
+  },
+  "exportHashes": {
+    "GodotGeometry.json": "04c7d0be34cb98fddc5022f586d349d2eb2f915554689857589ec260c7e49819",
+    "GodotOracle.json": "62f47c587279f5c7c738844f7a3b37d9540934edb5068327f01f874eb497ac6e",
+    "GodotReference.json": "f6ac230d864558467bf7aebf1ce3265891d5f1401e2bb1649e1e1ecc5a2aa503"
+  },
+  "statusMeaning": {
+    "missing": "No completed equivalent verification or implementation yet",
+    "implemented": "Code present, full acceptance not yet established",
+    "verified": "Behavior and required visual/input evidence passed",
+    "blocked": "External prerequisite unavailable"
+  },
+  "rows": [
+    {
+      "id": "items/mat",
+      "feature": "Linen mat",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/sun_cushion",
+      "feature": "Sunshine cushion",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/cave",
+      "feature": "Sheltered cat bed",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/heated",
+      "feature": "Heated cloud bed",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/box",
+      "feature": "Delivery box",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/perch",
+      "feature": "Window perch",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/tunnel",
+      "feature": "Play tunnel",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/tower",
+      "feature": "Climbing tower",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/table",
+      "feature": "Picnic table",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/plant",
+      "feature": "Leafy planter",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/rug",
+      "feature": "Whisper-soft rug",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/scratch",
+      "feature": "Rope scratcher",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/lamp",
+      "feature": "Amber lantern",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/flowers",
+      "feature": "Welcome flowers",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/blanket",
+      "feature": "Friendship blanket",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/cloud_sofa",
+      "feature": "Cloud sofa",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/adventure_tree",
+      "feature": "Adventure tree",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/canopy_bed",
+      "feature": "Canopy bed",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/reception_counter",
+      "feature": "Welcome counter",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/milkshake_counter",
+      "feature": "Milkshake counter",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/cafe_stool",
+      "feature": "Caf\u00c3\u00a9 stool",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/cafe_table",
+      "feature": "Caf\u00c3\u00a9 table",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/lounge_sofa",
+      "feature": "Lounge sofa",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/fireplace",
+      "feature": "Fireside hearth",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/garden_planter",
+      "feature": "Garden planter",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/shrub",
+      "feature": "Round shrub",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/flower_bed",
+      "feature": "Flower bed",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/garden_lamp",
+      "feature": "Garden lamp",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/bench",
+      "feature": "Garden bench",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/tree",
+      "feature": "Shade tree",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/cat_statue",
+      "feature": "Little cat statue",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/fountain",
+      "feature": "Paw fountain",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/fence",
+      "feature": "Picket fence",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/gate",
+      "feature": "Garden gate",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/pool",
+      "feature": "Kitty splash pool",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/litter",
+      "feature": "Private litter nook",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/playpen",
+      "feature": "Rainbow playpen",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "items/picnic",
+      "feature": "Catnip picnic garden",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "GodotGeometry + Catalog",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "templates/lobby",
+      "feature": "Welcoming lobby",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "HotelModel place_template",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "templates/milkshake",
+      "feature": "Milkshake caf\u00c3\u00a9",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "HotelModel place_template",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "templates/lounge",
+      "feature": "Fireside lounge",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "HotelModel place_template",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "templates/play",
+      "feature": "Adventure playroom",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "HotelModel place_template",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "templates/sunroom",
+      "feature": "Sunbeam sitting room",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "HotelModel place_template",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "templates/terrace",
+      "feature": "Garden terrace",
+      "godot": "scripts/creative/creative_content.gd",
+      "unity": "HotelModel place_template",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "maps/meadow",
+      "feature": "Meadow House",
+      "godot": "scripts/creative/creative_maps.gd",
+      "unity": "HotelState.hotels + VoxelWorld",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "maps/seaside",
+      "feature": "Seaside Suites",
+      "godot": "scripts/creative/creative_maps.gd",
+      "unity": "HotelState.hotels + VoxelWorld",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "maps/forest",
+      "feature": "Forest Lodge",
+      "godot": "scripts/creative/creative_maps.gd",
+      "unity": "HotelState.hotels + VoxelWorld",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "maps/snowcap",
+      "feature": "Snowcap Spa",
+      "godot": "scripts/creative/creative_maps.gd",
+      "unity": "HotelState.hotels + VoxelWorld",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/0",
+      "feature": "Miso",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/1",
+      "feature": "Clover",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/2",
+      "feature": "Bean",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/3",
+      "feature": "Mochi",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/4",
+      "feature": "Olive",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/5",
+      "feature": "Biscuit",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/6",
+      "feature": "Pebble",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/7",
+      "feature": "Maple",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/8",
+      "feature": "Nori",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/9",
+      "feature": "Pip",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/10",
+      "feature": "Coco",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/11",
+      "feature": "Tofu",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/12",
+      "feature": "Truffle",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/13",
+      "feature": "Ember",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/14",
+      "feature": "Captain",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/15",
+      "feature": "Flurry",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/16",
+      "feature": "Juniper",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "cats/17",
+      "feature": "Pearl",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "CatState + GodotCatRig",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "services/0",
+      "feature": "Rooms & housekeeping",
+      "godot": "scripts/creative/creative_model.gd",
+      "unity": "HotelModel upgrade",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "services/1",
+      "feature": "Kitchen & milkshakes",
+      "godot": "scripts/creative/creative_model.gd",
+      "unity": "HotelModel upgrade",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "services/2",
+      "feature": "Lounge & play",
+      "godot": "scripts/creative/creative_model.gd",
+      "unity": "HotelModel upgrade",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "services/3",
+      "feature": "Reception & arrivals",
+      "godot": "scripts/creative/creative_model.gd",
+      "unity": "HotelModel upgrade",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "staff/0",
+      "feature": "Pippin",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "HotelModel train",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "staff/1",
+      "feature": "Saffron",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "HotelModel train",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "staff/2",
+      "feature": "Buttons",
+      "godot": "scripts/creative/../core/game_content.gd",
+      "unity": "HotelModel train",
+      "behavioralEvidence": "tests/unity-domain/Program.cs; source fixture GodotReference.json",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/buy_plot",
+      "feature": "buy plot",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/place_room",
+      "feature": "place room",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/move_room",
+      "feature": "move room",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/resize_room",
+      "feature": "resize room",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/copy_room",
+      "feature": "copy room",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/remove_room",
+      "feature": "remove room",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/place_template",
+      "feature": "place template",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/place_object",
+      "feature": "place object",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/move_object",
+      "feature": "move object",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/retrieve_object",
+      "feature": "retrieve object",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/store_object",
+      "feature": "store object",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/paint_path",
+      "feature": "paint path",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/erase_path",
+      "feature": "erase path",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/upgrade",
+      "feature": "upgrade",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/train",
+      "feature": "train",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/hire_housekeeper",
+      "feature": "hire housekeeper",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/undo",
+      "feature": "undo",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/redo",
+      "feature": "redo",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/collect",
+      "feature": "collect",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/travel",
+      "feature": "travel",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/playdate",
+      "feature": "playdate",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/care",
+      "feature": "care",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/set_god_mode",
+      "feature": "set god mode",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/grant_entitlement",
+      "feature": "grant entitlement",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/reset",
+      "feature": "reset",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "action/retry_save",
+      "feature": "retry save",
+      "godot": "scripts/creative/creative_model.gd; creative_app.gd",
+      "unity": "HotelModel + HotelParityUI",
+      "behavioralEvidence": "GodotOracle.json; tests/unity-domain/Program.cs",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "setting/motion",
+      "feature": "motion",
+      "godot": "scripts/creative/creative_ui.gd",
+      "unity": "HotelParityUI + HotelState.settings",
+      "behavioralEvidence": "Pending full settings pointer matrix",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "setting/music",
+      "feature": "music",
+      "godot": "scripts/creative/creative_ui.gd",
+      "unity": "HotelParityUI + HotelState.settings",
+      "behavioralEvidence": "Pending full settings pointer matrix",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "setting/sound",
+      "feature": "sound",
+      "godot": "scripts/creative/creative_ui.gd",
+      "unity": "HotelParityUI + HotelState.settings",
+      "behavioralEvidence": "Pending full settings pointer matrix",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "setting/exterior",
+      "feature": "exterior",
+      "godot": "scripts/creative/creative_ui.gd",
+      "unity": "HotelParityUI + HotelState.settings",
+      "behavioralEvidence": "Pending full settings pointer matrix",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "setting/evening",
+      "feature": "evening",
+      "godot": "scripts/creative/creative_ui.gd",
+      "unity": "HotelParityUI + HotelState.settings",
+      "behavioralEvidence": "Pending full settings pointer matrix",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "setting/ui_text_scale",
+      "feature": "ui_text_scale",
+      "godot": "scripts/creative/creative_ui.gd",
+      "unity": "HotelParityUI + HotelState.settings",
+      "behavioralEvidence": "Pending full settings pointer matrix",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "setting/god_mode",
+      "feature": "god_mode",
+      "godot": "scripts/creative/creative_ui.gd",
+      "unity": "HotelParityUI + HotelState.settings",
+      "behavioralEvidence": "Pending full settings pointer matrix",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/orthographic camera and wheel/pinch input",
+      "feature": "orthographic camera and wheel/pinch input",
+      "godot": "scripts/creative/creative_world.gd",
+      "unity": "VoxelWorldInput",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/six sidewalk cats per destination",
+      "feature": "six sidewalk cats per destination",
+      "godot": "scripts/creative/creative_neighborhood.gd",
+      "unity": "NeighborhoodView",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/arrival/check-in/roster turnover",
+      "feature": "arrival/check-in/roster turnover",
+      "godot": "scripts/creative/creative_social.gd",
+      "unity": "HotelLife",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/venue and seat reservations",
+      "feature": "venue and seat reservations",
+      "godot": "scripts/creative/creative_social.gd",
+      "unity": "HotelLife",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/ordering/serving/drinking",
+      "feature": "ordering/serving/drinking",
+      "godot": "scripts/creative/creative_social.gd",
+      "unity": "HotelLife + GodotCatRig",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/rest/sleep/play/sunbathe",
+      "feature": "rest/sleep/play/sunbathe",
+      "godot": "scripts/creative/creative_social.gd",
+      "unity": "HotelLife + GodotCatRig",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/dirt/housekeeping",
+      "feature": "dirt/housekeeping",
+      "godot": "scripts/creative/creative_model.gd; creative_social.gd",
+      "unity": "HotelLife",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/conversations/gestures/friendship",
+      "feature": "conversations/gestures/friendship",
+      "godot": "scripts/creative/creative_dialogue.gd; creative_life.gd",
+      "unity": "HotelLife + GodotCatRig",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/fountain spillways/splashes",
+      "feature": "fountain spillways/splashes",
+      "godot": "scripts/creative/creative_water_motion.gd",
+      "unity": "GodotObjectMotion",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/fire/embers/cafe/toy/litter/furniture effects",
+      "feature": "fire/embers/cafe/toy/litter/furniture effects",
+      "godot": "scripts/creative/creative_object_motion.gd",
+      "unity": "GodotObjectMotion",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/foliage/lamp/evening lighting",
+      "feature": "foliage/lamp/evening lighting",
+      "godot": "scripts/creative/creative_world.gd",
+      "unity": "VoxelWorld",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/context music and interaction audio",
+      "feature": "context music and interaction audio",
+      "godot": "scripts/creative/../audio/audio_director.gd",
+      "unity": "HotelAudio",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/eight-hour offline income",
+      "feature": "eight-hour offline income",
+      "godot": "scripts/creative/creative_model.gd",
+      "unity": "HotelModel.Reconcile",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/journal corruption/interrupted writes/rollback",
+      "feature": "journal corruption/interrupted writes/rollback",
+      "godot": "scripts/creative/../core/game_store.gd",
+      "unity": "JournalSaveStore",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/prototype backup/new parity profile",
+      "feature": "prototype backup/new parity profile",
+      "godot": "scripts/creative/Unity-only migration contract",
+      "unity": "ParityProfile",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "system/return from care with live simulation",
+      "feature": "return from care with live simulation",
+      "godot": "scripts/creative/creative_ui.gd; creative_care_screen.gd",
+      "unity": "HotelUI + HotelApp",
+      "behavioralEvidence": "Pending final source-equivalence suite",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "gesture/pet",
+      "feature": "pet interaction",
+      "godot": "scripts/creative/creative_care_stage.gd",
+      "unity": "CareGestureInput + VoxelWorldCare",
+      "behavioralEvidence": "Care rewards checked; pointer gesture evidence pending",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "gesture/brush",
+      "feature": "brush interaction",
+      "godot": "scripts/creative/creative_care_stage.gd",
+      "unity": "CareGestureInput + VoxelWorldCare",
+      "behavioralEvidence": "Care rewards checked; pointer gesture evidence pending",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "gesture/wand",
+      "feature": "wand interaction",
+      "godot": "scripts/creative/creative_care_stage.gd",
+      "unity": "CareGestureInput + VoxelWorldCare",
+      "behavioralEvidence": "Care rewards checked; pointer gesture evidence pending",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "gesture/yarn",
+      "feature": "yarn interaction",
+      "godot": "scripts/creative/creative_care_stage.gd",
+      "unity": "CareGestureInput + VoxelWorldCare",
+      "behavioralEvidence": "Care rewards checked; pointer gesture evidence pending",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "gesture/cushion",
+      "feature": "cushion interaction",
+      "godot": "scripts/creative/creative_care_stage.gd",
+      "unity": "CareGestureInput + VoxelWorldCare",
+      "behavioralEvidence": "Care rewards checked; pointer gesture evidence pending",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "gesture/box",
+      "feature": "box interaction",
+      "godot": "scripts/creative/creative_care_stage.gd",
+      "unity": "CareGestureInput + VoxelWorldCare",
+      "behavioralEvidence": "Care rewards checked; pointer gesture evidence pending",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "implemented"
+    },
+    {
+      "id": "suite/test_creative_app",
+      "feature": "test_creative_app",
+      "godot": "tests\\test_creative_app.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_building",
+      "feature": "test_creative_building",
+      "godot": "tests\\test_creative_building.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_care",
+      "feature": "test_creative_care",
+      "godot": "tests\\test_creative_care.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_care_state",
+      "feature": "test_creative_care_state",
+      "godot": "tests\\test_creative_care_state.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_content",
+      "feature": "test_creative_content",
+      "godot": "tests\\test_creative_content.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_counter_camera",
+      "feature": "test_creative_counter_camera",
+      "godot": "tests\\test_creative_counter_camera.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_dense",
+      "feature": "test_creative_dense",
+      "godot": "tests\\test_creative_dense.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_gestures",
+      "feature": "test_creative_gestures",
+      "godot": "tests\\test_creative_gestures.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_god_mode",
+      "feature": "test_creative_god_mode",
+      "godot": "tests\\test_creative_god_mode.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_life",
+      "feature": "test_creative_life",
+      "godot": "tests\\test_creative_life.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_lighting",
+      "feature": "test_creative_lighting",
+      "godot": "tests\\test_creative_lighting.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Native rendered baseline pending",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_maps_integration",
+      "feature": "test_creative_maps_integration",
+      "godot": "tests\\test_creative_maps_integration.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_meadow",
+      "feature": "test_creative_meadow",
+      "godot": "tests\\test_creative_meadow.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_menu_scroll",
+      "feature": "test_creative_menu_scroll",
+      "godot": "tests\\test_creative_menu_scroll.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_model",
+      "feature": "test_creative_model",
+      "godot": "tests\\test_creative_model.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_moments",
+      "feature": "test_creative_moments",
+      "godot": "tests\\test_creative_moments.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_movement",
+      "feature": "test_creative_movement",
+      "godot": "tests\\test_creative_movement.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_neighborhood",
+      "feature": "test_creative_neighborhood",
+      "godot": "tests\\test_creative_neighborhood.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_object_motion",
+      "feature": "test_creative_object_motion",
+      "godot": "tests\\test_creative_object_motion.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_save_integrity",
+      "feature": "test_creative_save_integrity",
+      "godot": "tests\\test_creative_save_integrity.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_services",
+      "feature": "test_creative_services",
+      "godot": "tests\\test_creative_services.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_social",
+      "feature": "test_creative_social",
+      "godot": "tests\\test_creative_social.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_speech",
+      "feature": "test_creative_speech",
+      "godot": "tests\\test_creative_speech.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_ui",
+      "feature": "test_creative_ui",
+      "godot": "tests\\test_creative_ui.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_voxel_polish",
+      "feature": "test_creative_voxel_polish",
+      "godot": "tests\\test_creative_voxel_polish.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "suite/test_creative_world",
+      "feature": "test_creative_world",
+      "godot": "tests\\test_creative_world.gd",
+      "unity": "tests/unity-domain; Unity EditMode; runtime acceptance",
+      "behavioralEvidence": "Godot baseline passed",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "delivery/Windows build",
+      "feature": "Windows build",
+      "godot": "Approved full parity plan",
+      "unity": "Unity 6.3 build pipeline",
+      "behavioralEvidence": "Pending current integrated build verification",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "delivery/Android build",
+      "feature": "Android build",
+      "godot": "Approved full parity plan",
+      "unity": "Unity 6.3 build pipeline",
+      "behavioralEvidence": "Pending current integrated build verification",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "delivery/iOS export",
+      "feature": "iOS export",
+      "godot": "Approved full parity plan",
+      "unity": "Unity 6.3 build pipeline",
+      "behavioralEvidence": "Pending current integrated build verification",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "delivery/dense Windows 60 FPS",
+      "feature": "dense Windows 60 FPS",
+      "godot": "Approved full parity plan",
+      "unity": "Unity 6.3 build pipeline",
+      "behavioralEvidence": "Pending current integrated build verification",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "missing"
+    },
+    {
+      "id": "delivery/physical Android/iOS 30 FPS",
+      "feature": "physical Android/iOS 30 FPS",
+      "godot": "Approved full parity plan",
+      "unity": "Unity 6.3 build pipeline",
+      "behavioralEvidence": "Pending current integrated build verification",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "blocked"
+    },
+    {
+      "id": "delivery/mobile signing",
+      "feature": "mobile signing",
+      "godot": "Approved full parity plan",
+      "unity": "Unity 6.3 build pipeline",
+      "behavioralEvidence": "Pending current integrated build verification",
+      "visualInputEvidence": "Pending matched player capture and input verification",
+      "status": "blocked"
+    }
+  ]
+}

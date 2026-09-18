@@ -1,0 +1,1 @@
+{"name":"Purrington.Presentation","rootNamespace":"Purrington.Presentation","references":["Purrington.Domain","Unity.InputSystem","Unity.TextMeshPro","Unity.ugui","Unity.RenderPipelines.Universal.Runtime","Unity.RenderPipelines.Core.Runtime"]}

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Passed" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-18 19:57:43Z" end-time="2026-09-18 19:57:46Z" duration="2.9687371">
+  <test-suite type="TestSuite" id="1000" name="Purrington Hotel Unity Preview" fullname="Purrington Hotel Unity Preview" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-18 19:57:43Z" end-time="2026-09-18 19:57:46Z" duration="2.968737" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1009" name="Purrington.EditModeTests.dll" fullname="C:/Users/zach7/Repos/Projects/cat-hotel/unity/PurringtonHotel/Library/ScriptAssemblies/Purrington.EditModeTests.dll" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-18 19:57:43Z" end-time="2026-09-18 19:57:46Z" duration="2.964140" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="109612" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1010" name="Purrington" fullname="Purrington" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-18 19:57:43Z" end-time="2026-09-18 19:57:46Z" duration="2.963873" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1011" name="Tests" fullname="Purrington.Tests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-18 19:57:43Z" end-time="2026-09-18 19:57:46Z" duration="2.963715" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="MeadowEditModeTests" fullname="Purrington.Tests.MeadowEditModeTests" classname="Purrington.Tests.MeadowEditModeTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-18 19:57:43Z" end-time="2026-09-18 19:57:46Z" duration="2.962935" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1007" name="AuthoritativeLifeMovesSafelyAndCompletesVisits" fullname="Purrington.Tests.MeadowEditModeTests.AuthoritativeLifeMovesSafelyAndCompletesVisits" methodname="AuthoritativeLifeMovesSafelyAndCompletesVisits" classname="Purrington.Tests.MeadowEditModeTests" runstate="Runnable" seed="638609357" result="Passed" start-time="2026-09-18 19:57:43Z" end-time="2026-09-18 19:57:44Z" duration="0.757863" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1006" name="DictionarySaveRoundTripRetainsAllDestinations" fullname="Purrington.Tests.MeadowEditModeTests.DictionarySaveRoundTripRetainsAllDestinations" methodname="DictionarySaveRoundTripRetainsAllDestinations" classname="Purrington.Tests.MeadowEditModeTests" runstate="Runnable" seed="1810684343" result="Passed" start-time="2026-09-18 19:57:44Z" end-time="2026-09-18 19:57:44Z" duration="0.033710" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1003" name="EveryArrangementSupportsEveryRotation" fullname="Purrington.Tests.MeadowEditModeTests.EveryArrangementSupportsEveryRotation" methodname="EveryArrangementSupportsEveryRotation" classname="Purrington.Tests.MeadowEditModeTests" runstate="Runnable" seed="1114116483" result="Passed" start-time="2026-09-18 19:57:44Z" end-time="2026-09-18 19:57:45Z" duration="0.744181" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1005" name="FavoriteCareCooldownAndUndoPreserveProgress" fullname="Purrington.Tests.MeadowEditModeTests.FavoriteCareCooldownAndUndoPreserveProgress" methodname="FavoriteCareCooldownAndUndoPreserveProgress" classname="Purrington.Tests.MeadowEditModeTests" runstate="Runnable" seed="1415551906" result="Passed" start-time="2026-09-18 19:57:45Z" end-time="2026-09-18 19:57:45Z" duration="0.055134" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1008" name="GodModeAndOfflineClaimRollback" fullname="Purrington.Tests.MeadowEditModeTests.GodModeAndOfflineClaimRollback" methodname="GodModeAndOfflineClaimRollback" classname="Purrington.Tests.MeadowEditModeTests" runstate="Runnable" seed="1902532147" result="Passed" start-time="2026-09-18 19:57:45Z" end-time="2026-09-18 19:57:46Z" duration="1.094864" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1004" name="QuotesAndFailedSavesAreTransactional" fullname="Purrington.Tests.MeadowEditModeTests.QuotesAndFailedSavesAreTransactional" methodname="QuotesAndFailedSavesAreTransactional" classname="Purrington.Tests.MeadowEditModeTests" runstate="Runnable" seed="1316656871" result="Passed" start-time="2026-09-18 19:57:46Z" end-time="2026-09-18 19:57:46Z" duration="0.028226" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="ReferenceContentIncludesFourMapsSixArrangementsAndAllCats" fullname="Purrington.Tests.MeadowEditModeTests.ReferenceContentIncludesFourMapsSixArrangementsAndAllCats" methodname="ReferenceContentIncludesFourMapsSixArrangementsAndAllCats" classname="Purrington.Tests.MeadowEditModeTests" runstate="Runnable" seed="1694698770" result="Passed" start-time="2026-09-18 19:57:46Z" end-time="2026-09-18 19:57:46Z" duration="0.239368" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/zach7/AppData/LocalLow/Purrington/Purrington Hotel Unity Preview\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

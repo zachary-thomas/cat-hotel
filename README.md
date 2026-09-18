@@ -8,6 +8,12 @@ The neighborhood and lower desks appear when loading an existing save; no reset 
 
 Cats now trade little conversations in readable speech bubbles, with matching waves, head tilts and happy reactions. Fireplaces flicker and spark, fountains spurt, litter scatters during digging, and milkshake machines vibrate during service. Boxes, scratchers, toys, cushions and garden decorations also respond with small movements. See [the in-game animations](docs/creative-preview/lively-hotel/README.md). Existing furnishings gain these details automatically, and the Animated motion setting controls them.
 
+## Unity migration preview
+
+The new [Unity project](unity/PurringtonHotel/README.md) preserves **voxel 3D, orthographic isometric gameplay**, with a brighter mobile interface. A Windows development build succeeds, 13 Unity EditMode tests pass, and an automated runtime smoke check captures 18 screens without exceptions. This is an initial Meadow slice; complete pointer/device walkthroughs and full Godot feature parity remain outstanding. The existing Godot game below remains available and unchanged as the reference. See [Unity screenshots and test evidence](docs/unity-migration/evidence/README.md).
+
+The project now pins installed **Unity 6000.3.24f1 LTS**. The Windows preview and 13 EditMode tests have been verified on 6.3; rendering and input packages were upgraded by Unity.
+
 ## Play the current game
 
 **Godot project Play (F5), the standard Windows launcher, and both preview packages now use the redesigned hotel.** The main project scene is `scenes/creative_hotel.tscn`.

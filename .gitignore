@@ -6,3 +6,24 @@ builds/
 tmp/
 *.tmp
 *.log
+
+# Unity migration: generated caches and local editor state
+unity/**/[Ll]ibrary/
+unity/**/[Tt]emp/
+unity/**/[Oo]bj/
+unity/**/[Ll]ogs/
+unity/**/[Uu]ser[Ss]ettings/
+unity/**/[Bb]uild/
+unity/**/[Bb]uilds/
+unity/**/.vs/
+unity/**/*.csproj
+unity/**/*.sln
+unity/**/*.slnx
+unity/**/*.pidb
+unity/**/*.user
+unity/**/MemoryCaptures/
+unity/**/Recordings/
+tests/unity-domain/bin/
+tests/unity-domain/obj/
+
+unity/**/.utmp/

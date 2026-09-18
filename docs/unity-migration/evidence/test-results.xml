@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Purrington Hotel Unity Preview" tests="13" failures="0" errors="0" skipped="0" time="0.146">
+  <testsuite name="Purrington.Tests.MeadowEditModeTests" tests="13" failures="0" errors="0" skipped="0" time="0.146">
+    <testcase name="AuthoredSeed_DoesNotOverrideExistingSavedProgress" classname="Purrington.Tests.MeadowEditModeTests" time="0.027" />
+    <testcase name="AuthoredSeed_IsCopiedAtConstructionAndIsolatedFromPlayState" classname="Purrington.Tests.MeadowEditModeTests" time="0.003" />
+    <testcase name="BothCorruptSlots_ArePreservedAndCannotBeOverwritten" classname="Purrington.Tests.MeadowEditModeTests" time="0.017" />
+    <testcase name="FailedConstructionSave_RestoresWalletLayoutAndId" classname="Purrington.Tests.MeadowEditModeTests" time="0.010" />
+    <testcase name="FirstSaveWriteFailure_RetryPreservesUnsavedEarningsAndTime" classname="Purrington.Tests.MeadowEditModeTests" time="0.007" />
+    <testcase name="FurnishedRoomMoveAndRotation_PreserveOffsetsAndDoorAccess" classname="Purrington.Tests.MeadowEditModeTests" time="0.018" />
+    <testcase name="JournalDirectSave_AlsoInspectsExistingCorruptSlots" classname="Purrington.Tests.MeadowEditModeTests" time="0.008" />
+    <testcase name="Previews_DoNotChargeMutateOrPersist" classname="Purrington.Tests.MeadowEditModeTests" time="0.001" />
+    <testcase name="RemovingFurnishedRoom_StoresChildrenAndUndoRestoresThemOnce" classname="Purrington.Tests.MeadowEditModeTests" time="0.001" />
+    <testcase name="StorageRetrievalAndUndo_NeverRefundOrDuplicateFurniture" classname="Purrington.Tests.MeadowEditModeTests" time="0.018" />
+    <testcase name="UndoPreservesEarnedCoinsAndFriendship" classname="Purrington.Tests.MeadowEditModeTests" time="0.009" />
+    <testcase name="UnityJournal_LoadsNewestAndFallsBackAfterInterruptedSlot" classname="Purrington.Tests.MeadowEditModeTests" time="0.026" />
+    <testcase name="UnityJson_RoundTripsInventorySettingsAndCareCooldown" classname="Purrington.Tests.MeadowEditModeTests" time="0.001">
+      <system-out>Saving results to: C:/Users/zach7/AppData/LocalLow/Purrington/Purrington Hotel Unity Preview\TestResults.xml</system-out>
+    </testcase>
+  </testsuite>
+</testsuites>
