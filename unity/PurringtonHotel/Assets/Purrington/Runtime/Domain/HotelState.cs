@@ -34,7 +34,7 @@ public struct LotPoint {public float x,z;public LotPoint(float x,float z){this.x
 public sealed class RoomStatusInfo {public bool ready;public string status,message;public double bonus;}
 public sealed class VenueSlot {public string key,action;public float x,z;}
 public sealed class VenueSnapshot {public string id,item,name,room,role,status;public bool open;public int service,capacity;public float x,z;public string[] tags;public List<VenueSlot> slots=new List<VenueSlot>();public VenueSlot staffSlot;}
-public sealed class ActorSnapshot {public string id,name,role,action="rest",venueId="",speech="",gesture="";public int catId;public string phase,slot,sourceRoom;public bool checkedIn,drink;public float remaining;public int completed;public float x,z,facing,activityElapsed,activityDuration;public long activityToken;}
+public sealed class ActorSnapshot {public string id,name,role,action="rest",venueId="",speech="",gesture="",intent="";public int catId;public string phase,slot,sourceRoom;public bool checkedIn,drink;public float remaining;public int completed;public float x,z,facing,activityElapsed,activityDuration;public long activityToken;}
 }
 
 

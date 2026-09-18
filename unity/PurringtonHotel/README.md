@@ -39,7 +39,7 @@ Follow-up fixes preserve the in-memory hotel when Retry follows an initial save-
 
 ## Known limits and next work
 
-- Cat views follow reception → play → bedside-rest routines. These are visual routines without exclusive venue reservations; the authoritative Godot service/seating simulation, capacity rotation, housekeeping, conversations, gatherings, and scrapbook remain to port.
+- HotelLife + VoxelWorld.SyncActors drive exclusive venue/seat reservations, capacity release on layout/capacity change, milkshake order→serve→drink, housekeeping, and social moments; verification suites and scrapbook still open.
 - Income and arrivals use a simplified ready-room model, not full Godot economy/capacity parity. The catalogue is a subset; land expansion, paths, room copy/resize, furnished templates, complete unlocks, and God mode remain later work.
 - Pet, Brush, Feather, Yarn, Cushion, and Box use selected-tool/tap actions and visual responses. Full stroke, hold, drag/flick, and physics interaction parity remains outstanding.
 - The two-slot journal and rollback/history implementation do not establish complete migration parity. Offline reconciliation, all failure/recovery states, lifecycle reliability, and Unity serialization/device behavior need further verification.
