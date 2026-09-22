@@ -196,7 +196,7 @@ namespace Purrington.Presentation
                         if(!parentViewport.Contains(strip.center))
                         {
                             float bottom=Mathf.Lerp(parentViewport.yMin,parentViewport.yMax,.25f),top=Mathf.Lerp(parentViewport.yMin,parentViewport.yMax,.75f);
-                            yield return MouseGesture(new Vector2(parentViewport.center.x,bottom),new Vector2(parentViewport.center.x,top),.18f);continue;
+                            yield return MouseGesture(new Vector2(parentViewport.center.x,top),new Vector2(parentViewport.center.x,bottom),.18f);continue;
                         }
                     }
                     float left=Mathf.Lerp(viewport.xMin,viewport.xMax,.25f),right=Mathf.Lerp(viewport.xMin,viewport.xMax,.75f);
@@ -230,7 +230,11 @@ namespace Purrington.Presentation
         IEnumerator DrawRoom(bool withTouch)
         {
             int before=app.Model.Hotel().rooms.Count;
-            if(!withTouch)yield return Click("Hotel","Catalogue categories");yield return Click("Draw","Bedroom");
+            if(!withTouch)
+            {
+                yield return Click("Hotel","Catalogue categories");
+            }
+            yield return Click("Draw","Bedroom");
             Check((withTouch?"touch":"mouse")+" bedroom draw opened",app.UI.IsPlacing);
             if(!FindRoomDraw(withTouch,out int x,out int z))
             {
