@@ -246,7 +246,7 @@ git commit -m "feat(world): render hotel shell floors, walls, doors, windows, ar
 **Files:**
 - Modify: `unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/VoxelWorldInput.cs`
 
-- [ ] **Step 1: Two fingers pan as well as pinch**
+- [x] **Step 1: Two fingers pan as well as pinch**
 
 In `ReadInput`:
 1. Change `pinchActive=true; pinchFirstId=firstId; pinchSecondId=secondId;` to `pinchActive=true; pinchFirstId=firstId; pinchSecondId=secondId; pinchMidValid=false;`.
@@ -259,7 +259,7 @@ In `ReadInput`:
                     pinchMid=mid; pinchMidValid=true;
 ```
 
-- [ ] **Step 2: Draw above the finger, and report the stroke end**
+- [x] **Step 2: Draw above the finger, and report the stroke end**
 
 1. Change `if(pathPainting) { GroundDragged?.Invoke(ScreenToGround(point)); }` to `if(pathPainting) { GroundDragged?.Invoke(ScreenToGround(DrawPoint(point))); }`.
 2. In the `if(end && pressed)` block, change its first statement `pressed=false;` to `pressed=false; if(pathPainting) GroundDragEnded?.Invoke();`.
@@ -268,7 +268,7 @@ In `ReadInput`:
 
 Run: `.\tools\unity.ps1 Test` (exit 0). In the editor, open **Window → General → Device Simulator** and pick a phone. In Build → Paths, a one-finger drag paints with the cells appearing about 0.35 inch above the finger, and a two-finger drag pans the camera. Outside paint mode, one-finger drag still pans.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/VoxelWorldInput.cs
