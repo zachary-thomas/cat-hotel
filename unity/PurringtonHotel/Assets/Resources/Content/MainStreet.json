@@ -24,6 +24,7 @@
     {"id":"paw_mart","door":"paw_mart_door","cashier":"paw_mart_cashier","footprint":{"x":22,"z":-6,"w":12,"d":14}},
     {"id":"clothing","door":"clothing_door","cashier":"clothing_cashier","footprint":{"x":22,"z":25,"w":12,"d":12}}
   ],
-  "offers": [],
+  "offers": [{"id":"welcome_basket","name":"Welcome Basket","price":30,"store":"paw_mart"},{"id":"market_bundle","name":"Market Day bundle","price":80,"store":"paw_mart"}],
+  "quests": [{"id":"welcome_picnic","name":"Welcome Picnic","store":"paw_mart","requiresSpecial":"welcome_basket","cat":5,"knownCoins":40},{"id":"first_look","name":"First Look","store":"clothing","grantWear":"store_ribbon","requiresWear":"store_ribbon"}],
   "event": {"id":"market_day","anchor":"square","duration":90}
 }

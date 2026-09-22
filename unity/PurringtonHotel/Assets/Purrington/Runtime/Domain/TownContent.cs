@@ -20,6 +20,10 @@ namespace Purrington.Domain
   readonly Dictionary<string,Node> nodes=new Dictionary<string,Node>(StringComparer.Ordinal);
   readonly Dictionary<string,string> coats=new Dictionary<string,string>(StringComparer.Ordinal);
   readonly HashSet<string> markings=new HashSet<string>(StringComparer.Ordinal);
+  readonly Dictionary<string,JObject> quests=new Dictionary<string,JObject>(StringComparer.Ordinal);
+  public IEnumerable<JObject> Quests=>quests.Values;
+  public IEnumerable<JObject> Offers=>offers.Values;
+  public JObject Quest(string id)=>id!=null&&quests.TryGetValue(id,out var quest)?quest:null;
   readonly Dictionary<string,JObject> offers=new Dictionary<string,JObject>(StringComparer.Ordinal);
   readonly Dictionary<string,Store> stores=new Dictionary<string,Store>(StringComparer.Ordinal);
   readonly Dictionary<string,List<string>> links=new Dictionary<string,List<string>>(StringComparer.Ordinal);
@@ -130,8 +134,9 @@ namespace Purrington.Domain
    foreach(var token in Array(root,"offers"))
    {
     if(!(token is JObject raw))throw new FormatException("Invalid offer");
-    string id=RequiredString(raw["id"],"offer id");AddId(allIds,id);town.offers.Add(id,raw);
+    string id=RequiredString(raw["id"],"offer id");AddId(allIds,id);RequiredString(raw["name"],"offer name");if(Number(raw["price"],"offer price")<0||town.Shop((string)raw["store"])==null)throw new FormatException("Invalid offer");town.offers.Add(id,raw);
    }
+   foreach(var token in Array(root,"quests")){if(!(token is JObject raw))throw new FormatException("Invalid quest");string id=RequiredString(raw["id"],"quest id");AddId(allIds,id);RequiredString(raw["name"],"quest name");if(town.Shop((string)raw["store"])==null)throw new FormatException("Invalid quest store");if(raw["requiresSpecial"]!=null&&town.Offer((string)raw["requiresSpecial"])==null)throw new FormatException("Invalid quest special");if(raw["cat"]!=null){float cat=Number(raw["cat"],"quest cat");if(cat<0||cat>=18||cat!=Math.Floor(cat)||Number(raw["knownCoins"],"quest reward")<0)throw new FormatException("Invalid quest reward");}foreach(string field in new[]{"grantWear","requiresWear"})if(raw[field]!=null)RequiredString(raw[field],field);town.quests.Add(id,raw);}
    if(!(root["event"] is JObject evt))throw new FormatException("Missing town event");
    AddId(allIds,RequiredString(evt["id"],"event id"));
    if(!town.IsStreetTarget(RequiredString(evt["anchor"],"event anchor"))||Number(evt["duration"],"event duration")<=0)throw new FormatException("Invalid town event");

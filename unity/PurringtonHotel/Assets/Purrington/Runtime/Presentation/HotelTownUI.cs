@@ -1,4 +1,5 @@
 using Purrington.Domain;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 namespace Purrington.Presentation {
@@ -70,10 +71,30 @@ namespace Purrington.Presentation {
     Info(content,"INSIDE THE SHOP","Walk to the cashier to talk, see quests, or browse.");return;
    }
    if(storeChoice.Length>0){
-    string line=storeChoice=="Talk"?(interior.ActiveStoreId=="paw_mart"?"Miso: Welcome in! I saved the freshest finds for you.":"Clover: Find a look that feels like you."):storeChoice=="Quest"?"Shop quests will appear here.":"Shop catalogue will appear here.";
-    Info(content,storeChoice,line);Height(Button(content,"Back to "+name,()=>{storeChoice="";Rebuild();},Mint,14),52*textScale);return;
-   }
-   var choices=Row(content,54*textScale);Button(choices,"Talk",()=>{storeChoice="Talk";Rebuild();},Mint,14);Button(choices,"Quest",()=>{storeChoice="Quest";Rebuild();},Gold,14);
+    if(storeChoice=="Talk")Info(content,"Talk",interior.ActiveStoreId=="paw_mart"?"Miso: Welcome in! These specials are optional treats for your hotel.":"Clover: Accept First Look for a free ribbon, then equip it on your manager.");
+    else if(storeChoice=="Quest"){
+     foreach(var quest in TownContent.Current.Quests.Where(q=>(string)q["store"]==interior.ActiveStoreId)){
+      string id=(string)quest["id"];bool accepted=app.Model.TownQuestAccepted(id),done=app.Model.TownQuestCompleted(id);
+      Info(content,(string)quest["name"],done?"Completed · reward claimed":accepted?"Accepted":id=="first_look"?"Free ribbon · equip it on your manager":"Welcome Basket · 30 Cat Coins · invite Biscuit");
+      if(!done){Height(Button(content,accepted?"Complete quest":"Accept quest",()=>app.Report(accepted?app.Model.CompleteTownQuest(id):app.Model.AcceptTownQuest(id)),Gold,14),52*textScale);
+       if(id=="first_look"&&accepted)Height(Button(content,"Equip store ribbon",()=>app.Report(app.Model.DressManager("neck","store_ribbon")),Mint,14),52*textScale);}
+     }
+    }else if(interior.ActiveStoreId=="paw_mart"){
+     foreach(var offer in TownContent.Current.Offers.Where(o=>(string)o["store"]=="paw_mart")){
+      string id=(string)offer["id"];bool owned=app.Model.TownInventory.Contains(id);
+      Info(content,(string)offer["name"],(string)offer["price"]+" Cat Coins · "+(owned?"Owned · ready to use":"Available"));
+      if(!owned)Height(Button(content,"Buy "+(string)offer["name"],()=>app.Report(app.Model.BuyTownItem(id)),Gold,14),52*textScale);
+     }
+    }else{
+     foreach(var wear in Wardrobe.All){
+      string id=wear.id,slot=wear.slot;bool owned=app.Model.OwnsWear(id);
+      Info(content,wear.name,owned?"Owned":wear.quest!=null?"Free · First Look quest":wear.giftCat>=0?"Friendship gift · "+app.Model.State.cats[wear.giftCat].name:wear.price+" Cat Coins");
+      if(owned)Height(Button(content,"Equip on manager",()=>app.Report(app.Model.DressManager(slot,id)),Mint,14),52*textScale);
+      else if(wear.giftCat<0&&wear.quest==null)Height(Button(content,"Buy "+wear.name,()=>app.Report(app.Model.BuyWear(id)),Gold,14),52*textScale);
+     }
+    }
+    Height(Button(content,"Back to "+name,()=>{storeChoice="";Rebuild();},Mint,14),52*textScale);return;
+   }   var choices=Row(content,54*textScale);Button(choices,"Talk",()=>{storeChoice="Talk";Rebuild();},Mint,14);Button(choices,"Quest",()=>{storeChoice="Quest";Rebuild();},Gold,14);
    var actions=Row(content,54*textScale);Button(actions,"Buy",()=>{storeChoice="Buy";Rebuild();},Coral,14);Button(actions,"Leave",LeaveStore,Cream,14);
   }
  }

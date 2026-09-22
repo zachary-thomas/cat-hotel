@@ -125,8 +125,10 @@ namespace Purrington.Domain
    }
    else if(state.shop.Length==0&&TownRoute.Find(content,position,"hotel_gate").Count==0)return false;
    if(state.questFlags.Any(id=>id==null)||state.questFlags.Distinct().Count()!=state.questFlags.Count)return false;
-   // No quest IDs are authored yet. Future quest content will supply the allowlist.
-   if(state.questFlags.Count>0)return false;
+   // Only authored quest stages are accepted; completion and reward are atomic.
+   if(state.questFlags.Any(flag=>!content.Quests.Any(q=>new[]{"accepted","completed","rewarded"}.Any(stage=>flag==(string)q["id"]+":"+stage))))return false;
+   foreach(var quest in content.Quests){string id=(string)quest["id"];bool accepted=state.questFlags.Contains(id+":accepted"),completed=state.questFlags.Contains(id+":completed"),rewarded=state.questFlags.Contains(id+":rewarded");if(completed!=rewarded||completed&&!accepted)return false;string grant=(string)quest["grantWear"];if(index==0&&grant!=null&&accepted!=State.wardrobe.Contains(grant))return false;}
+   if(index!=0&&(state.questFlags.Count>0||state.specialFlags.Count>0))return false;
    if(state.specialFlags.Any(id=>id==null||content.Offer(id)==null)||state.specialFlags.Distinct().Count()!=state.specialFlags.Count)return false;
    return true;
   }

@@ -21,16 +21,17 @@ public sealed partial class HotelUI {
   foreach(var wear in Wardrobe.All.Where(w=>w.slot==wardrobeSlot)) {
    var item=wear;bool owned=app.Model.OwnsWear(item.id),wearing=item.id==worn,gift=item.giftCat>=0;
    string giftNote=gift&&item.giftCat<app.Model.State.cats.Count?"Gift from "+app.Model.State.cats[item.giftCat].name+" at friendship "+item.giftBond:"Friendship gift";
-   string note=wearing?"Wearing now":gift?giftNote:owned?"In the wardrobe":item.price.ToString("N0")+" coins";
-   string action=wearing?"Worn":owned?"Wear":gift?"Locked":tryingOn==item.id?"Buy & wear":"Try on";
+   bool questLocked=!owned&&item.quest!=null;
+   string note=questLocked?"Free from First Look at Thread & Paw":wearing?"Wearing now":gift?giftNote:owned?"In the wardrobe":item.price.ToString("N0")+" coins";
+   string action=questLocked?"Quest reward":wearing?"Worn":owned?"Wear":gift?"Locked":tryingOn==item.id?"Buy & wear":"Try on";
    Card(content,item.name,note,action,()=>{
     if(owned){Wear(cat.id,item.id);return;}
-    if(gift)return;
+    if(gift||questLocked)return;
     if(tryingOn!=item.id){tryingOn=item.id;var preview=new Dictionary<string,string>(cat.outfit){{item.slot,item.id}};app.World.PreviewOutfit(preview);Rebuild();return;}
     var bought=app.Model.BuyWear(item.id);
     if(!bought.success){app.Report(bought);app.World.PreviewOutfit(app.Model.State.cats.First(c=>c.id==cat.id).outfit);tryingOn="";Rebuild();return;}
     app.Audio?.PlayEffect("spend");Wear(cat.id,item.id);
-   },wearing?Gold:Mint,!wearing&&(owned||!gift));
+   },wearing?Gold:Mint,!wearing&&!questLocked&&(owned||!gift));
   }
  }
 
