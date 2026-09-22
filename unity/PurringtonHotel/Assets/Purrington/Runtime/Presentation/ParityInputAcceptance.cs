@@ -183,11 +183,22 @@ namespace Purrington.Presentation
             for(int step=0;step<36;step++)
             {
                 button=FindButton(label,ancestor);if(button)break;
-                var scroll=app.UI.GetComponentsInChildren<ScrollRect>().FirstOrDefault(s=>(ancestor=="Catalogue categories"?s.horizontal:s.vertical)&&s.isActiveAndEnabled);
+                var scrolls=app.UI.GetComponentsInChildren<ScrollRect>();
+                var scroll=scrolls.FirstOrDefault(s=>(ancestor=="Catalogue categories"?s.horizontal:s.vertical)&&s.isActiveAndEnabled);
                 if(!scroll)break;
                 var viewport=HotelUI.ScreenBounds(scroll.viewport);
                 if(scroll.horizontal)
                 {
+                    var parent=scrolls.FirstOrDefault(s=>s.vertical&&s.isActiveAndEnabled);
+                    if(parent)
+                    {
+                        var parentViewport=HotelUI.ScreenBounds(parent.viewport);var strip=HotelUI.ScreenBounds((RectTransform)scroll.transform);
+                        if(!parentViewport.Contains(strip.center))
+                        {
+                            float bottom=Mathf.Lerp(parentViewport.yMin,parentViewport.yMax,.25f),top=Mathf.Lerp(parentViewport.yMin,parentViewport.yMax,.75f);
+                            yield return MouseGesture(new Vector2(parentViewport.center.x,bottom),new Vector2(parentViewport.center.x,top),.18f);continue;
+                        }
+                    }
                     float left=Mathf.Lerp(viewport.xMin,viewport.xMax,.25f),right=Mathf.Lerp(viewport.xMin,viewport.xMax,.75f);
                     yield return MouseGesture(new Vector2(left,viewport.center.y),new Vector2(right,viewport.center.y),.18f);continue;
                 }
