@@ -187,4 +187,21 @@ static class ShellSuites
 		coins=pavilion.State.coins;Check(pavilion.Execute("place_room",Room(px,pz,4,3,0)).success&&Math.Abs(coins-pavilion.State.coins-450)<.01&&!HotelModel.Interior(pavilion.Hotel(),pavilion.Hotel().rooms.Last()),"rooms: place_room on bare land is still a 450-coin pavilion");
 		Console.WriteLine("Shell rooms suite passed");
 	}
+	public static void RunInteriorEdits(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;var lot=m.Hotel();lot.rooms.Clear();lot.floors.Clear();lot.objects.Clear();lot.paths.Clear();
+		Check(FindClear(m,8,10,out int x,out int z),"edits: clear land");
+		Check(m.Execute("draw_room",Room(x,z,4,3,0)).success,"edits: interior bedroom");var room=m.Hotel().rooms.Last();
+		double coins=m.State.coins;var moved=m.Execute("move_room",new JObject{{"id",room.id},{"x",x+1},{"y",z}});
+		Check(moved.success&&HotelModel.Interior(m.Hotel(),room)&&Math.Abs(coins-m.State.coins-60)<.01,"edits: nudging onto bare land grows the hotel by 3 tiles ("+moved.message+")");
+		Check(HotelModel.Floor(m.Hotel(),0).cells.ContainsKey(ShellGrid.Cell(x,z)),"edits: the vacated column stays as lobby floor");
+		coins=m.State.coins;var grown=m.Execute("resize_room",new JObject{{"id",room.id},{"w",5},{"h",3}});
+		Check(grown.success&&HotelModel.Interior(m.Hotel(),room)&&Math.Abs(coins-m.State.coins-(75+60))<.01,"edits: widening charges the resize and the new tiles ("+grown.message+")");
+		Check(m.Execute("paint_floor",Paint(x,z+5,5,3)).success,"edits: floor for the copy");
+		coins=m.State.coins;var copied=m.Execute("copy_room",new JObject{{"id",room.id},{"x",x},{"y",z+5}});var copy=m.Hotel().rooms.Last();
+		double fitting=Math.Round((450+3*25)*.45,MidpointRounding.AwayFromZero);
+		Check(copied.success&&copy.id!=room.id&&HotelModel.Interior(m.Hotel(),copy)&&Math.Abs(copy.paid-fitting)<.01&&Math.Abs(coins-m.State.coins-fitting)<.01,"edits: a copy onto hotel floor is an interior room at the fitting price ("+copied.message+", "+(coins-m.State.coins)+")");
+		Check(HotelModel.Valid(m.State),"edits: the hotel stays valid");
+		Console.WriteLine("Shell interior edits suite passed");
+	}
 }
