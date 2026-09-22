@@ -68,6 +68,9 @@ namespace Purrington.Presentation
     var townManifest=Resources.Load<TextAsset>("Content/MainStreet");if(townManifest==null)throw new InvalidOperationException("The Main Street content is missing.");
     TownContent.LoadJson(townManifest.text);
 
+    var wardrobeAsset=Resources.Load<TextAsset>("Content/Wardrobe");if(wardrobeAsset==null)throw new InvalidOperationException("The wardrobe content is missing.");
+    Wardrobe.LoadJson(wardrobeAsset.text);
+
     var content=ParityContent.LoadJson(manifest.text);Model=new HotelModel(new JournalSaveStore(Path.Combine(profile,"hotel"),new NewtonsoftSaveCodec()),content);var loaded=Model.LoadOrCreate();
 
     World=new GameObject("Voxel Hotel").AddComponent<VoxelWorld>();World.Initialize(Model);
