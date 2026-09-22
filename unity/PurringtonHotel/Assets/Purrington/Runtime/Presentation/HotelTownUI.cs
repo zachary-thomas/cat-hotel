@@ -48,6 +48,8 @@ namespace Purrington.Presentation {
    if(!managerEditing){
     var destinations=Row(content,48*textScale);Button(destinations,"Paw Mart",()=>app.TownUI.Destination("paw_mart_door"),Mint,13);Button(destinations,"Clothing",()=>app.TownUI.Destination("clothing_door"),Coral,13);
     var next=Row(content,48*textScale);Button(next,"Square",()=>app.TownUI.Destination("square"),Gold,13);Button(next,"Manager",()=>{managerEditing=true;townCoat=app.Model.State.managerCoat;townMarkings=app.Model.State.managerMarkings;townName=app.Model.State.managerName;Rebuild();app.World.FocusManagerAppearance();},Mint,13);
+    Info(content,"MARKET DAY",app.Model.MarketDayRemaining>0?"In the square Â· "+System.Math.Ceiling(app.Model.MarketDayRemaining)+"s left":app.Model.TownInventory.Contains("market_bundle")?"Bundle ready Â· host a 90-second market":app.Model.MarketDayCompleted?"Completed Â· new guests welcomed":"Get a bundle at Paw Mart to host the market.");
+    if(app.Model.TownInventory.Contains("market_bundle")&&app.Model.MarketDayRemaining<=0)Height(Button(content,"Start Market Day",()=>{var result=app.Model.StartMarketDay();app.Report(result);if(result.success){app.World.FitTown();Rebuild();}},Gold,14),48*textScale);
     var back=Row(content,48*textScale);Button(back,"Fit hotel",()=>app.World.FitHotel(),Lilac,13);Button(back,"Back to Hotel",CloseTown,Cream,13);
     return;
    }
@@ -115,7 +117,7 @@ namespace Purrington.Presentation {
      Height(Button(content,"Take off "+clothingSlot,()=>EquipClothing(clothingSlot,""),Cream,14),48*textScale);
      foreach(var wear in Wardrobe.All.Where(w=>w.slot==clothingSlot)){
       string id=wear.id,slot=wear.slot;bool owned=app.Model.OwnsWear(id);
-      Info(content,wear.name,owned?"Owned":wear.quest!=null?"Free · First Look quest":wear.giftCat>=0?"Friendship gift · "+app.Model.State.cats[wear.giftCat].name:wear.price+" Cat Coins");
+      Info(content,wear.name,owned?"Owned":wear.quest!=null?"Free ï¿½ First Look quest":wear.giftCat>=0?"Friendship gift ï¿½ "+app.Model.State.cats[wear.giftCat].name:wear.price+" Cat Coins");
       var wearActions=Row(content,52*textScale);
       Button(wearActions,"Try on",()=>{
        var outfit=clothingCat<0?app.Model.State.managerOutfit:app.Model.State.cats.First(c=>c.id==clothingCat).outfit;

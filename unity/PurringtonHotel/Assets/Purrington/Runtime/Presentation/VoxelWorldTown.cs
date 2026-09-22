@@ -4,7 +4,7 @@ using Purrington.Domain;
 using UnityEngine;
 namespace Purrington.Presentation {
  public sealed partial class VoxelWorld {
-  MainStreetArt townArt;GodotCatRig managerRig;StoreInteriorView storeInterior;
+  MainStreetArt townArt;TownSquareArt squareArt;GodotCatRig managerRig;StoreInteriorView storeInterior;
   bool townMode,townFollowing,townSavedManual;Vector3 townSavedFocus;float townSavedZoom;Bounds? townSavedBounds;
   string previewCoat,previewMarkings,managerLook,managerOutfitSignature;
   public GodotCatRig StreetManagerRig=>managerRig;
@@ -46,7 +46,7 @@ namespace Purrington.Presentation {
   public bool SelectStoreCashier(){return storeInterior!=null&&storeInterior.SelectCashier();}
   void RefreshTown(){
    if(TownContent.Current==null)return;
-   if(townArt==null)townArt=new MainStreetArt(geometry,renderRoot,TownContent.Current);
+   if(townArt==null){townArt=new MainStreetArt(geometry,renderRoot,TownContent.Current);squareArt=new TownSquareArt(geometry,townArt.Root,TownContent.Current,model);}
    townArt.Root.gameObject.SetActive(currentMap==0);
    if(currentMap!=0&&townMode)ExitTownMode();
    SyncManager(0);
@@ -85,6 +85,7 @@ namespace Purrington.Presentation {
    var result=model.SendManager(target);TownCommand?.Invoke(result);
   }
   void SyncManager(float delta){
+   squareArt?.Update(model,delta,model.State.settings.motion);
    if(TownContent.Current==null)return;
    string coat=previewCoat??model.State.managerCoat,marking=previewMarkings??model.State.managerMarkings,look=coat+"/"+marking;
    if(managerRig==null||managerLook!=look){DisposeNode(managerRig?.Root);managerRig=new GodotCatRig(geometry,renderRoot,ManagerCatArt.Recipe(coat,marking),91);managerRig.Root.localScale=Vector3.one*.83f;managerLook=look;managerOutfitSignature=null;}

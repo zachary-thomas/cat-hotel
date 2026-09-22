@@ -26,13 +26,7 @@ namespace Purrington.Presentation {
     var bench=Group(Root,"Timber bench");Box(bench,"Seat",new Vector3(x,.65f,z),new Vector3(2,.2f,.7f),"B3824C");Box(bench,"Back",new Vector3(x,1,z+.3f),new Vector3(2,.7f,.14f),"D2AD77");
     foreach(float leg in new[]{-.7f,.7f})Box(bench,"Leg",new Vector3(x+leg,.34f,z),new Vector3(.18f,.6f,.55f),"425C35");
     var lamp=Group(Root,"Square lamp");Box(lamp,"Post",new Vector3(x,1.65f,(q.z-3.8f)*U),new Vector3(.18f,3.1f,.18f),"425C35");Box(lamp,"Lantern",new Vector3(x,3.2f,(q.z-3.8f)*U),new Vector3(.48f,.6f,.48f),"D7AE55");
-    var kiosk=Group(Root,"Market kiosk "+side);float kz=(q.z-1)*U,kx=(q.x+side*6.3f)*U;
-    Box(kiosk,"Counter",new Vector3(kx,.65f,kz),new Vector3(2.1f,1,.95f),"B3824C");
-    foreach(float post in new[]{-.9f,.9f})Box(kiosk,"Post",new Vector3(kx+post,1.5f,kz),new Vector3(.12f,2.7f,.12f),"D2AD77");
-    Box(kiosk,"Awning",new Vector3(kx,2.75f,kz),new Vector3(2.5f,.25f,1.5f),side<0?"738448":"BF7958");
    }
-   var board=Group(Root,"Event board");Box(board,"Notice frame",new Vector3((q.x+4)*U,1.7f,(q.z+.3f)*U),new Vector3(1.9f,1.5f,.24f),"B3824C");
-   Sign(board,"MARKET DAY",new Vector3((q.x+4)*U,1.8f,(q.z+.3f)*U+.16f),.12f);
    // Planters sit outside the central crossing and store approaches.
    foreach(float x in new[]{q.x-4,q.x+4}){Box(Root,"Stone planter",new Vector3(x*U,.45f,(q.z-1.5f)*U),new Vector3(.9f,.7f,.9f),"BF7958");Box(Root,"Foliage",new Vector3(x*U,.9f,(q.z-1.5f)*U),new Vector3(1.1f,.5f,1.1f),"738448");}
   }

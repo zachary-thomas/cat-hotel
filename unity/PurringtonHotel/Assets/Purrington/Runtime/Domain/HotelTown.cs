@@ -8,6 +8,7 @@ namespace Purrington.Domain
  [Serializable] public sealed class TownState
  {
   public float x=0,z=12.75f,eventRemaining;
+  public int marketCompletionSerial;
   public string destination="",shop="",phase="street";
   public List<string> questFlags=new List<string>(),specialFlags=new List<string>();
  }
@@ -113,7 +114,7 @@ namespace Purrington.Domain
   }
   internal bool ValidTown(TownState state,TownContent content,int index)
   {
-   if(state==null||content==null||!Finite(state.x)||!Finite(state.z)||Math.Abs(state.x)>256||Math.Abs(state.z)>256||!Finite(state.eventRemaining)||state.eventRemaining<0)return false;
+   if(state==null||content==null||!Finite(state.x)||!Finite(state.z)||Math.Abs(state.x)>256||Math.Abs(state.z)>256||!Finite(state.eventRemaining)||state.eventRemaining<0||state.eventRemaining>90||state.marketCompletionSerial<0||index!=0&&(state.eventRemaining>0||state.marketCompletionSerial>0))return false;
    if(state.destination==null||state.shop==null||state.questFlags==null||state.specialFlags==null)return false;
    if(state.destination.Length>0&&!content.IsStreetTarget(state.destination))return false;
    if(state.shop.Length>0&&content.Shop(state.shop)==null)return false;
