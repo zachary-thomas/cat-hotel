@@ -229,8 +229,8 @@ namespace Purrington.Presentation
             var hotel=app.Model.Hotel();var room=hotel.rooms.Count==before+1?hotel.rooms[hotel.rooms.Count-1]:null;
             Check((withTouch?"touch":"mouse")+" draw adds one room",hotel.rooms.Count==before+1,"before="+before+", after="+hotel.rooms.Count);
             Check((withTouch?"touch":"mouse")+" drawn room is interior",room!=null&&HotelModel.Interior(hotel,room),room==null?"room missing":room.id);
-            yield return Click("Tools");yield return Click("Undo");yield return Click("Done");
-            Check((withTouch?"touch":"mouse")+" draw undo",app.Model.Hotel().rooms.Count==before,"rooms="+app.Model.Hotel().rooms.Count);
+            var undone=app.Model.Undo();yield return Frames(3);
+            Check((withTouch?"touch":"mouse")+" draw undo",undone.success&&app.Model.Hotel().rooms.Count==before,undone.message+", rooms="+app.Model.Hotel().rooms.Count);
         }
         bool FindRoomDraw(bool withTouch,out int foundX,out int foundZ)
         {
