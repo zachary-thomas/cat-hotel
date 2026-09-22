@@ -95,5 +95,38 @@ static class TownSuites
   failing.fail=true;
   check(!rollback.RenameManager("Willow").success&&rollback.State.managerName=="Manager","rename rollback");
   check(!rollback.SetManagerAppearance("cream","tabby").success&&rollback.State.managerCoat=="honey","appearance rollback");
+  var traveler=new HotelModel(new MemoryStore(),parity);check(traveler.LoadOrCreate().success,"travel setup");
+  int arrivals=0;traveler.ManagerArrived+=_=>arrivals++;
+  check(traveler.SendManager("paw_mart_door").success,"start Paw Mart walk");
+  check(traveler.ManagerRoute.Count>1,"route snapshot available");
+  traveler.Tick(.2f);
+  check(traveler.Hotel().town.destination=="paw_mart_door"&&traveler.Hotel().town.shop=="","travel takes time before shop entry");
+  var midway=new LotPoint(traveler.Hotel().town.x,traveler.Hotel().town.z);
+  check(town.HasStreetLink(town.Point("hotel_gate"),midway),"saved midpoint remains on authored link");
+  var resume=new HotelModel(new MemoryStore{state=HotelModel.Copy(traveler.State)},parity);
+  check(resume.LoadOrCreate().success&&resume.ManagerRoute.Count>0,"reload recovers route");
+  int resumedArrivals=0;resume.ManagerArrived+=_=>resumedArrivals++;
+  check(resume.SendManager("clothing_door").success,"repeated tap redirects route");
+  for(int i=0;i<600&&resume.Hotel().town.destination!="";i++)resume.Tick(.2f);
+  check(resume.Hotel().town.destination==""&&resume.Hotel().town.x==town.Point("clothing_door").x&&resumedArrivals==1,"redirect arrives exactly once");
+  for(int i=0;i<10;i++)resume.Tick(.2f);
+  check(resumedArrivals==1,"idle ticks do not repeat arrival");
+  check(!resume.SendManager("unknown").success,"unknown target rejected");
+  check(resume.SendManager("paw_mart_door").success&&resume.SkipManagerTravel().success,"skip uses valid route");
+  check(resume.Hotel().town.shop=="paw_mart"&&resumedArrivals==2,"shop entered on arrival");
+  var failedTravel=new MemoryStore();var failedManager=new HotelModel(failedTravel,parity);check(failedManager.LoadOrCreate().success,"travel rollback setup");
+  failedTravel.fail=true;check(!failedManager.SendManager("square").success&&failedManager.Hotel().town.destination=="","travel start rolls back on save failure");
+  var blocked=new HotelModel(new MemoryStore(),parity);check(blocked.LoadOrCreate().success,"blocked exit setup");
+  check(blocked.PlaceObject("garden_planter",0,11).success,"place exit blocker");
+  check(!blocked.SendManager("square").success&&blocked.Hotel().town.destination=="","blocked hotel exit keeps manager safe");
+  var other=new HotelModel(new MemoryStore(),parity);check(other.LoadOrCreate().success,"other neighborhood setup");
+  check(other.SetGodMode(true).success&&other.Travel(1).success,"reach other neighborhood");
+  check(!other.SendManager("square").success&&!other.SkipManagerTravel().success&&other.Hotel(0).town.destination=="","other neighborhood cannot send Meadow manager");
+  var pausedStore=new MemoryStore();var paused=new HotelModel(pausedStore,parity);check(paused.LoadOrCreate().success&&paused.SendManager("square").success,"pause trip setup");
+  paused.Tick(.2f);var safe=new LotPoint(paused.Hotel().town.x,paused.Hotel().town.z);
+  pausedStore.fail=true;paused.Tick(.2f);
+  check(new LotPoint(paused.Hotel().town.x,paused.Hotel().town.z).Distance(safe)<.0001f&&paused.Hotel().town.destination=="square","failed save retains last safe waypoint");
+  var recovered=new HotelModel(new MemoryStore{state=HotelModel.Copy(paused.State)},parity);
+  check(recovered.LoadOrCreate().success&&recovered.Hotel().town.destination=="square"&&recovered.ManagerRoute.Count>0,"pause and reload retain destination");
  }
 }
