@@ -64,6 +64,7 @@ static class ShellSuites
 			Check(g.edges.TryGetValue("v:4,1",out var shared)&&shared.kind=="door"&&shared.room=="room_a","migration: a door flush against a neighbour survives (door room first="+doorRoomFirst+")");
 			Check(g.edges.Values.Count(e=>e.room=="room_c"&&e.kind=="door")==4&&c.floor==0,"migration: lounges keep four doors and v2 rooms land on the ground floor");
 			Check(!h0.paths.ContainsKey("1,1")&&Math.Abs(s.coins-before-6)<.01,"migration: paths under rooms are refunded");
+			Check(HotelModel.Valid(s),"migration: touching rooms still load (door room first="+doorRoomFirst+")");
 			string once=JsonConvert.SerializeObject(s);ShellMigration.Upgrade(s);Check(once==JsonConvert.SerializeObject(s),"migration: upgrading twice changes nothing");
 		}
 		var gate=HotelModel.Copy(m.State);gate.version=2;Check(!HotelModel.Valid(gate),"migration: Valid requires save v3");
@@ -120,6 +121,22 @@ static class ShellSuites
 		Check(pp.success&&!m.Hotel().paths.ContainsKey(pathKey)&&Math.Abs(coins-m.State.coins-(20-paidPath))<.01,"grow: floor replaces and refunds a path ("+pp.message+")");
 		Check(m.SetGodMode(true).success&&m.Quote("paint_floor",Paint(x,z+2,1,1)).cost==0,"grow: God mode growth is free");
 		Console.WriteLine("Shell grow suite passed");
+	}
+	public static void RunShellLoadGate(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;OwnPlots(m);
+		Check(FindClear(m,3,3,out int x,out int z),"gate: clear land");Check(m.Execute("paint_floor",Paint(x,z,3,3)).success,"gate: island");
+		Check(HotelModel.Valid(m.State),"gate: a painted island is valid");
+		string cell=ShellGrid.Cell(x,z);var ground=HotelModel.Floor(m.Hotel(),0);
+		Func<Action<HotelState>,bool> tampered=mutate=>{var s=HotelModel.Copy(m.State);mutate(s);return HotelModel.Valid(s);};
+		Check(!tampered(s=>HotelModel.Floor(s.hotels[s.currentHotel],0).cells[cell]=21),"gate: overpaid tiles are rejected");
+		Check(!tampered(s=>HotelModel.Floor(s.hotels[s.currentHotel],0).cells[ShellGrid.Cell(500,500)]=0),"gate: tiles off the lot are rejected");
+		Check(!tampered(s=>s.hotels[s.currentHotel].floors.Add(new FloorState{level=3})),"gate: unknown floor levels are rejected");
+		Check(!tampered(s=>HotelModel.Floor(s.hotels[s.currentHotel],0).edges["v:"+(x+1)+","+z]=new EdgeState{kind="open"}),"gate: inside archways are rejected");
+		Check(!tampered(s=>HotelModel.Floor(s.hotels[s.currentHotel],0).edges["v:"+(x+40)+","+z]=new EdgeState{kind="wall"}),"gate: walls off the floor are rejected");
+		Check(!tampered(s=>s.hotels[s.currentHotel].rooms.Add(new RoomState{id="room"+s.nextId++,kind="regular",x=x+1,z=z,width=4,depth=3})),"gate: half-inside rooms are rejected");
+		Check(m.SetGodMode(true).success&&m.Execute("paint_floor",Paint(x+3,z,1,1)).success&&HotelModel.Floor(m.Hotel(),0).cells[ShellGrid.Cell(x+3,z)]==0,"gate: God mode tiles are stored as free, so they never refund coins");
+		Console.WriteLine("Shell load gate suite passed");
 	}
 	public static void RunNavigation(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
 	{
