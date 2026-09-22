@@ -2,6 +2,16 @@
 
 Written by the orchestrating session for the next agent. Read this first, then the [roadmap](2026-09-22-hotel-growth-00-roadmap.md). Also read `CLAUDE.md` at the repo root.
 
+## Continuation update (later on 2026-09-22)
+
+The sections below preserve the original handoff at commit `cb35d1f`. This update supersedes its progress and Unity-test notes.
+
+- Plan 02 Task 5's `8826be0` pricing fix passed scoped re-review. Tasks 6–8 are committed and task-reviewed: `7a332db` (edges), `c95adff` (lobby furniture), `6426174` and `fa4fd72` (undo/redo), plus `ec2be97` (Unity script metadata). The domain harness reached **PASS 676064 checks**.
+- The open Unity editor's test runner stalled after unrelated script reloads. A disposable project snapshot from committed code ran Unity EditMode tests successfully: **69/69 passed**, no failures, errors or skips. The snapshot lives in this plan's ignored `.superpowers/sdd` workspace; it did not touch the user's open scene.
+- Plan 01 lawn Tasks 1–2 are committed and reviewed: `c1f9034` and `4cd1b5b`. The same disposable Unity project, updated with these commits, passed **72/72 EditMode tests**, including all three new lawn tests. Task 3, the four-map visual QA, is in progress in a separate disposable project.
+- Next after lawn QA: plan 03, then 05, 04 and 06. Plan 03's task briefs and preflight ledger are in its own ignored `.superpowers/sdd` directory.
+- Additional unrelated welcome-screen edits and art appeared in the working tree (`HotelUI.cs`, welcome screenshots/content). Preserve them along with the two main-street documents listed below; they are not part of hotel growth.
+
 ## What the user asked for
 
 1. **Lawn fix:** owned-plot grass doesn't match the world's ground color on the first map (and others).

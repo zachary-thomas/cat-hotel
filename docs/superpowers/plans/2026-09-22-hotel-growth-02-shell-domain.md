@@ -1,6 +1,6 @@
 # Building Shell Domain + Save v3 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a continuous building shell to the domain model: floor cells, walls on grid edges, interior rooms with shared walls and centered doors, hallways and lobbies, per-cell growth with plot auto-buy, and doors, windows and archways. Existing saves migrate losslessly to save v3.
 
@@ -41,7 +41,7 @@ Unity picks up the new `.cs` automatically. The `.meta` file is created on the n
 - Create: `tests/unity-domain/ShellSuites.cs`
 - Modify: `tests/unity-domain/Purrington.Domain.Tests.csproj`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test suite**
+- [x] **Step 1: Write the failing test suite**
 
 Create `tests/unity-domain/ShellSuites.cs`:
 
@@ -93,12 +93,12 @@ In `tests/unity-domain/Program.cs`, find `ConstructionSuites.RunGodMode(Check,P,
 ShellSuites.RunGrid(Check);
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: build error `The name 'ShellGrid' does not exist in the current context`.
 
-- [ ] **Step 3: Create `HotelShell.cs` with the types and grid helper**
+- [x] **Step 3: Create `HotelShell.cs` with the types and grid helper**
 
 ```csharp
 using System;
@@ -136,12 +136,12 @@ public static class ShellGrid {
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell grid suite passed`, then `PASS <n> checks`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain/HotelShell.cs tests/unity-domain/ShellSuites.cs tests/unity-domain/Purrington.Domain.Tests.csproj tests/unity-domain/Program.cs
@@ -156,7 +156,7 @@ git commit -m "feat(domain): shell grid edges, floor and edge save types"
 - Modify: `HotelShell.cs`, `HotelState.cs`, `HotelModel.cs`, `StrictSaveJson.cs`
 - Modify: `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `ShellSuites`:
 
@@ -195,12 +195,12 @@ Register it in `Program.cs` after `ShellSuites.RunGrid(Check);`:
 ShellSuites.RunMigration(Check,P,content);
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: build errors: `'HotelModel' does not contain a definition for 'Floor'` (plus `IndoorKind`, `Interior`).
 
-- [ ] **Step 3: Add the fields in `HotelState.cs`**
+- [x] **Step 3: Add the fields in `HotelState.cs`**
 
 1. In `HotelState`, change `public int version=2;` to `public int version=3;`.
 2. In `HotelData`, change `public List<RoomState> rooms=new List<RoomState>();` to `public List<RoomState> rooms=new List<RoomState>(); public List<FloorState> floors=new List<FloorState>();`.
@@ -208,7 +208,7 @@ Expected: build errors: `'HotelModel' does not contain a definition for 'Floor'`
 4. In `ObjectState`, change `public int rotation;` to `public int rotation,floor;`.
 5. In `ParityContent.CreateState`, replace the method's final `return s;}` with `s.version=2;ShellMigration.Upgrade(s);return s;}`. The starter content is authored as v2; this builds its shell.
 
-- [ ] **Step 4: Add migration and room-wall sync to `HotelShell.cs`**
+- [x] **Step 4: Add migration and room-wall sync to `HotelShell.cs`**
 
 Append inside the namespace, after `ShellGrid`:
 
@@ -229,7 +229,7 @@ public sealed partial class HotelModel {
 }
 ```
 
-- [ ] **Step 5: Migrate on every load path**
+- [x] **Step 5: Migrate on every load path**
 
 In `HotelModel.cs`:
 
@@ -255,7 +255,7 @@ foreach(var r in h["rooms"]){Fields(r,"id,name,kind",JTokenType.String);Numbers(
 
 3. In `HotelModel.Restore` (bottom of the same file), change `public bool Restore(HotelState candidate){if(!Valid(candidate))return false;` to `public bool Restore(HotelState candidate){if(candidate!=null){candidate=Copy(candidate);ShellMigration.Upgrade(candidate);}if(!Valid(candidate))return false;`.
 
-- [ ] **Step 6: Blank-lot fixtures also clear the shell**
+- [x] **Step 6: Blank-lot fixtures also clear the shell**
 
 Removing rooms now leaves their floor behind as lobby space, so a test that empties a lot by clearing rooms must also clear floors. Otherwise leftover walls block routes and outdoor-only items get refused. Make these exact replacements:
 
@@ -267,12 +267,12 @@ Removing rooms now leaves their floor behind as lobby space, so a test that empt
 | `unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/MeadowEditModeTests.cs` (3 occurrences, lines 8, 17, 18) | `m.Hotel().rooms.Clear();` | `m.Hotel().rooms.Clear();m.Hotel().floors.Clear();` |
 | `unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/DeskVisitorTests.cs` (line 46) | `seed.hotels[0].rooms.Clear();` | `seed.hotels[0].rooms.Clear();seed.hotels[0].floors.Clear();` |
 
-- [ ] **Step 7: Run to verify it passes**
+- [x] **Step 7: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell migration suite passed` and `PASS <n> checks`. The existing building, God mode and oracle sections still pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain unity/PurringtonHotel/Assets/Purrington/Tests/EditMode
@@ -289,7 +289,7 @@ git commit -m "feat(domain): save v3 with building shell and lossless v2 migrati
 - Modify: `unity/PurringtonHotel/Assets/Purrington/Runtime/Domain/HotelNavigation.cs` (`Graph`, lines 14–18)
 - Modify: `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test and helpers**
+- [x] **Step 1: Write the failing test and helpers**
 
 Append to `ShellSuites`:
 
@@ -335,12 +335,12 @@ Append to `ShellSuites`:
 
 Register in `Program.cs` after the migration call: `ShellSuites.RunNavigation(Check,P,content);`
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `System.Exception: nav: shell walls block a sealed island`. Nav doesn't see shell walls yet.
 
-- [ ] **Step 3: Take walls from shell edges in `Graph`**
+- [x] **Step 3: Take walls from shell edges in `Graph`**
 
 In `HotelNavigation.cs`:
 
@@ -358,12 +358,12 @@ In `HotelNavigation.cs`:
 if(constructed&&!h.rooms.Any(r=>Rect(r).Has(p.x,p.z))&&!h.paths.ContainsKey((int)Math.Floor(p.x)+","+(int)Math.Floor(p.z))&&!ShellGrid.Indoor(ground,ShellGrid.Cell((int)Math.Floor(p.x),(int)Math.Floor(p.z))))continue;
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell navigation suite passed`, and `Life visits` / `Dense 600s` lines still print. The oracle section passes. The final line is `PASS <n> checks`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain/HotelNavigation.cs tests/unity-domain
@@ -378,7 +378,7 @@ git commit -m "feat(domain): cats navigate through shell doors; walls and window
 - Modify: `HotelShell.cs`, `HotelModel.cs` (`Apply`), `HotelValidation.cs`
 - Modify: `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `ShellSuites`:
 
@@ -416,12 +416,12 @@ Append to `ShellSuites`:
 
 Register in `Program.cs`: `ShellSuites.RunGrow(Check,P,content);`
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `System.Exception: grow: paint a strip (Choose a building action.)`.
 
-- [ ] **Step 3: Implement the commands and shell validation in `HotelShell.cs`**
+- [x] **Step 3: Implement the commands and shell validation in `HotelShell.cs`**
 
 Append these members to the `HotelModel` partial in `HotelShell.cs`:
 
@@ -437,7 +437,7 @@ Append these members to the `HotelModel` partial in `HotelShell.cs`:
 
 (`SetEdges` is a stub that Task 6 replaces. `Whole`, `Owned`, `Rect`, `Price`, `Finite` and `Map` are existing private members of the `HotelModel` partials.)
 
-- [ ] **Step 4: Wire the commands into `Apply` (`HotelModel.cs`)**
+- [x] **Step 4: Wire the commands into `Apply` (`HotelModel.cs`)**
 
 1. At the top of `Apply`, change `foreach(string field in new[]{"rotation","w","h","service","staff"})` to `foreach(string field in new[]{"rotation","w","h","service","staff","floor"})`.
 2. Directly before `default:return CommandResult.Fail("Choose a building action.");}` insert:
@@ -454,12 +454,12 @@ Append these members to the `HotelModel` partial in `HotelShell.cs`:
 
 In `HotelValidation.cs`, change `if(!model.ValidateLayout(i).success)return false;` to `if(!model.ValidateLayout(i).success||!model.ValidateShell(i).success)return false;`.
 
-- [ ] **Step 5: Run to verify it passes**
+- [x] **Step 5: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell grow suite passed`; all earlier suites and the oracle pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
@@ -474,7 +474,7 @@ git commit -m "feat(domain): grow and erase hotel floor per tile, buying plots o
 - Modify: `HotelModel.cs` (`place_room`, new `draw_room` case)
 - Modify: `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `ShellSuites`:
 
@@ -514,12 +514,12 @@ Append to `ShellSuites`:
 
 Register in `Program.cs`: `ShellSuites.RunRooms(Check,P,content);`
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `System.Exception: rooms: draw on bare land (Choose a building action.)`.
 
-- [ ] **Step 3: Price interior rooms and add `draw_room` (`HotelModel.cs`)**
+- [x] **Step 3: Price interior rooms and add `draw_room` (`HotelModel.cs`)**
 
 1. In `case "place_room":`, change the initializer ending `rotation=(int?)p["rotation"]??0};` to `rotation=(int?)p["rotation"]??0,floor=(int?)p["floor"]??0};`. Then change `r.paid=cost=Price(Shell(r));h.rooms.Add(r);break;` to `r.paid=cost=Price(Interior(h,r)?Fitting(r):Shell(r));h.rooms.Add(r);break;`.
 2. Directly before the `case "paint_floor":…` line added in Task 4, insert:
@@ -530,12 +530,12 @@ Expected: `System.Exception: rooms: draw on bare land (Choose a building action.
 
 `draw_room` paints any missing floor first, so a room drawn on bare land grows the hotel around itself. The nested `Apply("place_room")` then prices the room as interior and validates. The outer `Apply` re-checks affordability for the combined cost.
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell rooms suite passed`, and the building suite's "copy furnished cottage" checks still pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain/HotelModel.cs tests/unity-domain
@@ -550,7 +550,7 @@ git commit -m "feat(domain): interior rooms share walls; draw_room grows the hot
 - Modify: `HotelShell.cs` (replace the `SetEdges` stub)
 - Modify: `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `ShellSuites`:
 
@@ -583,23 +583,23 @@ Append to `ShellSuites`:
 
 Register in `Program.cs`: `ShellSuites.RunEdges(Check,P,content);`
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `System.Exception: edges: exterior window costs 15`.
 
-- [ ] **Step 3: Replace the `SetEdges` stub in `HotelShell.cs`**
+- [x] **Step 3: Replace the `SetEdges` stub in `HotelShell.cs`**
 
 ```csharp
  CommandResult SetEdges(HotelData h,int level,JObject p){string kind=(string)p["kind"]??"";if(kind!="none"&&!ShellGrid.Kinds.Contains(kind))return CommandResult.Fail("Choose wall, door, window or archway.");if(!(p["edges"] is JArray edges)||edges.Count==0||edges.Count>512)return CommandResult.Fail("Choose a wall edge.");var f=Floor(h,level);if(f==null)return CommandResult.Fail("Build hotel floor first.");double cost=0;foreach(var raw in edges){string e=raw.Type==JTokenType.String?(string)raw:null;if(!ShellGrid.TryEdge(e,out _,out _,out _))return CommandResult.Fail("Choose a wall edge.");ShellGrid.Sides(e,out var a,out var b);if(!f.cells.ContainsKey(a)&&!f.cells.ContainsKey(b))return CommandResult.Fail("Walls belong on the hotel floor.");f.edges.TryGetValue(e,out var prior);if(kind=="none"&&prior==null)return CommandResult.Fail("There's nothing to remove here.");if(prior!=null&&prior.room!=""&&(kind=="none"||kind=="open"))return CommandResult.Fail("This wall encloses a room.");if(kind=="open"&&!ShellGrid.Exterior(f,e))return CommandResult.Fail("Archways go on outside walls; inside, just leave the floor open.");cost-=prior?.paid??0;if(kind=="none"){f.edges.Remove(e);continue;}double price=Price(ShellGrid.Price(kind));f.edges[e]=new EdgeState{kind=kind,paid=price};cost+=price;}return CommandResult.Ok(kind=="none"?"Wall removed":kind=="open"?"Archway added":kind=="door"?"Door added":kind=="window"?"Window added":"Wall added",cost);}
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell edges suite passed`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain/HotelShell.cs tests/unity-domain
@@ -615,7 +615,7 @@ git commit -m "feat(domain): place doors, windows, walls and archways on hotel e
 - Modify: `HotelNavigation.cs` (`ValidateLayout` surface rule)
 - Modify: `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `ShellSuites`:
 
@@ -641,12 +641,12 @@ Append to `ShellSuites`:
 
 Register in `Program.cs`: `ShellSuites.RunLobby(Check,P,content);`
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `System.Exception: lobby: indoor item placed in the lobby (This item belongs on an indoor floor.)`.
 
-- [ ] **Step 3: Treat shell floor as indoor**
+- [x] **Step 3: Treat shell floor as indoor**
 
 In `HotelNavigation.cs`, inside `ValidateLayout`, change
 
@@ -673,12 +673,12 @@ In `ValidateShell`, directly before the final `return CommandResult.Ok("Valid");
   foreach(var o in h.objects){var f=Floor(h,o.floor);var b=Rect(o);int inside=0,total=0;for(int x=(int)Math.Floor(b.x);x<Math.Ceiling(b.x+b.w);x++)for(int z=(int)Math.Floor(b.z);z<Math.Ceiling(b.z+b.d);z++){total++;if(ShellGrid.Indoor(f,ShellGrid.Cell(x,z)))inside++;}if(inside>0&&inside<total)return CommandResult.Fail("Keep furniture inside the hotel or outside its walls.");if(o.floor!=0&&inside==0)return CommandResult.Fail("Upper-floor furniture needs floor under it.");if(inside>0&&f.edges.Keys.Any(e=>Crosses(b,e)))return CommandResult.Fail("Furniture can't sit across a wall.");}
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell lobby suite passed` and all suites pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
@@ -693,7 +693,7 @@ git commit -m "feat(domain): furnish hallways and lobbies; keep furniture off wa
 - Modify: `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 - Modify (only if the compile gate fails): the files named in the Unity error
 
-- [ ] **Step 1: Write the undo test**
+- [x] **Step 1: Write the undo test**
 
 Append to `ShellSuites`:
 
@@ -712,17 +712,17 @@ Append to `ShellSuites`:
 
 Register in `Program.cs`: `ShellSuites.RunShellUndo(Check,P,content);`
 
-- [ ] **Step 2: Run the domain harness**
+- [x] **Step 2: Run the domain harness**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell undo suite passed` and `PASS <n> checks`. Task 2 already added `floors` to the snapshot and replay, so this should pass at once. If it fails, fix `BuildSnapshot`/`Replay` per Task 2 Step 5.
 
-- [ ] **Step 3: Run the Unity compile and EditMode gate**
+- [x] **Step 3: Run the Unity compile and EditMode gate**
 
 Run (PowerShell): `.\tools\unity.ps1 Test`
 Expected: exit code 0. `MeadowEditModeTests` still passes (38 items, capacity 4, rate 64), and Unity creates `HotelShell.cs.meta`. If the Unity compiler rejects C# syntax that .NET 9 accepted, rewrite that expression without changing behavior (for example, replace a tuple-typed `IEnumerable<(int x,int z)>` parameter with `IEnumerable<ValueTuple<int,int>>`), then rerun both harnesses.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/unity-domain unity/PurringtonHotel/Assets/Purrington/Runtime/Domain
