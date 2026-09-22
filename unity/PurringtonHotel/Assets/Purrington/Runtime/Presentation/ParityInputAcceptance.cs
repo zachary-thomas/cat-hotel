@@ -214,7 +214,7 @@ namespace Purrington.Presentation
         IEnumerator DrawRoom(bool withTouch)
         {
             int before=app.Model.Hotel().rooms.Count;
-            yield return Click("Hotel","Catalogue categories");yield return Click("Bedroom");
+            yield return Click("Hotel","Catalogue categories");yield return Click("Draw","Bedroom");
             Check((withTouch?"touch":"mouse")+" bedroom draw opened",app.UI.IsPlacing);
             if(!FindRoomDraw(withTouch,out int x,out int z))
             {
