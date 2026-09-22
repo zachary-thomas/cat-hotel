@@ -30,4 +30,18 @@ public static class ShellGrid {
  public static IEnumerable<string> Edges(FloorState f){var seen=new HashSet<string>();foreach(var c in f.cells.Keys){TryCell(c,out int x,out int z);foreach(var e in CellEdges(x,z))if(seen.Add(e))yield return e;}}
  public static void EdgeCenter(string edge,out float x,out float z){TryEdge(edge,out char axis,out int ex,out int ez);x=axis=='v'?ex:ex+.5f;z=axis=='v'?ez+.5f:ez;}
 }
+public static class ShellMigration {
+ // v2 rooms were free-standing boxes; v3 keeps each as a shell island with room-owned walls, so migrated hotels look and route the same.
+ public static bool Upgrade(HotelState s){if(s==null||s.hotels==null)return false;if(s.version==3)return true;if(s.version!=2)return false;foreach(var h in s.hotels){if(h==null)return false;if(h.floors==null)h.floors=new List<FloorState>();var ground=HotelModel.Floor(h,0,true);foreach(var r in h.rooms??new List<RoomState>()){if(r==null||!HotelModel.IndoorKind(r.kind))continue;HotelModel.RoomSize(r,out float w,out float d);foreach(var c in ShellGrid.Cells(r.x,r.z,(int)w,(int)d)){ground.cells[c]=0;if(h.paths!=null&&h.paths.TryGetValue(c,out var path)){s.coins+=path.paid;h.paths.Remove(c);}}}if(h.rooms!=null)HotelModel.SyncRoomWalls(h);}s.version=3;return true;}
+}
+public sealed partial class HotelModel {
+ public static FloorState Floor(HotelData h,int level,bool create=false){var f=h.floors.Find(v=>v!=null&&v.level==level);if(f==null&&create){f=new FloorState{level=level};h.floors.Add(f);h.floors.Sort((a,b)=>a.level.CompareTo(b.level));}return f;}
+ public static bool IndoorKind(string kind){return kind=="regular"||kind=="suite"||kind=="shared";}
+ static void RoomCells(RoomState r,out int x,out int z,out int w,out int d){RoomSize(r,out float fw,out float fd);x=r.x;z=r.z;w=(int)fw;d=(int)fd;}
+ public static bool Interior(HotelData h,RoomState r){var f=Floor(h,r.floor);if(f==null)return false;RoomCells(r,out int x,out int z,out int w,out int d);return ShellGrid.Cells(x,z,w,d).All(f.cells.ContainsKey);}
+ static IEnumerable<int> DoorSides(RoomState r){return r.kind=="shared"?new[]{0,1,2,3}:new[]{r.rotation};}
+ static double Fitting(RoomState r){return Math.Round(Shell(r)*.45,MidpointRounding.AwayFromZero);}
+ // Room walls are regenerated from room rectangles after every command; player-placed edges (room=="") are never touched.
+ internal static void SyncRoomWalls(HotelData h){foreach(var f in h.floors){foreach(var k in f.edges.Where(e=>e.Value.room!="").Select(e=>e.Key).ToList())f.edges.Remove(k);foreach(var r in h.rooms.Where(v=>v.floor==f.level&&IndoorKind(v.kind)&&Interior(h,v))){RoomCells(r,out int x,out int z,out int w,out int d);var doors=new HashSet<string>(DoorSides(r).SelectMany(s=>ShellGrid.DoorEdges(x,z,w,d,s)));foreach(var e in ShellGrid.Boundary(x,z,w,d)){if(f.edges.ContainsKey(e))continue;bool door=doors.Contains(e);if(!door&&ShellGrid.Exterior(f,e))continue;f.edges[e]=new EdgeState{kind=door?"door":"wall",room=r.id};}}}}
+}
 }

@@ -44,6 +44,7 @@ namespace Purrington.Tests
             if (empty)
             {
                 seed.hotels[0].rooms.Clear();
+                seed.hotels[0].floors.Clear();
                 seed.hotels[0].objects.Clear();
                 seed.coins = 100000;
                 for (int x = -12; x < 12; x++)

@@ -47,7 +47,7 @@ static class ConstructionSuites
 		store.state=JsonConvert.DeserializeObject<HotelState>(original);
 		Check(m.LoadOrCreate().success,"building: restore starter for uncapped rooms");
 		m.State.coins=100000;
-		m.Hotel().rooms.Clear(); m.Hotel().objects.Clear(); m.Hotel().paths.Clear();
+		m.Hotel().rooms.Clear(); m.Hotel().floors.Clear(); m.Hotel().objects.Clear(); m.Hotel().paths.Clear();
 		for(int i=0;i<12;i++){
 			int x=-12+(i%4)*6, y=-12+(i/4)*7;
 			Check(m.Execute("place_room",P("{\"kind\":\"regular\",\"x\":"+x+",\"y\":"+y+",\"w\":4,\"h\":3,\"rotation\":0}")).success,"building: place room "+(i+1));

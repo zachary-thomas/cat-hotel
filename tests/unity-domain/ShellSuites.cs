@@ -30,4 +30,31 @@ static class ShellSuites
 		Check(ShellGrid.Price("door")==20&&ShellGrid.Price("window")==15&&ShellGrid.Price("wall")==5&&ShellGrid.Price("open")==10,"grid: edge prices");
 		Console.WriteLine("Shell grid suite passed");
 	}
+
+	public static void RunMigration(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);Check(m.LoadOrCreate().success,"migration: starter loads");
+		Check(m.State.version==3,"migration: starter is save v3");
+		for(int i=0;i<4;i++)
+		{
+			var h=m.Hotel(i);var ground=HotelModel.Floor(h,0);Check(ground!=null,"migration: ground floor exists "+i);
+			int area=h.rooms.Where(r=>HotelModel.IndoorKind(r.kind)).Sum(r=>r.width*r.depth);
+			Check(ground.cells.Count==area,"migration: shell cells equal indoor room area on map "+i+" ("+ground.cells.Count+" vs "+area+")");
+			foreach(var r in h.rooms.Where(v=>HotelModel.IndoorKind(v.kind)))
+			{
+				Check(HotelModel.Interior(h,r),"migration: room is interior "+r.id);
+				Check(ground.edges.Values.Any(e=>e.room==r.id&&e.kind=="door"),"migration: room keeps a door "+r.id);
+			}
+		}
+		Check(m.GuestCapacity()==4&&m.Rate()==64,"migration: Meadow capacity/rate unchanged ("+m.GuestCapacity()+"/"+m.Rate()+")");
+		var legacy=JObject.Parse(JsonConvert.SerializeObject(m.State));legacy["version"]=2;
+		foreach(var h in legacy["hotels"]){((JObject)h).Remove("floors");foreach(var r in h["rooms"])((JObject)r).Remove("floor");foreach(var o in h["objects"])((JObject)o).Remove("floor");}
+		var restored=new HotelModel(new MemoryStore(),content);restored.LoadOrCreate();
+		Check(restored.RestoreJson(legacy.ToString()),"migration: a v2 save restores");
+		Check(restored.State.version==3&&HotelModel.Floor(restored.Hotel(0),0).cells.Count==HotelModel.Floor(m.Hotel(0),0).cells.Count,"migration: v2 restore rebuilds the shell");
+		var bad=JObject.Parse(JsonConvert.SerializeObject(m.State));bad["hotels"][0]["floors"][0]["edges"]["v:0,0"]=new JObject{{"kind",5},{"room",""},{"paid",0}};
+		Check(!restored.RestoreJson(bad.ToString()),"migration: strict JSON rejects a non-string edge kind");
+		Check(!HotelModel.Valid(new HotelState{version=2}),"migration: unmigrated state is invalid");
+		Console.WriteLine("Shell migration suite passed");
+	}
 }
