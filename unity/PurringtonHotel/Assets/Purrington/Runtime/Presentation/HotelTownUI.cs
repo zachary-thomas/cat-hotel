@@ -65,6 +65,7 @@ namespace Purrington.Presentation {
    Button(actions,"Save look",()=>{var result=app.Model.SetManagerAppearance(townCoat,townMarkings);app.Report(result);if(result.success){managerEditing=false;app.World.ClearManagerPreview();Rebuild();app.World.FocusManager();}},Mint,14);
    Button(actions,"Cancel",()=>{managerEditing=false;app.World.ClearManagerPreview();Rebuild();app.World.FocusManager();},Lilac,14);
   }
+  void BuyGroceries(string id){var result=app.Model.BuyTownItem(id);if(result.success)app.World.StoreInterior.StartPurchaseRoutine(id);ReportCashier(result);}
   void ReportCashier(CommandResult result)=>HotelTownUI.RefreshCashier(result,Rebuild,value=>app.Report(value));
   void StorePanel(StoreInteriorView interior){
    string name=interior.OwnerName;
@@ -86,7 +87,7 @@ namespace Purrington.Presentation {
      foreach(var offer in TownContent.Current.Offers.Where(o=>(string)o["store"]=="paw_mart")){
       string id=(string)offer["id"];bool owned=app.Model.TownInventory.Contains(id);
       Info(content,(string)offer["name"],(string)offer["price"]+" Cat Coins · "+(owned?"Owned · ready to use":"Available"));
-      if(!owned)Height(Button(content,"Buy "+(string)offer["name"],()=>ReportCashier(app.Model.BuyTownItem(id)),Gold,14),52*textScale);
+      if(!owned)Height(Button(content,"Buy "+(string)offer["name"],()=>BuyGroceries(id),Gold,14),52*textScale);
      }
     }else{
      foreach(var wear in Wardrobe.All){

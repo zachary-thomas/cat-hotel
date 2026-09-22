@@ -22,9 +22,9 @@ public sealed class GodotCatRig {
   if(Reaction!=""){ReactionTime+=delta;if(ReactionTime>=ReactionDuration)Reaction="";}
   body.localPosition=Vector3.zero;body.localRotation=Quaternion.identity;body.localScale=Vector3.one;Rot(head);Rot(tail); mouth.localScale=scales[mouth];foreach(var l in legs)Rot(l);foreach(var e in ears)Rot(e);
   foreach(var b in Bindings)if(b.Key.StartsWith("props.")){b.Value.gameObject.SetActive(false);b.Value.localPosition=Vector3.zero;Rot(b.Value);}
-  if(!motion){ScaleY(body,action=="sleep"?.68f:1);foreach(var e in eyes)ScaleY(e,action=="sleep"?.012f:.09f);return;}
+  if(!motion){if(action=="push_cart"){Rot(legs[1],-.6f);Rot(legs[3],-.6f);}ScaleY(body,action=="sleep"?.68f:1);foreach(var e in eyes)ScaleY(e,action=="sleep"?.012f:.09f);return;}
   phase+=delta;for(int i=0;i<legs.Count;i++)Rot(legs[i],walking?S(phase*9+(i%3)*Mathf.PI)*.30f:0);Rot(tail,0,0,S(phase*1.8f)*.17f);
-  switch(action){case "walk":Y(body,walking?Mathf.Abs(S(phase*9))*.04f:0);break;case "sleep":ScaleY(body,.66f+S(phase*1.6f)*.02f);Rot(head,-.12f);break;case "eat":case "work":case "drink":case "serve":case "clean":Rot(head,.12f+S(phase*3.5f)*.12f);break;case "play":Y(body,Mathf.Max(0,S(phase*2))*.17f);Rot(head,0,0,S(phase*1.5f)*.15f);break;default:ScaleY(body,1+S(phase*1.8f)*.015f);Rot(head,0,0,S(phase*.9f)*.05f);break;}
+  switch(action){case "push_cart":Rot(legs[1],-.6f);Rot(legs[3],-.6f);Rot(head,0,0,S(phase*1.2f)*.04f);break;case "walk":Y(body,walking?Mathf.Abs(S(phase*9))*.04f:0);break;case "sleep":ScaleY(body,.66f+S(phase*1.6f)*.02f);Rot(head,-.12f);break;case "eat":case "work":case "drink":case "serve":case "clean":Rot(head,.12f+S(phase*3.5f)*.12f);break;case "play":Y(body,Mathf.Max(0,S(phase*2))*.17f);Rot(head,0,0,S(phase*1.5f)*.15f);break;default:ScaleY(body,1+S(phase*1.8f)*.015f);Rot(head,0,0,S(phase*.9f)*.05f);break;}
   foreach(var e in eyes)ScaleY(e,action=="sleep"||phase%5.3f<.12f?.012f:.09f);for(int i=0;i<ears.Count;i++)Rot(ears[i],0,0,S(phase*.6f+i)*.09f);
   string pose=Reaction;float t=ReactionTime;
   if(pose==""&&!walking){pose=staff?(action=="clean"?"sweep":new[]{"checkin","cook","towels"}[Math.Abs(role)%3]):action=="rest"?new[]{"rest","groom","rest","yawn","rest","stretch","rest","loaf"}[(int)(phase/6)%8]:action=="play"?"pounce":action;t=phase%4;}
@@ -56,6 +56,3 @@ public sealed class GodotCatRig {
  case "dig":Rot(head,.26f);ScaleY(body,.84f);foreach(float marker in new[]{1.1f,2.3f,3.5f}){float kick=Mathf.Max(0,1-Mathf.Abs(t-marker)/.32f);Rot(legs[0],kick*.85f);Rot(legs[2],kick*.5f);if(kick>0)break;}if(t>4.5f)Rot(head,.26f,0,S(t*2)*.12f);break;case "scratch":Rot(head,.2f);Rot(legs[1],-.72f+S(t*9)*.3f);Rot(legs[3],-.72f-S(t*9)*.3f);break;case "peek":ScaleY(body,.72f+(S(t*1.7f)*.5f+.5f)*.28f);Rot(head,0,0,S(t*2)*.16f);break;case "knead":Rot(legs[1],S(t*7)*.3f);Rot(legs[3],-S(t*7)*.3f);ScaleY(body,.87f+S(t*7)*.018f);Close();break;case "play_object":Y(body,Mathf.Max(0,S(t*3))*.06f);Rot(legs[1],-Mathf.Max(0,S(t*5))*.8f);Rot(head,0,S(t*2)*.12f);break;case "serve":Rot(legs[1],-.6f+S(t*7)*.1f);Rot(head,.18f);break;case "handoff":Rot(legs[1],-.95f);Rot(head,-.06f);break;}}
 }
 }
-
-
-
