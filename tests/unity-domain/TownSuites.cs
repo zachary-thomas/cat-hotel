@@ -114,6 +114,8 @@ static class TownSuites
   check(!resume.SendManager("unknown").success,"unknown target rejected");
   check(resume.SendManager("paw_mart_door").success&&resume.SkipManagerTravel().success,"skip uses valid route");
   check(resume.Hotel().town.shop=="paw_mart"&&resumedArrivals==2,"shop entered on arrival");
+  check(!resume.SendManager("paw_mart_door").success&&resume.Hotel().town.shop=="paw_mart","same destination after arrival does not restart trip");
+  resume.Tick(.2f);check(resumedArrivals==2,"same destination cannot duplicate arrival");
   var failedTravel=new MemoryStore();var failedManager=new HotelModel(failedTravel,parity);check(failedManager.LoadOrCreate().success,"travel rollback setup");
   failedTravel.fail=true;check(!failedManager.SendManager("square").success&&failedManager.Hotel().town.destination=="","travel start rolls back on save failure");
   var blocked=new HotelModel(new MemoryStore(),parity);check(blocked.LoadOrCreate().success,"blocked exit setup");

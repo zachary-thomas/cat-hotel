@@ -32,6 +32,7 @@ namespace Purrington.Domain
   public CommandResult SendManager(string targetId)
   {
    if(State.currentHotel!=0||TownContent.Current==null||!TownContent.Current.IsStreetTarget(targetId))return CommandResult.Fail("Choose a Meadow destination.");
+   if(Hotel(0).town.destination==""&&new LotPoint(Hotel(0).town.x,Hotel(0).town.z).Distance(TownContent.Current.Point(targetId))<.0001f)return CommandResult.Fail("Already at this destination.");
    if(BuildManagerRoute(targetId).Count==0)return CommandResult.Fail("The way to Main Street is blocked.");
    return Transaction(()=>{Hotel(0).town.destination=targetId;Hotel(0).town.shop="";},"On the way to "+targetId+".");
   }
