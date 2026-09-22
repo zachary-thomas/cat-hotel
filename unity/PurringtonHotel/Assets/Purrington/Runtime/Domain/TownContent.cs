@@ -40,7 +40,15 @@ namespace Purrington.Domain
   public string CoatColor(string id)=>coats.TryGetValue(id,out var color)?color:null;
   public bool HasMarkings(string id)=>id!=null&&markings.Contains(id);
   public Store Shop(string id)=>id!=null&&stores.TryGetValue(id,out var store)?store:null;
-  public bool HasStreetLink(LotPoint a,LotPoint b)=>links.Any(pair=>Point(pair.Key).Distance(a)<.001f&&pair.Value.Any(id=>Point(id).Distance(b)<.001f));
+  public bool HasStreetLink(LotPoint a,LotPoint b)=>links.Any(pair=>pair.Value.Any(id=>OnLink(a,Point(pair.Key),Point(id))&&OnLink(b,Point(pair.Key),Point(id))));
+  static bool OnLink(LotPoint point,LotPoint a,LotPoint b)
+  {
+   float dx=b.x-a.x,dz=b.z-a.z,length2=dx*dx+dz*dz;
+   if(length2<.000001f)return false;
+   float t=((point.x-a.x)*dx+(point.z-a.z)*dz)/length2;
+   if(t<-.000001f||t>1.000001f)return false;
+   return new LotPoint(a.x+t*dx,a.z+t*dz).Distance(point)<.001f;
+  }
   static bool Finite(float v)=>!float.IsNaN(v)&&!float.IsInfinity(v);
   static string RequiredString(JToken token,string field)
   {

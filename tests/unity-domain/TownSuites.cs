@@ -21,6 +21,15 @@ static class TownSuites
   }
   check(TownRoute.Find(town,town.Point("hotel_gate"),"unknown").Count==0,"unknown destination rejected");
   check(TownRoute.Find(town,town.Point("hotel_gate"),"paw_mart_cashier").Count==0,"interior destination rejected");
+  var halfway=new LotPoint(20,17.74f);
+  var resumed=TownRoute.Find(town,halfway,"clothing_door");
+  check(resumed.Count>1&&resumed[0].Distance(halfway)<.001f&&resumed.Last().Distance(town.Point("clothing_door"))<.001f,"in-progress street route resumes");
+  check(resumed.Skip(1).All((point)=>point.Distance(town.Point("square"))<.001f||point.Distance(town.Point("clothing_door"))<.001f),"resumed route stays on the eastern pedestrian links");
+  for(int i=1;i<resumed.Count;i++)check(town.HasStreetLink(resumed[i-1],resumed[i]),"resumed route uses authored link");
+  var returning=TownRoute.Find(town,halfway,"hotel_gate");
+  check(returning.Count==3&&returning[1].Distance(town.Point("east_walk"))<.001f&&returning.Last().Distance(town.Point("hotel_gate"))<.001f,"in-progress route can return toward hotel");
+  check(TownRoute.Find(town,new LotPoint(20,17.745f),"square").Count==0,"nearby off-link start rejected");
+  check(TownRoute.Find(town,new LotPoint(0,14),"square").Count==0,"off-link start cannot create unauthored connector");
   var original=JObject.Parse(File.ReadAllText("unity/PurringtonHotel/Assets/Resources/Content/MainStreet.json"));
   void Reject(Action<JObject> change,string reason)
   {
