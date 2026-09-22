@@ -42,7 +42,7 @@
 
 Why the door side exists: the legacy `RoomShape` ties a regular room's door to its short side (`width ≥ 4` on the rotation axis). A 4×3 room drawn beside a hallway must still be able to open onto that hallway, so rooms gain an optional `door` side. The default `-1` means "use `rotation`", so the legacy behavior and the Godot oracle are unchanged.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `ShellSuites` in `tests/unity-domain/ShellSuites.cs`:
 
@@ -81,12 +81,12 @@ Register it in `tests/unity-domain/Program.cs` after `ShellSuites.RunShellUndo(C
 ShellSuites.RunDraw(Check,P,content);
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: build error `The name 'ShellDraw' does not exist in the current context`.
 
-- [ ] **Step 3: Add the door side**
+- [x] **Step 3: Add the door side**
 
 | File | Replace | With |
 |---|---|---|
@@ -99,7 +99,7 @@ Expected: build error `The name 'ShellDraw' does not exist in the current contex
 | `HotelNavigation.cs` (`DoorPosition`) | `switch(r.rotation){case 0:` | `switch(r.door>=0?r.door:r.rotation){case 0:` |
 | `HotelShell.cs` (`DoorSides`) | `new[]{r.rotation}` | `new[]{r.door>=0?r.door:r.rotation}` |
 
-- [ ] **Step 4: Create `HotelShellDraw.cs`**
+- [x] **Step 4: Create `HotelShellDraw.cs`**
 
 ```csharp
 using System;
@@ -126,12 +126,12 @@ public sealed partial class HotelModel {
 }
 ```
 
-- [ ] **Step 5: Run to verify it passes**
+- [x] **Step 5: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell draw suite passed` and `PASS <n> checks`; the oracle section still passes.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
