@@ -34,3 +34,16 @@ Checked that commerce mutations all use Transaction, rewards and progression per
 Manager outfit rendering and live try-on are explicitly coordinated with Task 8. Parent confirmed Task 8 will apply shared CatOutfitView.Apply to both street and interior manager rigs and implement try-on. No visual completion is claimed here. Unity Editor execution, EditMode test execution, actual cashier interaction/reload inspection, and portrait/text-scale visual acceptance are deferred because the original checkout has the active Editor and a second Editor/player build is prohibited. Compiler-only verification does not satisfy those gates.
 
 Market Day must transactionally consume market_bundle from Hotel(0).town.specialFlags (Task 9). This task intentionally provides the held flag and repurchase behavior, without introducing an event lifecycle. New cat discovery enables the existing hotel visitor system; authored visit/reaction presentation remains later event/acceptance work.
+
+## Review fix — refresh the active cashier sheet
+Review identified that Model.Changed updates wallet values only. All successful cashier actions now call ReportCashier, which rebuilds the active sheet and then reports the result. This immediately reveals Equip ribbon / Complete after First Look acceptance, changes grocery offers to Owned, reveals clothing Equip actions after purchase, and displays completed quest state. Failure reports leave the current sheet intact. Reporting after rebuilding preserves the notice. The existing storeChoice, active interior/conversation, scroll restoration and Back hierarchy remain in use; no store exit, camera focus or navigation reset is introduced.
+
+Added TownCashierRefreshTests.cs and .meta. Three parameterized cases use actual First Look, grocery and clothing commands and verify the refresh callback sees committed state before the report callback. A failure case verifies no refresh and exactly one report. This is focused presenter callback coverage; actual rendered-button interaction remains a deferred Unity execution gate.
+
+Exact verification commands and output:
+- Before adding the helper: `dotnet build unity/PurringtonHotel/Purrington.EditModeTests.csproj --no-restore -v:q` failed with two CS0117 errors: HotelTownUI did not contain RefreshCashier (RED compilation evidence). The temporary unused fixture-field warning was removed.
+- After fix: `dotnet build unity/PurringtonHotel/Purrington.EditModeTests.csproj --no-restore -v:q`: `Build succeeded. 0 Warning(s) 0 Error(s)` (1.98 seconds).
+- `dotnet run --project tests/unity-domain --no-restore`: `PASS 676207 checks`; dense 600s: 209 visits, 18 cleaned, 18 guests, 4401ms CPU.
+- `git -c safe.directory=C:/Users/zach7/.codex/worktrees/main-street/cat-hotel diff --check`: exit 0, no whitespace errors.
+
+Self-review confirmed every cashier mutation callback uses the refresh helper, successful results refresh exactly once, failures preserve the existing sheet, and the notice is emitted after Rebuild. Ignored generated EditMode project references include the new test locally. No second Unity Editor, player build or runtime test execution was started. The compiled regression cases still need Unity execution alongside the previously deferred cashier interaction acceptance gate.

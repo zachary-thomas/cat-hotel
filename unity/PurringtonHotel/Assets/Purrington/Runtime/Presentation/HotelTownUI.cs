@@ -4,6 +4,8 @@ using TMPro;
 using UnityEngine;
 namespace Purrington.Presentation {
  public sealed class HotelTownUI {
+  // Refresh only explicit successful cashier commands; idle wallet updates stay lightweight.
+  public static void RefreshCashier(CommandResult result,System.Action refresh,System.Action<CommandResult> report){if(result.success)refresh();report(result);}
   readonly HotelApp app;
   public HotelTownUI(HotelApp app){this.app=app;}
   public void Explore()=>app.UI.ExploreMainStreet();
@@ -63,6 +65,7 @@ namespace Purrington.Presentation {
    Button(actions,"Save look",()=>{var result=app.Model.SetManagerAppearance(townCoat,townMarkings);app.Report(result);if(result.success){managerEditing=false;app.World.ClearManagerPreview();Rebuild();app.World.FocusManager();}},Mint,14);
    Button(actions,"Cancel",()=>{managerEditing=false;app.World.ClearManagerPreview();Rebuild();app.World.FocusManager();},Lilac,14);
   }
+  void ReportCashier(CommandResult result)=>HotelTownUI.RefreshCashier(result,Rebuild,value=>app.Report(value));
   void StorePanel(StoreInteriorView interior){
    string name=interior.OwnerName;
    var content=Sheet(interior.ActiveStoreId=="paw_mart"?"Paw Mart":"Thread & Paw",interior.IsConversationOpen?name+" · cashier":"Tap "+name+" at the counter",.48f);
@@ -76,21 +79,21 @@ namespace Purrington.Presentation {
      foreach(var quest in TownContent.Current.Quests.Where(q=>(string)q["store"]==interior.ActiveStoreId)){
       string id=(string)quest["id"];bool accepted=app.Model.TownQuestAccepted(id),done=app.Model.TownQuestCompleted(id);
       Info(content,(string)quest["name"],done?"Completed · reward claimed":accepted?"Accepted":id=="first_look"?"Free ribbon · equip it on your manager":"Welcome Basket · 30 Cat Coins · invite Biscuit");
-      if(!done){Height(Button(content,accepted?"Complete quest":"Accept quest",()=>app.Report(accepted?app.Model.CompleteTownQuest(id):app.Model.AcceptTownQuest(id)),Gold,14),52*textScale);
-       if(id=="first_look"&&accepted)Height(Button(content,"Equip store ribbon",()=>app.Report(app.Model.DressManager("neck","store_ribbon")),Mint,14),52*textScale);}
+      if(!done){Height(Button(content,accepted?"Complete quest":"Accept quest",()=>ReportCashier(accepted?app.Model.CompleteTownQuest(id):app.Model.AcceptTownQuest(id)),Gold,14),52*textScale);
+       if(id=="first_look"&&accepted)Height(Button(content,"Equip store ribbon",()=>ReportCashier(app.Model.DressManager("neck","store_ribbon")),Mint,14),52*textScale);}
      }
     }else if(interior.ActiveStoreId=="paw_mart"){
      foreach(var offer in TownContent.Current.Offers.Where(o=>(string)o["store"]=="paw_mart")){
       string id=(string)offer["id"];bool owned=app.Model.TownInventory.Contains(id);
       Info(content,(string)offer["name"],(string)offer["price"]+" Cat Coins · "+(owned?"Owned · ready to use":"Available"));
-      if(!owned)Height(Button(content,"Buy "+(string)offer["name"],()=>app.Report(app.Model.BuyTownItem(id)),Gold,14),52*textScale);
+      if(!owned)Height(Button(content,"Buy "+(string)offer["name"],()=>ReportCashier(app.Model.BuyTownItem(id)),Gold,14),52*textScale);
      }
     }else{
      foreach(var wear in Wardrobe.All){
       string id=wear.id,slot=wear.slot;bool owned=app.Model.OwnsWear(id);
       Info(content,wear.name,owned?"Owned":wear.quest!=null?"Free · First Look quest":wear.giftCat>=0?"Friendship gift · "+app.Model.State.cats[wear.giftCat].name:wear.price+" Cat Coins");
-      if(owned)Height(Button(content,"Equip on manager",()=>app.Report(app.Model.DressManager(slot,id)),Mint,14),52*textScale);
-      else if(wear.giftCat<0&&wear.quest==null)Height(Button(content,"Buy "+wear.name,()=>app.Report(app.Model.BuyWear(id)),Gold,14),52*textScale);
+      if(owned)Height(Button(content,"Equip on manager",()=>ReportCashier(app.Model.DressManager(slot,id)),Mint,14),52*textScale);
+      else if(wear.giftCat<0&&wear.quest==null)Height(Button(content,"Buy "+wear.name,()=>ReportCashier(app.Model.BuyWear(id)),Gold,14),52*textScale);
      }
     }
     Height(Button(content,"Back to "+name,()=>{storeChoice="";Rebuild();},Mint,14),52*textScale);return;
