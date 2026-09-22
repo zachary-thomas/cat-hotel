@@ -206,6 +206,7 @@ namespace Purrington.Presentation
             var mapName=(string)app.Model.Map()["name"]??"Meadow House";
 
             var content=Sheet("Hotel life","Life at "+mapName,.70f);
+            if(app.Model.State.currentHotel==0){var explore=Button(content,"Explore Main Street",app.TownUI.Explore,Mint,15);Height(explore,52*textScale);}
 
             int staying=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest);
             int arriving=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest&&!a.checkedIn);

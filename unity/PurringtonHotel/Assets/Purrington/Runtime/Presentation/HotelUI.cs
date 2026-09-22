@@ -151,10 +151,12 @@ namespace Purrington.Presentation
 
         {
 
+            bool returningFromTown=app.World.IsTownMode;
+            if(returningFromTown){managerEditing=false;app.World.ExitTownMode();}
             if (careCat >= 0) app.World.SetCareMode(careCat,false);
 
             careCat = -1; settings=false; tab=destination; CancelPlacement(false); Rebuild();
-            if (destination == "Hotel") app.World.FitHotel();
+            if (destination == "Hotel" && !returningFromTown) app.World.FitHotel();
 
         }
 
@@ -172,6 +174,7 @@ namespace Purrington.Presentation
 
         {
 
+            if(tab=="Town"&&!settings){if(managerEditing){managerEditing=false;app.World.ClearManagerPreview();Rebuild();}else CloseTown();return;}
             if (IsPlacing) { CancelPlacement(); return; }
 
             if (careCat>=0) { if(careDetails){careDetails=false;Rebuild();}else CloseCare(); return; }
@@ -186,7 +189,7 @@ namespace Purrington.Presentation
 
         {
 
-            if (IsPlacing) return;
+            if (IsPlacing || app.World.IsTownMode) return;
 
             careCat=id; careTool="pet"; careDetails=false; settings=false;
 
@@ -375,6 +378,8 @@ namespace Purrington.Presentation
 
                 if(settings)SettingsPanel();
 
+                else if(tab=="Town")TownPanel();
+
                 else if(tab=="Hotel")HotelPanel();
 
                 else if(tab=="Build")BuildPanel();
@@ -397,7 +402,7 @@ namespace Purrington.Presentation
 
             if(saveError)ShowNotice(persistentSaveError,true);
 
-            app.World.SetInputBlocked(settings || careCat>=0 || (tab!="Hotel" && tab!="Build"));
+            app.World.SetInputBlocked(settings || careCat>=0 || (tab!="Hotel" && tab!="Build" && tab!="Town"));
 
             if(dialogTitle.Length>0)DialogPanel();
 
@@ -596,6 +601,10 @@ namespace Purrington.Presentation
             Pin(title.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-48),new Vector2(-62,-6));
             var collapse=Button(panel,compactObjective?"+":"-",()=>{compactObjective=!compactObjective;Rebuild();},Gold,18);
             Pin(collapse,new Vector2(1,1),Vector2.one,Vector2.one,new Vector2(-54,-48),new Vector2(-6,-4));
+            if(app.Model.State.currentHotel==0){
+                var explore=Button(safe,"Explore Main Street",app.TownUI.Explore,Mint,14);
+                Pin(explore,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(12,-126),new Vector2(184,-78));
+            }
             if(compactObjective)return;
             int ready=app.Model.State.rooms.Count(r=>app.Model.IsRoomReady(r));
             int staying=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest);
@@ -643,7 +652,7 @@ namespace Purrington.Presentation
 
             Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(18,-58),new Vector2(-76,-8));
 
-            var close=Button(sheet,"Back",()=>Navigate("Hotel"),Gold,12);
+            var close=Button(sheet,"Back",()=>{if(tab=="Town")Back();else Navigate("Hotel");},Gold,12);
 
             Pin(close,new Vector2(1,1),Vector2.one,Vector2.one,new Vector2(-66,-56),new Vector2(-10,-8));
 

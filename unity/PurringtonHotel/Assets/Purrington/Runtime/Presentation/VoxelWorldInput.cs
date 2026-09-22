@@ -40,7 +40,10 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
                     pinchActive=true; pinchFirstId=firstId; pinchSecondId=secondId;
                     pinchOwned=touchStartedOnWorld[firstId] && touchStartedOnWorld[secondId];
                     pinchDistance=pinchOwned?distance:0;
+                    if(pinchOwned) previous=(first.position.ReadValue()+second.position.ReadValue())*.5f;
                 } else if(pinchOwned) {
+                    var midpoint=(first.position.ReadValue()+second.position.ReadValue())*.5f;
+                    townFollowing=false;focus+=(ScreenToGround(previous)-ScreenToGround(midpoint))*Unit;LimitCamera();previous=midpoint;
                     if(pinchDistance>0) manualCamera=true; if(pinchDistance>0) zoom=Mathf.Clamp(zoom*pinchDistance/Mathf.Max(distance,1),3,90);
                     pinchDistance=distance;
                 }
@@ -54,7 +57,7 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
                 point=Mouse.current.position.ReadValue(); start=Mouse.current.leftButton.wasPressedThisFrame; held=Mouse.current.leftButton.isPressed; end=Mouse.current.leftButton.wasReleasedThisFrame;
                 // Input System normalizes wheel input to one unit per notch.
                 // Proportional steps feel equally responsive near and far; trackpads retain fractional steps.
-                if(!care && !OverUI(point) && Mouse.current.scroll.ReadValue().y!=0){manualCamera=true;zoom=Mathf.Clamp(zoom*Mathf.Pow(.85f,Mouse.current.scroll.ReadValue().y),3,90);}
+                if(!care && !OverUI(point) && Mouse.current.scroll.ReadValue().y!=0){townFollowing=false;manualCamera=true;zoom=Mathf.Clamp(zoom*Mathf.Pow(.85f,Mouse.current.scroll.ReadValue().y),3,90);}
             }
             if(care) {
                 if(start && !OverUI(point)) carePressed=true;
@@ -65,20 +68,23 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
             if(pressed && held)
             {
                 if(Vector2.Distance(point,down)>10) dragged=true;
-                if(pathPainting) { GroundDragged?.Invoke(ScreenToGround(point)); } else if(dragged) { manualCamera=true;focus += (ScreenToGround(previous)-ScreenToGround(point))*Unit; LimitCamera(); }
+                if(pathPainting && !townMode) { GroundDragged?.Invoke(ScreenToGround(point)); } else if(dragged) { townFollowing=false;manualCamera=true;focus += (ScreenToGround(previous)-ScreenToGround(point))*Unit; LimitCamera(); }
                 previous=point;
             }
             if(end && pressed)
             {
                 pressed=false;
-                if((dragged && !pathPainting) || OverUI(point)) return;
+                if((dragged && (!pathPainting || townMode)) || OverUI(point)) return;
                 var ray=WorldCamera.ScreenPointToRay(point);
                 if(Physics.Raycast(ray,out var hit,500))
                 {
+                    var store=hit.collider.GetComponent<TownStoreHit>();
+                    if(townMode&&store!=null){SelectTownStore(store.StoreId);return;}
+                    if(townMode){SelectTownGround(ScreenToGround(point));return;}
                     var marker=hit.collider.GetComponent<WorldPick>();
                     if(marker != null) { if(marker.catId>=0) { CatSelected?.Invoke(marker.catId); return; } if(!string.IsNullOrEmpty(marker.objectId)) { if(marker.objectId.StartsWith("room:")) RoomSelected?.Invoke(marker.objectId.Substring(5)); else ObjectSelected?.Invoke(marker.objectId); } }
                 }
-                GroundClicked?.Invoke(ScreenToGround(point));
+                if(townMode)SelectTownGround(ScreenToGround(point));else GroundClicked?.Invoke(ScreenToGround(point));
             }
         }
 } }

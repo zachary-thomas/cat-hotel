@@ -34,6 +34,8 @@ namespace Purrington.Presentation
 
   public HotelModel Model{get;private set;}public VoxelWorld World{get;private set;}public HotelUI UI{get;private set;}public HotelAudio Audio{get;private set;}
 
+  public HotelTownUI TownUI{get;private set;}
+
   public string LastMessage{get;private set;}="Welcome to your little corner of Purrington.";public event Action<string> Notice;
 
   float autosave;string saveRoot,initializationError="";bool allowQuit;
@@ -70,7 +72,8 @@ namespace Purrington.Presentation
 
     World=new GameObject("Voxel Hotel").AddComponent<VoxelWorld>();World.Initialize(Model);
 
-    UI=new GameObject("Mobile Interface").AddComponent<HotelUI>();UI.Initialize(this);World.CatSelected+=UI.OpenCare;World.GroundClicked+=UI.GroundClicked;World.ObjectSelected+=UI.SelectObject;World.RoomSelected+=UI.SelectRoom;World.GroundDragged+=UI.GroundDragged;
+    TownUI=new HotelTownUI(this);
+    UI=new GameObject("Mobile Interface").AddComponent<HotelUI>();UI.Initialize(this);World.CatSelected+=UI.OpenCare;World.GroundClicked+=UI.GroundClicked;World.ObjectSelected+=UI.SelectObject;World.RoomSelected+=UI.SelectRoom;World.GroundDragged+=UI.GroundDragged;World.StoreSelected+=TownUI.SelectStore;World.TownMessage+=message=>UI.ShowNotice(message,false);World.TownCommand+=result=>Report(result);
 
     Audio=GetComponent<HotelAudio>()??gameObject.AddComponent<HotelAudio>();
 

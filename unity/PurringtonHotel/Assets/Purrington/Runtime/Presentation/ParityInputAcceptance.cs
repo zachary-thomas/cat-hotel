@@ -55,6 +55,7 @@ namespace Purrington.Presentation
                 Rect safe=new Rect(8,16,Screen.width-16,Screen.height-40);app.UI.ConfigureAcceptanceLayout(safe,scale);
                 yield return Frames(3);
                 yield return Click("Hotel","Navigation");
+                if(app.Model.State.currentHotel==0)yield return MainStreetInput(safe);
                 yield return Click("Build","Navigation");Check("Build navigation",app.UI.ActiveTab=="Build");
                 Check("browse world height",app.UI.AvailableWorldRect.height/Screen.height>=.35f,app.UI.AvailableWorldRect.ToString());
                 CheckLayout(safe);
@@ -160,6 +161,37 @@ namespace Purrington.Presentation
             Finish("completed");
         }
         IEnumerator Frames(int count){for(int i=0;i<count;i++)yield return null;}
+        IEnumerator MainStreetInput(Rect safe)
+        {
+            yield return Click("Explore Main Street");
+            Check("Main Street opens without placement",app.World.IsTownMode&&!app.UI.IsPlacing);
+            yield return Click("Square");yield return Click("Skip walk");
+            yield return Click("Fit street");yield return Frames(3);
+            CheckLayout(safe);yield return Screenshot("main-street");
+            // Find a visible storefront sign through the actual scene raycast.
+            var sign=app.World.GetComponentsInChildren<TownStoreHit>().FirstOrDefault(h=>h.StoreId=="paw_mart"&&h.name=="Store sign");
+            if(sign){
+                Vector2 screen=app.World.WorldCamera.WorldToScreenPoint(sign.transform.position);
+                bool visible=app.UI.AvailableWorldRect.Contains(screen);
+                Check("store sign lies in world viewport",visible);
+                if(visible){yield return TouchGesture(screen,screen,.04f);Check("sign tap begins manager travel",app.Model.Hotel(0).town.destination=="paw_mart_door");}
+            }else Check("store sign is hittable",false);
+            var stage=app.UI.AvailableWorldRect;var before=app.World.WorldCamera.transform.position;
+            yield return TouchGesture(stage.center,stage.center+Vector2.right*35,.2f);
+            Check("street drag pans camera",Vector3.Distance(before,app.World.WorldCamera.transform.position)>.05f);
+            float zoom=app.World.WorldCamera.orthographicSize;
+            var a=stage.center-Vector2.right*24;var b=stage.center+Vector2.right*24;
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Began,position=a,pressure=1});yield return Frames(2);
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=2,phase=UnityEngine.InputSystem.TouchPhase.Began,position=b,pressure=1});yield return Frames(2);
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Moved,position=a-Vector2.right*16,pressure=1});
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=2,phase=UnityEngine.InputSystem.TouchPhase.Moved,position=b+Vector2.right*16,pressure=1});yield return Frames(3);
+            Check("street pinch zooms camera",app.World.WorldCamera.orthographicSize<zoom-.01f);
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Ended,position=a-Vector2.right*16});
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=2,phase=UnityEngine.InputSystem.TouchPhase.Ended,position=b+Vector2.right*16});yield return Frames(3);
+            yield return Click("Back","Main Street");
+            Check("Back returns to Hotel",app.UI.ActiveTab=="Hotel"&&!app.World.IsTownMode&&!app.UI.IsPlacing);
+            Check("street never shows an interior",app.World.ActiveStoreInteriorCount==0);
+        }
         bool Ancestor(Transform item,string name){for(var t=item;t!=null;t=t.parent)if(t.name==name)return true;return false;}
         Button FindButton(string label,string ancestor)
         {
