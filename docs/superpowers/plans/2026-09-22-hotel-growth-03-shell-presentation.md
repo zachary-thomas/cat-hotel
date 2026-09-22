@@ -147,7 +147,7 @@ git commit -m "feat(domain): wall runs, edge picking, room drafts with a free do
 - Create: `unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/ShellPresentationTests.cs`
 - Modify: `…/Presentation/VoxelWorld.cs` (lines 38–39), `…/Presentation/VoxelWorldRooms.cs` (lines 8, 11, 12)
 
-- [ ] **Step 1: Write the failing EditMode tests**
+- [x] **Step 1: Write the failing EditMode tests**
 
 ```csharp
 using NUnit.Framework;using Purrington.Domain;using Purrington.Presentation;using UnityEngine;
@@ -167,19 +167,19 @@ public sealed class ShellPresentationTests {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `.\tools\unity.ps1 Test`
 Expected: compile error `'VoxelWorld' does not contain a definition for 'ShellWallPlacement'`.
 
-- [ ] **Step 3: Give `Wall()` two options (`VoxelWorldRooms.cs`)**
+- [x] **Step 3: Give `Wall()` two options (`VoxelWorldRooms.cs`)**
 
 1. Change the signature `void Wall(Transform parent,float w,float d,int side,float height,bool door,string accent,string panel){` to `void Wall(Transform parent,float w,float d,int side,float height,bool door,string accent,string panel,bool decor=true,float doorWidth=-1){`.
 2. In its door branch, change `float opening=Mathf.Min(length-.44f,2.06f)` to `float opening=doorWidth>0?doorWidth:Mathf.Min(length-.44f,2.06f)`.
 3. On line 12, change `if(span<1.4f)continue;int windows=` to `if(span<1.4f||!decor)continue;int windows=`. With this, auto-decor windows only appear where the caller allows them.
 4. On line 8, interior rooms stop drawing their own walls and roof, because the shell draws them. Change `if(r.kind=="terrace"){` so that the `else{` branch only runs for pavilions. Replace the text `}else{var full=Group(root,"FullWalls");` with `}else if(!HotelModel.Interior(model.Hotel(),r)){var full=Group(root,"FullWalls");`.
 
-- [ ] **Step 4: Create `VoxelWorldShell.cs`**
+- [x] **Step 4: Create `VoxelWorldShell.cs`**
 
 ```csharp
 using System;
@@ -215,7 +215,7 @@ Notes for the implementer:
 - Check the name of the field `SetCutaway` writes (`exterior`) and the `SetActive` rule for `roof` in `VoxelWorld.cs:35`. `SetCutawayOn` must mirror it exactly. If the rule differs, copy it from there.
 - `GroundY` is the private const in `VoxelWorld.cs:12`.
 
-- [ ] **Step 5: Call it and rebuild on shell changes (`VoxelWorld.cs`)**
+- [x] **Step 5: Call it and rebuild on shell changes (`VoxelWorld.cs`)**
 
 1. Line 38 (rebuild signature): change `.Append(',').Append(r.rotation);foreach(var o` to `.Append(',').Append(r.rotation).Append(',').Append(r.door).Append(',').Append(r.floor);foreach(var o`. Then change `foreach(var p in model.Hotel().plots)s.Append('|').Append(p);` to:
 
@@ -225,14 +225,14 @@ foreach(var p in model.Hotel().plots)s.Append('|').Append(p);foreach(var f in mo
 
 2. Line 39: change `BuildPaths();BuildOwnedPlots();}` to `BuildPaths();BuildOwnedPlots();BuildShell();}`.
 
-- [ ] **Step 6: Run the tests and look at it**
+- [x] **Step 6: Run the tests and look at it**
 
 Run: `.\tools\unity.ps1 Test`
 Expected: exit 0; `ShellPresentationTests` pass.
 
 Then open the editor (`.\tools\unity.ps1 Open`), enter Play on Bootstrap, and compare Meadow with `docs/art/qa-shots/meadow-day-color-pass.png`. The migrated rooms must look the same: tall back walls, low front walls, and decor windows on long outside walls. Toggle Settings → exterior view and check that walls go full height and the roof appears.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/ShellPresentationTests.cs*
