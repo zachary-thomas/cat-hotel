@@ -8,6 +8,7 @@
     <Compile Include="../../unity/PurringtonHotel/Assets/Purrington/Runtime/Domain/*.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ConstructionSuites.cs" />
+    <Compile Include="ShellSuites.cs" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>
