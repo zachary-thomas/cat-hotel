@@ -27,10 +27,18 @@ static class WardrobeSuites
 		Check(m.OwnsWear("tiny_crown")&&m.Dress(0,"head","tiny_crown").success,"wardrobe: the gift can be worn");
 		var codec=new NewtonsoftSaveCodec();var restored=codec.Deserialize(codec.Serialize(m.State));
 		Check(HotelModel.Valid(restored)&&restored.cats[0].outfit["head"]=="tiny_crown"&&restored.wardrobe.Contains("sun_hat"),"wardrobe: outfits and purchases survive a save");
+		Check(m.Dress(1,"head","sun_hat").success,"wardrobe: a purchased item is shared with another cat");
+		var earned=codec.Deserialize(codec.Serialize(m.State));
+		Check(HotelModel.Valid(earned)&&earned.cats[0].outfit["head"]=="tiny_crown"&&earned.cats[1].outfit["head"]=="sun_hat","wardrobe: earned gift and purchased wear survive a save together");
 		var legacy=JObject.Parse(codec.Serialize(m.State));((JObject)legacy).Remove("wardrobe");foreach(var c in legacy["cats"])((JObject)c).Remove("outfit");
 		var old=new HotelModel(new MemoryStore(),content);old.LoadOrCreate();Check(old.RestoreJson(legacy.ToString())&&old.State.cats.All(c=>c.outfit.Count==0),"wardrobe: older saves load undressed");
 		var bad=JObject.Parse(codec.Serialize(m.State));bad["cats"][0]["outfit"]["head"]=5;Check(!old.RestoreJson(bad.ToString()),"wardrobe: strict JSON rejects a non-string outfit");
 		var wrongSlot=JObject.Parse(codec.Serialize(m.State));wrongSlot["cats"][0]["outfit"]["neck"]="sun_hat";Check(!old.RestoreJson(wrongSlot.ToString()),"wardrobe: validation rejects wear in the wrong slot");
+		var beforeRejected=codec.Serialize(old.State);
+		var earlyGift=JObject.Parse(codec.Serialize(m.State));earlyGift["cats"][0]["bond"]=0;earlyGift["cats"][0]["outfit"]["head"]="sun_hat";((JArray)earlyGift["wardrobe"]).Add("tiny_crown");
+		Check(!old.RestoreJson(earlyGift.ToString())&&codec.Serialize(old.State)==beforeRejected,"wardrobe: forged gift inventory is rejected without changing the hotel");
+		var unownedOutfit=JObject.Parse(codec.Serialize(m.State));unownedOutfit["cats"][0]["outfit"]["neck"]="bow_tie";
+		Check(!old.RestoreJson(unownedOutfit.ToString())&&codec.Serialize(old.State)==beforeRejected,"wardrobe: unowned equipped wear is rejected without changing the hotel");
 		Check(m.Dress(0,"head","").success&&!m.State.cats[0].outfit.ContainsKey("head"),"wardrobe: undress a slot");
 		store.fail=true;coins=m.State.coins;Check(!m.BuyWear("beanie").success&&Math.Abs(coins-m.State.coins)<.01&&!m.OwnsWear("beanie"),"wardrobe: a failed save buys nothing");store.fail=false;
 		m.State.coins=10;Check(!m.BuyWear("beanie").success,"wardrobe: can't afford a beanie with 10 coins");
