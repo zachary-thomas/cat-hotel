@@ -11,6 +11,7 @@ The sections below preserve the original handoff at commit `cb35d1f`. This updat
 - Plan 01 lawn Tasks 1–2 are committed and reviewed: `c1f9034` and `4cd1b5b`. The same disposable Unity project, updated with these commits, passed **72/72 EditMode tests**, including all three new lawn tests. Task 3, the four-map visual QA, is in progress in a separate disposable project.
 - Next after lawn QA: plan 03, then 05, 04 and 06. Plan 03's task briefs and preflight ledger are in its own ignored `.superpowers/sdd` directory.
 - Additional unrelated welcome-screen edits and art appeared in the working tree (`HotelUI.cs`, welcome screenshots/content). Preserve them along with the two main-street documents listed below; they are not part of hotel growth.
+- Plan 01 visual QA is now complete. The first screenshots exposed a thin dark seam from the raised owned-parcel lawn slabs. Commit `87fbe63` skips those redundant owned slabs while leaving unowned sale dressing untouched. The updated four-map captures and a normal-mode sale-sign check passed re-review; the disposable Unity run passed **73/73 EditMode tests**. Next work starts at plan 03 Task 1.
 
 ## What the user asked for
 

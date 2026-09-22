@@ -1,6 +1,6 @@
 # Lawn Color Consistency Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Make owned land blend with the world's ground on all four maps, so the Meadow lot no longer reads as a pasted-on green tile.
 
@@ -40,7 +40,7 @@ The owned-lot swatches all differ from the world ground on every map. Meadow's i
 - Create: `unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/LawnColorTests.cs`
 - Modify: `unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/GodotGeometry.cs`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```csharp
 using System.Collections.Generic;using System.Linq;using NUnit.Framework;using Newtonsoft.Json.Linq;using Purrington.Presentation;
@@ -54,12 +54,12 @@ public sealed class LawnColorTests {
 }
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run (PowerShell, repo root): `.\tools\unity.ps1 Test`
 Expected: a compile failure in `LawnColorTests.cs` because `'GodotGeometry' does not contain a definition for 'LawnColor'`, and the Unity CLI exits non-zero. Check `builds/unity/test-results.xml` or the CLI output.
 
-- [ ] **Step 3: Implement the helpers in `GodotGeometry.cs`**
+- [x] **Step 3: Implement the helpers in `GodotGeometry.cs`**
 
 Add `using System.Linq;` to the using block at the top. Then insert these two members directly after `public JObject Map(int index) { … }` (line 17):
 
@@ -69,12 +69,12 @@ Add `using System.Linq;` to the using block at the top. Then insert these two me
  public static JObject Recolor(JObject recipe,string color) { var copy=(JObject)recipe.DeepClone();foreach(var p in copy.SelectTokens("..parts[*]").OfType<JObject>().ToList())p["color"]=color;return copy; }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `.\tools\unity.ps1 Test`
 Expected: exit code 0; the three `LawnColorTests` pass, and the existing suites are unchanged.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/GodotGeometry.cs unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/LawnColorTests.cs unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/LawnColorTests.cs.meta
@@ -88,7 +88,7 @@ git commit -m "fix: lawn helpers pick the world ground swatch for owned land"
 **Files:**
 - Modify: `unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/VoxelWorld.cs:43`
 
-- [ ] **Step 1: Replace `BuildOwnedPlots`**
+- [x] **Step 1: Replace `BuildOwnedPlots`**
 
 Current (line 43, first member):
 
@@ -104,12 +104,12 @@ Replace with:
 
 Unowned parcels keep their authored "for sale" dressing. Only the owned lawn is recolored.
 
-- [ ] **Step 2: Run the EditMode tests**
+- [x] **Step 2: Run the EditMode tests**
 
 Run: `.\tools\unity.ps1 Test`
 Expected: exit code 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/VoxelWorld.cs
@@ -121,16 +121,16 @@ git commit -m "fix: owned land uses each map's world lawn color"
 **Files:**
 - Create: `docs/art/qa-shots/hotel-growth/lawn-meadow.png`, `lawn-seaside.png`, `lawn-forest.png`, `lawn-snowcap.png`
 
-- [ ] **Step 1: Build the preview**
+- [x] **Step 1: Build the preview**
 
 Run: `.\tools\unity.ps1 Windows`
 Expected: exit code 0; `builds/unity/Windows/PurringtonHotel.exe` updated.
 
-- [ ] **Step 2: Capture each map in God mode.** In the running preview, open Settings, enable God mode, then use Map to visit each destination. Use `unity:unity-cli` to drive the editor Game view if preferred. Capture the Hotel view at default zoom, and once in Build → Land so the owned outline is visible.
+- [x] **Step 2: Capture each map in God mode.** In the running preview, open Settings, enable God mode, then use Map to visit each destination. Use `unity:unity-cli` to drive the editor Game view if preferred. Capture the Hotel view at default zoom, and once in Build → Land so the owned outline is visible.
 
-- [ ] **Step 3: Check the captures.** The owned-lot boundary must be invisible against the surrounding meadow, sand, moss and snow. Paths, rooms and the plot-for-sale signs are unchanged. Compare against `docs/art/qa-shots/meadow-day-color-pass.png` (before).
+- [x] **Step 3: Check the captures.** The owned-lot boundary must be invisible against the surrounding meadow, sand, moss and snow. Paths, rooms and the plot-for-sale signs are unchanged. Compare against `docs/art/qa-shots/meadow-day-color-pass.png` (before).
 
-- [ ] **Step 4: Commit the captures**
+- [x] **Step 4: Commit the captures**
 
 ```bash
 git add docs/art/qa-shots/hotel-growth/lawn-*.png

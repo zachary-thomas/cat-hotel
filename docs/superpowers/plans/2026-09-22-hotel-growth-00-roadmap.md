@@ -176,4 +176,5 @@ Execution runs on `test/combined-screenshot-reality` (user's choice), one task a
 | 02/T6 | 7a332db | Approved. Player-editable walls, doors, windows and archways; domain suite PASS 676051 checks. |
 | 02/T7 | c95adff | Approved. Hallway and lobby furniture uses indoor shell floor; wall and boundary crossing is rejected. Domain suite PASS 676060 checks. |
 | 02/T8 | 6426174, fa4fd72, ec2be97 | Approved. Shell undo/redo and Unity script metadata. Domain suite PASS 676064; isolated committed-project Unity run passed 69/69 EditMode tests. |
-| 01/T1–T2 | c1f9034, 4cd1b5b | Approved. World lawn swatches now drive owned parcel material colors. Isolated Unity run passed 72/72 EditMode tests, including 3/3 new lawn tests. Visual QA remains. |
+| 01/T1–T2 | c1f9034, 4cd1b5b | Approved. World lawn swatches now drive owned parcel material colors. Isolated Unity run passed 72/72 EditMode tests, including 3/3 new lawn tests. |
+| 01/T3 | 4b5a076, 87fbe63 | Approved after seam fix. The raised owned parcel lawn slab was removed; unowned sale dressing remains. Isolated Unity run passed 73/73 EditMode tests; Windows preview and four-map visual QA passed. |
