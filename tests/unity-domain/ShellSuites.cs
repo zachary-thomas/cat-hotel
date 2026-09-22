@@ -135,7 +135,7 @@ static class ShellSuites
 		Check(!tampered(s=>HotelModel.Floor(s.hotels[s.currentHotel],0).edges["v:"+(x+1)+","+z]=new EdgeState{kind="open"}),"gate: inside archways are rejected");
 		Check(!tampered(s=>HotelModel.Floor(s.hotels[s.currentHotel],0).edges["v:"+(x+40)+","+z]=new EdgeState{kind="wall"}),"gate: walls off the floor are rejected");
 		Check(!tampered(s=>s.hotels[s.currentHotel].rooms.Add(new RoomState{id="room"+s.nextId++,kind="regular",x=x+1,z=z,width=4,depth=3})),"gate: half-inside rooms are rejected");
-		Check(m.SetGodMode(true).success&&m.Execute("paint_floor",Paint(x+3,z,1,1)).success&&HotelModel.Floor(m.Hotel(),0).cells[ShellGrid.Cell(x+3,z)]==0,"gate: God mode tiles are stored as free, so they never refund coins");
+		Check(m.SetGodMode(true).success&&m.Execute("paint_floor",Paint(x+3,z,1,1)).success&&HotelModel.Floor(m.Hotel(),0).cells[ShellGrid.Cell(x+3,z)]==0,"gate: God mode tiles are stored as free, so they never refund coins");RunShellUndo(Check,P,content);
 		Console.WriteLine("Shell load gate suite passed");
 	}
 	public static void RunNavigation(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
@@ -155,6 +155,16 @@ static class ShellSuites
 		Check(glazed.Route(outside,inside,false).Count==0,"nav: windows block like walls");
 		Check(glazed.GuestCapacity(0)==4&&glazed.Rate(0)==64,"nav: Meadow capacity/rate unchanged with shell walls");
 		Console.WriteLine("Shell navigation suite passed");
+	}
+	public static void RunShellUndo(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;OwnPlots(m);FindClear(m,6,5,out int x,out int z);
+		double coins=m.State.coins;int rooms=m.Hotel().rooms.Count,cells=HotelModel.Floor(m.Hotel(),0).cells.Count;
+		Check(m.Execute("draw_room",Room(x,z,4,3,0)).success,"undo: draw room");
+		Check(m.Undo().success&&m.Hotel().rooms.Count==rooms&&HotelModel.Floor(m.Hotel(),0).cells.Count==cells&&Math.Abs(m.State.coins-coins)<.01,"undo: drawing a room undoes floor, room and coins");
+		Check(m.Redo().success&&m.Hotel().rooms.Count==rooms+1&&HotelModel.Interior(m.Hotel(),m.Hotel().rooms.Last()),"undo: redo restores the interior room");
+		Check(HotelModel.Valid(m.State),"undo: state stays valid");
+		Console.WriteLine("Shell undo suite passed");
 	}
 	public static JObject Room(int x,int z,int w,int d,int rotation,string kind="regular")
 	{
