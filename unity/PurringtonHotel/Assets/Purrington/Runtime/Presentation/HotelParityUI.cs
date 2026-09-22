@@ -165,7 +165,7 @@ namespace Purrington.Presentation
 
                     var payload=new JObject{{"kind",kind=="cottage"?"regular":kind},{"w",4},{"h",kind=="suite"?5:kind=="cottage"?4:3},{"rotation",0},{"name",name}};
 
-                    CatalogCard(content,name,"Rooms",app.Model.CatalogPrice("place_room",payload),()=>BeginCommand("place_room",payload,name),Gold,"room");
+                    CatalogCard(content,name,"Outdoor pavilion · draw indoor rooms under Hotel",app.Model.CatalogPrice("place_room",payload),()=>BeginCommand("place_room",payload,name),Gold,"room");
 
                 }
 
@@ -178,6 +178,8 @@ namespace Purrington.Presentation
                 CatalogCard(content,(string)entry["name"],"Individually editable furnishings",app.Model.CatalogPrice("place_template",payload),()=>BeginCommand("place_template",payload,(string)entry["name"]),Gold,"room");
 
             }
+
+            if(category=="Land")Card(content,"Grow straight onto land","Use Hotel → Grow: land for sale is bought as the hotel grows onto it.","Grow",()=>BeginCommand("paint_floor",new JObject{{"floor",0},{"cells",new JArray()},{"buy",true}},"Grow the hotel"),Mint);
 
             if(category=="Land")foreach(var plot in app.Model.Map()["plots"]??new JArray())
 
