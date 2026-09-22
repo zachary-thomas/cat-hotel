@@ -6,12 +6,13 @@ using Newtonsoft.Json.Linq;
 namespace Purrington.Domain {
 [Serializable] public sealed class HotelState {
  public int version=3; public double coins=1000; public float elapsed; public int nextId=1,currentHotel; public long lastSeen; public double pendingCoins;
+ public string managerName="Manager",managerCoat="honey",managerMarkings="solid"; public Dictionary<string,string> managerOutfit=new Dictionary<string,string>();
  public List<HotelData> hotels=new List<HotelData>(); public List<ObjectState> storage=new List<ObjectState>(); public List<CatState> cats=new List<CatState>(); public List<string> entitlements=new List<string>(); public SettingsState settings=new SettingsState();
  [JsonIgnore] public List<RoomState> rooms {get{return hotels.Count>currentHotel?hotels[currentHotel].rooms:legacyRooms;}set{if(hotels.Count>currentHotel)hotels[currentHotel].rooms=value;else legacyRooms=value;}}
  [JsonIgnore] public List<ObjectState> objects {get{return hotels.Count>currentHotel?hotels[currentHotel].objects:legacyObjects;}set{if(hotels.Count>currentHotel)hotels[currentHotel].objects=value;else legacyObjects=value;}}
  [JsonIgnore] List<RoomState> legacyRooms=new List<RoomState>(); [JsonIgnore] List<ObjectState> legacyObjects=new List<ObjectState>();
 }
-[Serializable] public sealed class HotelData { public bool owned,maid; public List<string> plots=new List<string>(); public List<RoomState> rooms=new List<RoomState>(); public List<FloorState> floors=new List<FloorState>(); public List<ObjectState> objects=new List<ObjectState>(); public Dictionary<string,PathState> paths=new Dictionary<string,PathState>(); public int level=1,visits,happy,cleaned,purchases,dirtCursor; public float dirtClock; public int[] upgrades={1,0,0,1},staff={0,0,0}; public Dictionary<string,bool> dirty=new Dictionary<string,bool>(); }
+[Serializable] public sealed class HotelData { public bool owned,maid; public TownState town=new TownState(); public List<string> plots=new List<string>(); public List<RoomState> rooms=new List<RoomState>(); public List<FloorState> floors=new List<FloorState>(); public List<ObjectState> objects=new List<ObjectState>(); public Dictionary<string,PathState> paths=new Dictionary<string,PathState>(); public int level=1,visits,happy,cleaned,purchases,dirtCursor; public float dirtClock; public int[] upgrades={1,0,0,1},staff={0,0,0}; public Dictionary<string,bool> dirty=new Dictionary<string,bool>(); }
 [Serializable] public sealed class PathState {public string style="earth";public double paid;}
 [Serializable] public sealed class RoomState { public string id,name="New room",kind="regular"; public int x,z,width,depth,rotation,floor; public double paid; }
 [Serializable] public sealed class ObjectState {public string id,itemId,room="";public float x,z;public int rotation,floor;public double paid;}
