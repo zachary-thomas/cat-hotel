@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -15,6 +16,9 @@ public sealed class GodotGeometry : IDisposable {
  public GodotGeometry() { var asset=Resources.Load<TextAsset>("Content/GodotGeometry"); if(!asset) throw new InvalidOperationException("Missing required Godot geometry export"); Data=JObject.Parse(asset.text); }
  public JObject Recipe(string collection,string id) { foreach(var r in Data[collection]??new JArray()) if((string)r["id"]==id) return (JObject)r["root"]; throw new InvalidOperationException("Missing authored geometry: "+collection+"/"+id); }
  public JObject Map(int index) { return (JObject)Data["maps"][index]; }
+ // Owned-lot recipes predate the concept color pass. Lawns reuse the world's own ground swatch so owned land never reads as a pasted tile.
+ public static string LawnColor(JObject ground) { string best=null;double area=-1;void Walk(JToken n){foreach(var p in n["parts"]??new JArray()){var t=p["transform"] as JArray;double a=t==null||t.Count!=12?0:Math.Abs((double)t[0]*(double)t[8]);if(a>area){area=a;best=(string)p["color"];}}foreach(var c in n["children"]??new JArray())Walk(c);}Walk(ground);return best??"#83a36eff"; }
+ public static JObject Recolor(JObject recipe,string color) { var copy=(JObject)recipe.DeepClone();foreach(var p in copy.SelectTokens("..parts[*]").OfType<JObject>().ToList())p["color"]=color;return copy; }
  public Material Material(string hex) { hex=hex??"#ffffffff"; if(materials.TryGetValue(hex,out var m))return m; bool water=hex.StartsWith("water|");var fields=water?hex.Split('|'):null;string value=water?fields[1]:hex;ColorUtility.TryParseHtmlString(value.StartsWith("#")?value:"#"+value,out var color); if(!water)color=ConceptTheme.Surface(value); m=new Material(Shader.Find(water?"Purrington/Authored Water":"Universal Render Pipeline/Lit")){color=color,enableInstancing=true};if(water){m.SetColor("_BaseColor",color);m.SetFloat("_ShoreZ",float.Parse(fields[2],System.Globalization.CultureInfo.InvariantCulture));}if(!water)m.SetFloat("_Smoothness",.12f); materials.Add(hex,m);return m; }
  public static Matrix4x4 Matrix(JToken value) { if(!(value is JArray a)||a.Count!=12)return Matrix4x4.identity; var m=Matrix4x4.identity;for(int c=0;c<4;c++) for(int r=0;r<3;r++)m[r,c]=(float)a[c*3+r];return m; }
  Mesh Primitive(string kind) { if(primitives.TryGetValue(kind,out var mesh))return mesh;var g=GameObject.CreatePrimitive(kind=="sphere"?PrimitiveType.Sphere:kind=="cylinder"?PrimitiveType.Cylinder:kind=="plane"?PrimitiveType.Plane:PrimitiveType.Cube);mesh=g.GetComponent<MeshFilter>().sharedMesh; Release(g);primitives[kind]=mesh;return mesh; }
