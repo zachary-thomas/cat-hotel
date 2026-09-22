@@ -48,7 +48,7 @@ static class TownSuites
   check(manager.LoadOrCreate().success,"town starter saves");
   check((string)JObject.FromObject(manager.State)["managerName"]=="Manager","default manager name saved");
   check(manager.State.managerCoat=="honey"&&manager.State.managerMarkings=="solid","default manager appearance");
-  check(manager.State.hotels[0].town!=null&&town.Point("hotel_gate").Distance(new LotPoint(manager.State.hotels[0].town.x,manager.State.hotels[0].town.z))<.001f,"Meadow town starts at gate");
+  check(manager.State.hotels[0].town!=null&&manager.State.hotels[0].town.phase=="hotel"&&manager.VisitorEntrance.Distance(new LotPoint(manager.State.hotels[0].town.x,manager.State.hotels[0].town.z))<.001f,"fresh manager starts at hotel entrance");
   var badOutfit=JObject.FromObject(manager.State);badOutfit["managerOutfit"]=new JObject{{"hat","unowned-id"}};
   check(!manager.RestoreJson(badOutfit.ToString()),"reject unvalidated manager outfit in save");
   check(manager.RenameManager("  Poppy  ").success&&manager.State.managerName=="Poppy","trim and rename");
@@ -69,7 +69,7 @@ static class TownSuites
   var oldJson=JObject.FromObject(manager.State);
   oldJson.Remove("managerName");oldJson.Remove("managerCoat");oldJson.Remove("managerMarkings");oldJson.Remove("managerOutfit");
   foreach(var hotel in oldJson["hotels"])((JObject)hotel).Remove("town");
-  check(manager.RestoreJson(oldJson.ToString())&&manager.State.managerName=="Manager"&&manager.State.hotels[0].town!=null,"legacy v3 defaults");
+  check(manager.RestoreJson(oldJson.ToString())&&manager.State.managerName=="Manager"&&manager.State.hotels[0].town.phase=="street"&&town.Point("hotel_gate").Distance(new LotPoint(manager.Hotel(0).town.x,manager.Hotel(0).town.z))<.001f,"legacy v3 defaults to street gate");
   var changed=JObject.FromObject(manager.State);
   changed["managerName"]="\u200B";
   check(!manager.RestoreJson(changed.ToString()),"reject invisible manager name in save");
@@ -78,6 +78,8 @@ static class TownSuites
   changed=JObject.FromObject(manager.State);
   ((JObject)changed["hotels"][0]["town"])["x"]=1e99;
   check(!manager.RestoreJson(changed.ToString()),"reject unsafe town position");
+  changed=JObject.FromObject(manager.State);((JObject)changed["hotels"][0]["town"])["phase"]="unknown";
+  check(!manager.RestoreJson(changed.ToString()),"reject unknown manager travel phase");
   changed=JObject.FromObject(manager.State);((JObject)changed["hotels"][0]["town"])["destination"]="missing";
   check(!manager.RestoreJson(changed.ToString()),"reject unknown destination");
   changed=JObject.FromObject(manager.State);((JObject)changed["hotels"][0]["town"])["shop"]="missing";
@@ -98,17 +100,17 @@ static class TownSuites
   var traveler=new HotelModel(new MemoryStore(),parity);check(traveler.LoadOrCreate().success,"travel setup");
   int arrivals=0;traveler.ManagerArrived+=_=>arrivals++;
   check(traveler.SendManager("paw_mart_door").success,"start Paw Mart walk");
-  check(traveler.ManagerRoute.Count>1,"route snapshot available");
+  check(traveler.ManagerRoute.Count>1&&traveler.ManagerRoute.Any(p=>p.Distance(traveler.VisitorEntrance)<.5f)&&traveler.ManagerRoute.Any(p=>p.Distance(town.Point("hotel_gate"))<.001f),"route joins hotel entrance to street gate");
   traveler.Tick(.2f);
-  check(traveler.Hotel().town.destination=="paw_mart_door"&&traveler.Hotel().town.shop=="","travel takes time before shop entry");
+  check(traveler.Hotel().town.destination=="paw_mart_door"&&traveler.Hotel().town.shop==""&&traveler.Hotel().town.phase=="hotel","travel moves through hotel first");
   var midway=new LotPoint(traveler.Hotel().town.x,traveler.Hotel().town.z);
-  check(town.HasStreetLink(town.Point("hotel_gate"),midway),"saved midpoint remains on authored link");
+  check(midway.Distance(traveler.VisitorEntrance)>0&&midway.Distance(town.Point("hotel_gate"))>1,"saved midpoint visits hotel connector");
   var resume=new HotelModel(new MemoryStore{state=HotelModel.Copy(traveler.State)},parity);
-  check(resume.LoadOrCreate().success&&resume.ManagerRoute.Count>0,"reload recovers route");
+  check(resume.LoadOrCreate().success&&resume.Hotel().town.phase=="hotel"&&resume.ManagerRoute.Count>0,"reload recovers hotel route");
   int resumedArrivals=0;resume.ManagerArrived+=_=>resumedArrivals++;
   check(resume.SendManager("clothing_door").success,"repeated tap redirects route");
   for(int i=0;i<600&&resume.Hotel().town.destination!="";i++)resume.Tick(.2f);
-  check(resume.Hotel().town.destination==""&&resume.Hotel().town.x==town.Point("clothing_door").x&&resumedArrivals==1,"redirect arrives exactly once");
+  check(resume.Hotel().town.destination==""&&resume.Hotel().town.x==town.Point("clothing_door").x&&resumedArrivals==1,"redirect arrives exactly once at "+resume.Hotel().town.x+","+resume.Hotel().town.z+" phase "+resume.Hotel().town.phase+" route "+string.Join(";",resume.ManagerRoute.Select(p=>p.x+","+p.z)));
   for(int i=0;i<10;i++)resume.Tick(.2f);
   check(resumedArrivals==1,"idle ticks do not repeat arrival");
   check(!resume.SendManager("unknown").success,"unknown target rejected");
@@ -130,5 +132,13 @@ static class TownSuites
   check(new LotPoint(paused.Hotel().town.x,paused.Hotel().town.z).Distance(safe)<.0001f&&paused.Hotel().town.destination=="square","failed save retains last safe waypoint");
   var recovered=new HotelModel(new MemoryStore{state=HotelModel.Copy(paused.State)},parity);
   check(recovered.LoadOrCreate().success&&recovered.Hotel().town.destination=="square"&&recovered.ManagerRoute.Count>0,"pause and reload retain destination");
+  var crossing=new HotelModel(new MemoryStore(),parity);check(crossing.LoadOrCreate().success&&crossing.SendManager("square").success,"street handoff setup");
+  for(int i=0;i<100&&crossing.Hotel().town.phase=="hotel";i++)crossing.Tick(.2f);
+  check(crossing.Hotel().town.phase=="street"&&crossing.Hotel().town.destination=="square"&&TownRoute.Find(town,new LotPoint(crossing.Hotel().town.x,crossing.Hotel().town.z),"square").Count>0,"hotel leg hands off to authored street link");
+  var interrupted=new HotelModel(new MemoryStore(),parity);check(interrupted.LoadOrCreate().success&&interrupted.SendManager("square").success,"mid-hotel block setup");
+  interrupted.Tick(.2f);var lastSafe=new LotPoint(interrupted.Hotel().town.x,interrupted.Hotel().town.z);
+  check(interrupted.PlaceObject("garden_planter",0,11).success,"block hotel exit during trip");
+  interrupted.Tick(.2f);
+  check(interrupted.Hotel().town.phase=="hotel"&&interrupted.Hotel().town.destination=="square"&&new LotPoint(interrupted.Hotel().town.x,interrupted.Hotel().town.z).Distance(lastSafe)<.0001f,"blocked route retains last safe hotel waypoint");
  }
 }
