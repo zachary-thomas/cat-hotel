@@ -212,6 +212,23 @@ static class ShellSuites
 		Console.WriteLine("Shell interior edits suite passed");
 	}
 	static JObject EdgePayload(string kind,params string[] edges){return new JObject{{"floor",0},{"kind",kind},{"edges",new JArray(edges)}};}
+	public static void RunLobby(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;OwnPlots(m);
+		Check(FindClear(m,5,5,out int x,out int z),"lobby: clear land");
+		var indoorOnly=Catalog.All.FirstOrDefault(i=>i.surfaces.Length==1&&i.surfaces[0]=="indoor"&&i.width<=2&&i.depth<=2&&i.bond==0);
+		var outdoorOnly=Catalog.All.FirstOrDefault(i=>i.surfaces.Length==1&&i.surfaces[0]=="outdoor"&&i.width<=2&&i.depth<=2&&i.bond==0);
+		Check(indoorOnly!=null,"lobby: catalogue has an indoor-only item");
+		var outside=m.PreviewObject(indoorOnly.id,x,z);Check(!outside.success&&outside.message.Contains("indoor"),"lobby: indoor item refused on bare land ("+outside.message+")");
+		Check(m.Execute("paint_floor",Paint(x,z,4,4)).success,"lobby: paint lobby");
+		var inLobby=m.PlaceObject(indoorOnly.id,x,z);Check(inLobby.success,"lobby: indoor item placed in the lobby ("+inLobby.message+")");
+		var placed=m.Hotel().objects.Last();Check(placed.room=="","lobby: lobby furniture belongs to no room");
+		if(outdoorOnly!=null){var o=m.PreviewObject(outdoorOnly.id,x+2,z+2);Check(!o.success&&o.message.Contains("outside"),"lobby: outdoor-only item refused indoors ("+o.message+")");}
+		var straddle=m.PreviewObject(indoorOnly.id,x+3.5f,z+1);Check(!straddle.success,"lobby: furniture can't straddle the outer wall ("+straddle.message+")");
+		HotelModel.Size(placed,out float pw,out float pd);
+		if(pw>1){var across=m.Quote("set_edge",EdgePayload("wall","v:"+(x+1)+","+z));Check(!across.success&&across.message.Contains("across a wall"),"lobby: walls can't split furniture ("+across.message+")");}
+		Console.WriteLine("Shell lobby suite passed");
+	}
 	public static void RunEdges(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
 	{
 		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;OwnPlots(m);
