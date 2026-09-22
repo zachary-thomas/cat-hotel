@@ -11,6 +11,19 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
         }
         void ReadInput()
         {
+            if(storeInterior!=null&&storeInterior.IsVisible){
+                Vector2 interiorPoint=default;bool released=false;
+                if(Touchscreen.current!=null&&Touchscreen.current.primaryTouch.press.wasPressedThisFrame)interiorPointerOwned=!OverUI(Touchscreen.current.primaryTouch.startPosition.ReadValue());
+                else if(Mouse.current!=null&&Mouse.current.leftButton.wasPressedThisFrame)interiorPointerOwned=!OverUI(Mouse.current.position.ReadValue());
+                if(Touchscreen.current!=null&&Touchscreen.current.primaryTouch.press.wasReleasedThisFrame){interiorPoint=Touchscreen.current.primaryTouch.position.ReadValue();released=true;}
+                else if(Mouse.current!=null&&Mouse.current.leftButton.wasReleasedThisFrame){interiorPoint=Mouse.current.position.ReadValue();released=true;}
+                if(released&&interiorPointerOwned&&!OverUI(interiorPoint)){
+                    var ray=WorldCamera.ScreenPointToRay(interiorPoint);
+                    if(Physics.Raycast(ray,out var cashierHit,500)&&cashierHit.collider.GetComponent<StoreCashierHit>()!=null)storeInterior.SelectCashier();
+                }
+                if(released)interiorPointerOwned=false;
+                pressed=false;return;
+            }
             Vector2 point=default; bool start=false, held=false, end=false;
             var touch=Touchscreen.current;
             UnityEngine.InputSystem.Controls.TouchControl first=null,second=null;

@@ -9,11 +9,25 @@ namespace Purrington.Presentation {
   public void Follow()=>app.World.FocusManager();
   public void Skip()=>app.Report(app.Model.SkipManagerTravel());
   public void Rename(string name)=>app.Report(app.Model.RenameManager(name));
-  public void Destination(string id)=>app.Report(app.Model.SendManager(id));
+  public void Destination(string id){
+   var state=app.Model.Hotel(0).town;
+   if(state.destination==""&&state.shop.Length>0&&TownContent.Current.Shop(state.shop)?.door==id){app.World.EnterStoreInterior(state.shop);app.UI.StoreArrived(id);return;}
+   app.Report(app.Model.SendManager(id));
+  }
   public void SelectStore(string id){var store=TownContent.Current.Shop(id);if(store!=null)Destination(store.door);}
  }
  public sealed partial class HotelUI {
-  bool managerEditing;string townCoat,townMarkings,townName;
+  bool managerEditing;string townCoat,townMarkings,townName,storeChoice="";
+  public void StoreArrived(string target){if(tab=="Town"&&app.World.StoreInterior.IsVisible){storeChoice="";Rebuild();}}
+  public void CashierArrived(string id){if(tab=="Town"){storeChoice="";Rebuild();}}
+  void LeaveStore(){storeChoice="";app.World.ExitStoreInterior();Rebuild();}
+  bool BackFromStore(){
+   var interior=app.World.StoreInterior;
+   if(interior==null||!interior.IsVisible)return false;
+   if(storeChoice.Length>0){storeChoice="";Rebuild();return true;}
+   if(interior.IsConversationOpen){interior.CloseConversation();Rebuild();return true;}
+   LeaveStore();return true;
+  }
   public void ExploreMainStreet(){
    if(app.Model.State.currentHotel!=0){ShowNotice("Main Street is at Meadow House.",false);return;}
    if(careCat>=0)app.World.SetCareMode(careCat,false);
@@ -22,6 +36,8 @@ namespace Purrington.Presentation {
   }
   void CloseTown(){managerEditing=false;app.World.ClearManagerPreview();app.World.ExitTownMode();tab="Hotel";Rebuild();}
   void TownPanel(){
+   var interior=app.World.StoreInterior;
+   if(interior!=null&&interior.IsVisible){StorePanel(interior);return;}
    var content=Sheet(managerEditing?"Manager look":"Main Street",app.Model.State.managerName,managerEditing?.57f:.39f);
    var controls=Row(content,48*textScale);
    Button(controls,"Follow",app.TownUI.Follow,Mint,13);Button(controls,"Fit street",app.World.FitTown,Lilac,13);Button(controls,"Skip walk",app.TownUI.Skip,Gold,13);
@@ -45,6 +61,20 @@ namespace Purrington.Presentation {
    var actions=Row(content,48*textScale);
    Button(actions,"Save look",()=>{var result=app.Model.SetManagerAppearance(townCoat,townMarkings);app.Report(result);if(result.success){managerEditing=false;app.World.ClearManagerPreview();Rebuild();app.World.FocusManager();}},Mint,14);
    Button(actions,"Cancel",()=>{managerEditing=false;app.World.ClearManagerPreview();Rebuild();app.World.FocusManager();},Lilac,14);
+  }
+  void StorePanel(StoreInteriorView interior){
+   string name=interior.OwnerName;
+   var content=Sheet(interior.ActiveStoreId=="paw_mart"?"Paw Mart":"Thread & Paw",interior.IsConversationOpen?name+" · cashier":"Tap "+name+" at the counter",.48f);
+   if(!interior.IsConversationOpen){
+    var row=Row(content,52*textScale);Button(row,"Meet "+name,()=>{if(app.World.SelectStoreCashier())Rebuild();},Mint,14);Button(row,"Leave",LeaveStore,Cream,14);
+    Info(content,"INSIDE THE SHOP","Walk to the cashier to talk, see quests, or browse.");return;
+   }
+   if(storeChoice.Length>0){
+    string line=storeChoice=="Talk"?(interior.ActiveStoreId=="paw_mart"?"Miso: Welcome in! I saved the freshest finds for you.":"Clover: Find a look that feels like you."):storeChoice=="Quest"?"Shop quests will appear here.":"Shop catalogue will appear here.";
+    Info(content,storeChoice,line);Height(Button(content,"Back to "+name,()=>{storeChoice="";Rebuild();},Mint,14),52*textScale);return;
+   }
+   var choices=Row(content,54*textScale);Button(choices,"Talk",()=>{storeChoice="Talk";Rebuild();},Mint,14);Button(choices,"Quest",()=>{storeChoice="Quest";Rebuild();},Gold,14);
+   var actions=Row(content,54*textScale);Button(actions,"Buy",()=>{storeChoice="Buy";Rebuild();},Coral,14);Button(actions,"Leave",LeaveStore,Cream,14);
   }
  }
 }

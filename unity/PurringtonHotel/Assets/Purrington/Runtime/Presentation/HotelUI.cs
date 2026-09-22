@@ -174,7 +174,7 @@ namespace Purrington.Presentation
 
         {
 
-            if(tab=="Town"&&!settings){if(managerEditing){managerEditing=false;app.World.ClearManagerPreview();Rebuild();}else CloseTown();return;}
+            if(tab=="Town"&&!settings){if(BackFromStore())return;if(managerEditing){managerEditing=false;app.World.ClearManagerPreview();Rebuild();}else CloseTown();return;}
             if (IsPlacing) { CancelPlacement(); return; }
 
             if (careCat>=0) { if(careDetails){careDetails=false;Rebuild();}else CloseCare(); return; }
