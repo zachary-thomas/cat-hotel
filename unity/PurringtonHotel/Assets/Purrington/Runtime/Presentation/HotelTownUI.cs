@@ -30,7 +30,7 @@ namespace Purrington.Presentation {
   }
   public void ExploreMainStreet(){
    if(app.Model.State.currentHotel!=0){ShowNotice("Main Street is at Meadow House.",false);return;}
-   if(careCat>=0)app.World.SetCareMode(careCat,false);
+   if(careCat>=0){CloseWardrobe();app.World.SetCareMode(careCat,false);}
    careCat=-1;settings=false;CancelPlacement(false);managerEditing=false;tab="Town";
    app.World.EnterTownMode();Rebuild();app.World.FocusManager();
   }

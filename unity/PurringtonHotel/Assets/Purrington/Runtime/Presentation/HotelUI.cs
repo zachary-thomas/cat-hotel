@@ -153,7 +153,7 @@ namespace Purrington.Presentation
 
             bool returningFromTown=app.World.IsTownMode;
             if(returningFromTown){managerEditing=false;app.World.ExitTownMode();}
-            if (careCat >= 0) app.World.SetCareMode(careCat,false);
+            if (careCat >= 0) { CloseWardrobe(); app.World.SetCareMode(careCat,false); }
 
             careCat = -1; settings=false; tab=destination; CancelPlacement(false); Rebuild();
             if (destination == "Hotel" && !returningFromTown) app.World.FitHotel();
@@ -164,7 +164,7 @@ namespace Purrington.Presentation
 
         {
 
-            if(careCat>=0)app.World.SetCareMode(careCat,false);
+            if(careCat>=0){CloseWardrobe();app.World.SetCareMode(careCat,false);}
 
             careCat=-1;CancelPlacement(false);settings=true;Rebuild();
 
@@ -177,7 +177,7 @@ namespace Purrington.Presentation
             if(tab=="Town"&&!settings){if(BackFromStore())return;if(managerEditing){managerEditing=false;app.World.ClearManagerPreview();Rebuild();}else CloseTown();return;}
             if (IsPlacing) { CancelPlacement(); return; }
 
-            if (careCat>=0) { if(careDetails){careDetails=false;Rebuild();}else CloseCare(); return; }
+            if (careCat>=0) { if(careDetails){careDetails=false;Rebuild();}else if(wardrobeOpen){CloseWardrobe();Rebuild();}else CloseCare(); return; }
 
             if (settings) {settings=false; Rebuild(); return;}
 
@@ -191,13 +191,13 @@ namespace Purrington.Presentation
 
             if (IsPlacing || app.World.IsTownMode) return;
 
-            careCat=id; careTool="pet"; careDetails=false; settings=false;
+            CloseWardrobe(); careCat=id; careTool="pet"; careDetails=false; settings=false;
 
             app.World.SetCareMode(id,true); Rebuild();
 
         }
 
-        void CloseCare() { gestureInput?.Suspend(); app.World.SetCareMode(careCat,false);careCat=-1;careDetails=false;Rebuild(); }
+        void CloseCare() { gestureInput?.Suspend(); CloseWardrobe(); app.World.SetCareMode(careCat,false);careCat=-1;careDetails=false;Rebuild(); }
 
         public void SelectObject(string id)
 
