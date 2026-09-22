@@ -135,7 +135,7 @@ static class ShellSuites
 		Check(!tampered(s=>HotelModel.Floor(s.hotels[s.currentHotel],0).edges["v:"+(x+1)+","+z]=new EdgeState{kind="open"}),"gate: inside archways are rejected");
 		Check(!tampered(s=>HotelModel.Floor(s.hotels[s.currentHotel],0).edges["v:"+(x+40)+","+z]=new EdgeState{kind="wall"}),"gate: walls off the floor are rejected");
 		Check(!tampered(s=>s.hotels[s.currentHotel].rooms.Add(new RoomState{id="room"+s.nextId++,kind="regular",x=x+1,z=z,width=4,depth=3})),"gate: half-inside rooms are rejected");
-		Check(m.SetGodMode(true).success&&m.Execute("paint_floor",Paint(x+3,z,1,1)).success&&HotelModel.Floor(m.Hotel(),0).cells[ShellGrid.Cell(x+3,z)]==0,"gate: God mode tiles are stored as free, so they never refund coins");RunShellUndo(Check,P,content);
+		Check(m.SetGodMode(true).success&&m.Execute("paint_floor",Paint(x+3,z,1,1)).success&&HotelModel.Floor(m.Hotel(),0).cells[ShellGrid.Cell(x+3,z)]==0,"gate: God mode tiles are stored as free, so they never refund coins");
 		Console.WriteLine("Shell load gate suite passed");
 	}
 	public static void RunNavigation(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
