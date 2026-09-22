@@ -30,3 +30,11 @@ Interior pointer input latches whether a press began outside UI and only accepts
 - Verified the cashier event fires only after both authored waypoints are reached, including when a large time step crosses both in one update.
 - Quest and Buy intentionally contain placeholder content until commerce and quest work in Tasks 6–8. They grant no coins, items, or rewards.
 - The generated view art and touch layouts still need an Editor/player visual and pointer pass before claiming acceptance, especially for portrait layouts at 150% text.
+
+## Camera re-entry follow-up
+
+Review found that `HotelUI.ExploreMainStreet()` calls `FocusManager()` after `EnterTownMode()` and the viewport rebuild. On a saved shop, `EnterTownMode()` correctly reopened the interior, but that final focus call moved the camera back to the street door. `FocusManager()`, `FocusManagerAppearance()`, and `FitTown()` now preserve an open interior camera. The interior entry itself still captures the street camera and frames its own stage.
+
+Added a two-store EditMode regression test that saves a state at each shop door, reloads the model, initializes the world, enters Town mode, applies the viewport update, then calls `FocusManager()` in Explore order. It asserts the intended interior remains the only visible stage, camera position/zoom stay unchanged after the follow call, and the active stage center remains inside the camera viewport. This test compiled but was not executed because Unity Editor execution remains deferred.
+
+Follow-up verification: compiler-only `Purrington.EditModeTests.csproj` build **passed with 0 warnings and 0 errors**; the domain suite again returned **PASS 676135 checks**. The minor follow-state issue remains with Task 10 as requested by the review ledger. No Unity Editor or player build was started.

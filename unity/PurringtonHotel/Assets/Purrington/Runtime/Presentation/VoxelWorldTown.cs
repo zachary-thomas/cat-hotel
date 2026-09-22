@@ -64,12 +64,12 @@ namespace Purrington.Presentation {
    focus=townSavedFocus;zoom=townSavedZoom;manualCamera=townSavedManual;lastFitBounds=townSavedBounds;UpdateCamera();
   }
   public void FocusManager(){
-   if(!townMode)return;townFollowing=true;manualCamera=true;lastFitBounds=null;
+   if(!townMode||storeInterior?.IsVisible==true)return;townFollowing=true;manualCamera=true;lastFitBounds=null;
    var t=model.Hotel(0).town;focus=new Vector3(t.x*Unit,.6f,t.z*Unit);
    var rect=VisibleWorldRect();zoom=Mathf.Max(4.8f,4.8f*Screen.height/Mathf.Max(1,rect.height));UpdateCamera();
   }
-  public void FocusManagerAppearance(){FocusManager();zoom*=.45f;UpdateCamera();}
-  public void FitTown(){if(!townMode)return;townFollowing=false;FocusBounds(new Bounds(new Vector3(25*Unit,1.5f,17*Unit),new Vector3(23*Unit,5,30*Unit)));}
+  public void FocusManagerAppearance(){if(storeInterior?.IsVisible==true)return;FocusManager();zoom*=.45f;UpdateCamera();}
+  public void FitTown(){if(!townMode||storeInterior?.IsVisible==true)return;townFollowing=false;FocusBounds(new Bounds(new Vector3(25*Unit,1.5f,17*Unit),new Vector3(23*Unit,5,30*Unit)));}
   public void PreviewManagerAppearance(string coat,string markings){previewCoat=coat;previewMarkings=markings;SyncManager(0);}
   public void ClearManagerPreview(){previewCoat=previewMarkings=null;SyncManager(0);}
   public bool SelectTownStore(string id){
