@@ -156,4 +156,35 @@ static class ShellSuites
 		Check(glazed.GuestCapacity(0)==4&&glazed.Rate(0)==64,"nav: Meadow capacity/rate unchanged with shell walls");
 		Console.WriteLine("Shell navigation suite passed");
 	}
+	public static JObject Room(int x,int z,int w,int d,int rotation,string kind="regular")
+	{
+		return new JObject{{"kind",kind},{"x",x},{"y",z},{"w",w},{"h",d},{"rotation",rotation},{"floor",0}};
+	}
+	public static void RunRooms(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;OwnPlots(m);
+		Check(FindClear(m,6,10,out int cx,out int cz),"rooms: clear land");int x=cx,z=cz+2;
+		double coins=m.State.coins;var a=m.Execute("draw_room",Room(x,z,4,3,0));Check(a.success,"rooms: draw on bare land ("+a.message+")");
+		var first=m.Hotel().rooms.Last();Check(HotelModel.Interior(m.Hotel(),first),"rooms: drawn room is interior");
+		double fitting=Math.Round(450*.45,MidpointRounding.AwayFromZero);
+		Check(Math.Abs(coins-m.State.coins-(12*20+fitting))<.01,"rooms: 12 tiles + fitting ("+(coins-m.State.coins)+")");
+		var ground=HotelModel.Floor(m.Hotel(),0);
+		Check(ground.edges.TryGetValue("v:"+(x+4)+","+(z+1),out var door)&&door.kind=="door"&&door.room==first.id,"rooms: centered door on the rotation side");
+		Check(m.Execute("draw_room",Room(x,z+3,4,3,0)).success,"rooms: neighbor room shares a wall");
+		var second=m.Hotel().rooms.Last();ground=HotelModel.Floor(m.Hotel(),0);
+		Check(ShellGrid.Boundary(x,z,4,3).Intersect(ShellGrid.Boundary(x,z+3,4,3)).All(e=>ground.edges.TryGetValue(e,out var w)&&w.kind=="wall"&&w.room==first.id),"rooms: shared wall is owned once");
+		Check(!m.Execute("erase_floor",Paint(x,z,1,1)).success,"rooms: can't erase floor under a room");
+		Check(m.Execute("paint_floor",Paint(x+4,z,1,6)).success,"rooms: hallway alongside both rooms");ground=HotelModel.Floor(m.Hotel(),0);
+		Check(ShellGrid.WallAt(ground,"v:"+(x+4)+","+(z+1))=="door","rooms: door now opens onto the hallway");
+		Check(ShellGrid.WallAt(ground,"h:"+(x+4)+","+(z+1))==null,"rooms: hallway is open floor");
+		coins=m.State.coins;Check(m.Execute("remove_room",P("{\"id\":\""+first.id+"\"}")).success&&Math.Abs(m.State.coins-coins-fitting)<.01,"rooms: removing refunds the fitting");
+		ground=HotelModel.Floor(m.Hotel(),0);
+		Check(ground.cells.ContainsKey(ShellGrid.Cell(x,z))&&!ground.edges.Values.Any(e=>e.room==first.id),"rooms: removed room leaves lobby floor and no walls");
+		Check(ground.edges.TryGetValue("h:"+x+","+(z+3),out var kept)&&kept.room==second.id,"rooms: neighbor now owns the shared wall");
+		var half=m.Quote("place_room",Room(x,z-2,4,3,0));Check(!half.success&&half.message.Contains("fully inside"),"rooms: half-inside rooms are rejected ("+half.message+")");
+		Check(!m.Quote("draw_room",Room(x,z,4,3,0,"terrace")).success,"rooms: terraces can't be drawn inside");
+		var pavilion=new HotelModel(new MemoryStore(),content);pavilion.LoadOrCreate();pavilion.State.coins=100000;OwnPlots(pavilion);FindClear(pavilion,6,5,out int px,out int pz);
+		coins=pavilion.State.coins;Check(pavilion.Execute("place_room",Room(px,pz,4,3,0)).success&&Math.Abs(coins-pavilion.State.coins-450)<.01&&!HotelModel.Interior(pavilion.Hotel(),pavilion.Hotel().rooms.Last()),"rooms: place_room on bare land is still a 450-coin pavilion");
+		Console.WriteLine("Shell rooms suite passed");
+	}
 }
