@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Purrington.Domain;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -56,6 +57,8 @@ namespace Purrington.Presentation
                 yield return Frames(3);
                 yield return Click("Hotel","Navigation");
                 yield return Click("Build","Navigation");Check("Build navigation",app.UI.ActiveTab=="Build");
+                if(!app.Model.State.settings.godMode)app.Model.SetGodMode(true);
+                yield return DrawRoom(false);yield return DrawRoom(true);
                 Check("browse world height",app.UI.AvailableWorldRect.height/Screen.height>=.35f,app.UI.AvailableWorldRect.ToString());
                 CheckLayout(safe);
                 var cameraPosition=app.World.WorldCamera.transform.position;float cameraZoom=app.World.WorldCamera.orthographicSize;
@@ -205,6 +208,55 @@ namespace Purrington.Presentation
             InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Began,position=from,pressure=1});yield return Frames(2);
             float elapsed=0;while(elapsed<seconds){elapsed+=Time.unscaledDeltaTime;InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Moved,position=Vector2.Lerp(from,to,Mathf.Clamp01(elapsed/seconds)),pressure=1});yield return null;}
             InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Ended,position=to});yield return Frames(3);
+        }
+        IEnumerator DrawRoom(bool withTouch)
+        {
+            int before=app.Model.Hotel().rooms.Count;
+            yield return Click("Hotel","Catalogue categories");yield return Click("Bedroom");
+            Check((withTouch?"touch":"mouse")+" bedroom draw opened",app.UI.IsPlacing);
+            if(!FindRoomDraw(withTouch,out int x,out int z))
+            {
+                Check((withTouch?"touch":"mouse")+" found visible empty lawn",false,"No valid 4x3 lawn rectangle in the world viewport");
+                yield return Click("Cancel");yield break;
+            }
+            Vector2 from=RoomDrawPoint(x,z,withTouch),to=RoomDrawPoint(x+3,z+2,withTouch);
+            Check((withTouch?"touch":"mouse")+" draw start round trips",RoomDrawCell(from,withTouch)==new Vector2Int(x,z),RoomDrawCell(from,withTouch).ToString());
+            Check((withTouch?"touch":"mouse")+" draw end round trips",RoomDrawCell(to,withTouch)==new Vector2Int(x+3,z+2),RoomDrawCell(to,withTouch).ToString());
+            if(withTouch)yield return TouchGesture(from,to,.35f);else yield return MouseGesture(from,to,.35f);
+            yield return Click("Confirm");
+            var hotel=app.Model.Hotel();var room=hotel.rooms.Count==before+1?hotel.rooms[hotel.rooms.Count-1]:null;
+            Check((withTouch?"touch":"mouse")+" draw adds one room",hotel.rooms.Count==before+1,"before="+before+", after="+hotel.rooms.Count);
+            Check((withTouch?"touch":"mouse")+" drawn room is interior",room!=null&&HotelModel.Interior(hotel,room),room==null?"room missing":room.id);
+            yield return Click("Tools");yield return Click("Undo");yield return Click("Tools");
+            Check((withTouch?"touch":"mouse")+" draw undo",app.Model.Hotel().rooms.Count==before,"rooms="+app.Model.Hotel().rooms.Count);
+        }
+        bool FindRoomDraw(bool withTouch,out int foundX,out int foundZ)
+        {
+            foundX=foundZ=0;var hotel=app.Model.Hotel();var floor=HotelModel.Floor(hotel,0);var map=app.Model.Map();var rect=map["base"];
+            int left=(int)rect[0],top=(int)rect[1],right=left+(int)rect[2]-4,bottom=top+(int)rect[3]-3;
+            float best=float.MaxValue;bool found=false;Rect viewport=app.UI.AvailableWorldRect;
+            for(int z=top;z<=bottom;z++)for(int x=left;x<=right;x++)
+            {
+                bool empty=true;
+                for(int dz=0;dz<3&&empty;dz++)for(int dx=0;dx<4;dx++)if(floor!=null&&floor.cells.ContainsKey((x+dx)+","+(z+dz))){empty=false;break;}
+                if(!empty)continue;
+                var draft=app.Model.RoomDraft(x,z,x+3,z+2,"regular");if(!app.Model.Quote("draw_room",draft).success)continue;
+                Vector2 a=RoomDrawPoint(x,z,withTouch),b=RoomDrawPoint(x+3,z+2,withTouch);if(!viewport.Contains(a)||!viewport.Contains(b))continue;
+                float score=((a+b)*.5f-viewport.center).sqrMagnitude;if(score>=best)continue;
+                best=score;foundX=x;foundZ=z;found=true;
+            }
+            return found;
+        }
+        Vector2 RoomDrawPoint(int x,int z,bool withTouch)
+        {
+            Vector2 point=app.World.WorldCamera.WorldToScreenPoint(new Vector3((x+.5f)*VoxelWorld.Unit,.18f,-(z+.5f)*VoxelWorld.Unit));
+            if(withTouch)point.y-=Screen.dpi>0?Screen.dpi*.35f:90f;
+            return point;
+        }
+        Vector2Int RoomDrawCell(Vector2 point,bool withTouch)
+        {
+            if(withTouch)point.y+=Screen.dpi>0?Screen.dpi*.35f:90f;
+            Vector3 ground=app.World.ScreenToGround(point);return new Vector2Int(Mathf.FloorToInt(ground.x),Mathf.FloorToInt(ground.z));
         }
         // Count only observed, persisted care transactions for the selected cat; ambient bonds cannot satisfy a check.
         int CareBond()=>careRewardCount;
