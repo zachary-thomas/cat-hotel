@@ -38,3 +38,17 @@ Verified that shells use content bounds, manager preview never calls appearance 
 New: Runtime/Presentation/MainStreetArt.cs, ManagerCatArt.cs, VoxelWorldTown.cs, HotelTownUI.cs; Tests/EditMode/MainStreetViewTests.cs; corresponding Unity .meta files.
 Modified: Runtime/Presentation/GodotCatRig.cs, NeighborhoodView.cs, VoxelWorld.cs, VoxelWorldInput.cs, HotelApp.cs, HotelUI.cs, HotelParityUI.cs, ParityInputAcceptance.cs.
 All paths above are under unity/PurringtonHotel/Assets/Purrington/. This report is .superpowers/sdd/2026-09-22-main-street/task-4-report.md.
+
+
+## Review fix — authored roof renderer lookup
+
+Fixed the Important review finding on base 76046ba: the roof opacity test previously queried Renderer on the recipe root, whereas GodotGeometry.Build creates Renderer on its Authored surfaces child. The test now asserts that both the roof root and its child Renderer exist before checking material alpha.
+
+Self-review: inspected every renderer lookup in MainStreetViewTests. The eye and ear material checks already use GetComponentInChildren<Renderer>(); shell dimensions intentionally inspect the recipe root transform, and storefront hit checks already traverse descendants. No production code changed.
+
+Verification after the fix:
+- `dotnet build unity/PurringtonHotel/Purrington.EditModeTests.csproj --no-restore --nologo -v:q`: Build succeeded; 0 warnings; 0 errors (1.89 seconds reported).
+- `dotnet run --project tests/unity-domain/Purrington.Domain.Tests.csproj --no-restore`: PASS 676135 checks.
+- `git diff --check`: passed with no output.
+
+Unity execution remains deferred; no second Editor was launched. The minor acceptance gaps (placement-to-town transition and exact camera-restoration assertion) remain explicitly deferred to Task 10.

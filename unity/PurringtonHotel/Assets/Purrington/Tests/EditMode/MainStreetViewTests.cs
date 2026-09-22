@@ -18,7 +18,10 @@ namespace Purrington.Tests {
     Assert.That(shell.localScale.x,Is.EqualTo(f.w*VoxelWorld.Unit).Within(.001));
     Assert.That(shell.localScale.z,Is.EqualTo(f.d*VoxelWorld.Unit).Within(.001));
     Assert.That(node.GetComponentsInChildren<TownStoreHit>().Length,Is.GreaterThanOrEqualTo(2));
-    Assert.That(node.Find("Opaque roof").GetComponent<Renderer>().sharedMaterial.color.a,Is.EqualTo(1));
+    var roof=node.Find("Opaque roof");Assert.That(roof,Is.Not.Null,id+" roof root");
+    var roofRenderer=roof.GetComponentInChildren<Renderer>();
+    Assert.That(roofRenderer,Is.Not.Null,id+" roof must contain an authored surface renderer");
+    Assert.That(roofRenderer.sharedMaterial.color.a,Is.EqualTo(1));
    }
    foreach(var id in TownContent.Current.StreetIds){var p=TownContent.Current.Point(id);Assert.That(art.IsPaved(new Vector3(p.x,0,p.z)),Is.True,id);}
    Assert.That(art.SquareBounds.Contains(new Vector3(28*VoxelWorld.Unit,0,18*VoxelWorld.Unit)),Is.True);
