@@ -26,7 +26,7 @@ namespace Purrington.Presentation
             Directory.CreateDirectory(output);
             yield return null;yield return null;
             var app=FindFirstObjectByType<HotelApp>();
-            if(app==null){Debug.LogError("PURRINGTON_SMOKE_FAILED: missing app");Application.Quit(2);yield break;}
+            if(app==null||app.Model==null||app.World==null||app.UI==null){Debug.LogError("PURRINGTON_SMOKE_FAILED: missing app");Application.Quit(2);yield break;}
             Screen.SetResolution(390,844,FullScreenMode.Windowed);
             yield return new WaitForSecondsRealtime(2);
             if(!app.World.WorldCamera.orthographic){Debug.LogError("PURRINGTON_SMOKE_FAILED: perspective camera");Application.Quit(2);yield break;}
@@ -37,6 +37,11 @@ namespace Purrington.Presentation
             app.World.PlayCare("feather");yield return Capture(output,"05-care-feather");
             app.UI.Back();app.UI.Navigate("Life");yield return Capture(output,"06-life");
             app.UI.Navigate("Map");yield return Capture(output,"07-map");
+            Screen.SetResolution(430,932,FullScreenMode.Windowed);
+            yield return new WaitForSecondsRealtime(1);
+            app.UI.Navigate("Hotel");yield return Capture(output,"hotel-430x932");
+            app.UI.Navigate("Build");yield return Capture(output,"build-430x932");
+            app.UI.OpenCare(0);yield return Capture(output,"care-430x932");app.UI.Back();
             app.UI.Navigate("Hotel");
             var setting=app.Model.State.settings;
             app.Model.SetSettings(1.5f,setting.motion,false,false);
@@ -74,6 +79,12 @@ namespace Purrington.Presentation
                 app.World.SendMessage("UpdateCamera");
                 Check(Mathf.Abs(app.World.WorldCamera.orthographicSize-before)<.02f,"Opposite wheel step must restore zoom");
             }
+            Screen.SetResolution(1280,800,FullScreenMode.Windowed);
+            yield return new WaitForSecondsRealtime(1);
+            float sampleStart=Time.realtimeSinceStartup;int frames=0;float worst=0;
+            while(frames<180){yield return null;frames++;worst=Mathf.Max(worst,Time.unscaledDeltaTime);}
+            float sampleTime=Time.realtimeSinceStartup-sampleStart;
+            File.WriteAllText(Path.Combine(output,"performance.txt"),"Windows development preview, 1280x800, starter Meadow; "+frames+" frames / "+sampleTime.ToString("F2")+" s; average "+(frames/sampleTime).ToString("F1")+" FPS; worst frame "+(worst*1000).ToString("F1")+" ms. Target cap: "+Application.targetFrameRate+" FPS. This is not mobile-device performance.");
             var save=app.Model.Save();
             bool passed=save.success&&!failed;
             File.WriteAllText(Path.Combine(output,"result.txt"),passed?"PASS: startup, orthographic camera, navigation, care stage, panel bounds, wheel zoom, layouts, save. Screenshots require visual review.":"FAIL: inspect player.log; "+save.message);

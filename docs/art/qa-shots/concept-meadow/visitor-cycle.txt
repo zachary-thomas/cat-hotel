@@ -1,0 +1,1 @@
+Order captured: True; staff reply captured: True; visitor drinking: True; visitor departing: True; completed day visits: 1. Fixtures use an isolated profile.

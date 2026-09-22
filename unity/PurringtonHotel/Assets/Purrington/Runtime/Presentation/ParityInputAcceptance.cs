@@ -26,7 +26,7 @@ namespace Purrington.Presentation
         readonly JArray cases=new JArray(),errors=new JArray();
         JObject current;
         JArray checks;
-        int failures;
+        int failures,careRewardCount,careRewardGain,careRewardCatId;string careRewardTool;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Install()
@@ -74,20 +74,76 @@ namespace Purrington.Presentation
                 yield return Click("Visit");Check("care opened",app.UI.IsInCare);
                 if(app.UI.IsInCare)
                 {
-                    var gesture=app.UI.GetComponentInChildren<CareGestureInput>();int gestureId=gesture.GetInstanceID();
+                    yield return Click("Pet");
+                    var gesture=app.UI.GetComponentInChildren<CareGestureInput>();int gestureId=gesture.GetInstanceID();careRewardCatId=gesture.CatId;gesture.RewardObserved+=ObserveCareReward;
                     Rect stage=HotelUI.ScreenBounds((RectTransform)gesture.transform);Vector2 catPoint=FindCatPoint(stage);
                     Check("cat is hittable inside care viewport",app.World.CareHit(catPoint),catPoint.ToString());
-                    double elapsed=app.Model.State.elapsed;int bond=app.Model.State.cats.Sum(c=>c.bond);
                     Vector3 carePosition=app.World.WorldCamera.transform.position;float careZoom=app.World.WorldCamera.orthographicSize;
-                    yield return TouchGesture(catPoint,catPoint+new Vector2(48,6),1.15f);
+                    // Isolated acceptance-profile fixture: keep rewards away from cap/cooldown.
+                    ResetCareRewardFixture();int bond=CareBond();
+                    yield return TouchGesture(catPoint,catPoint,.025f);
+                    Check("mere cat tap grants no friendship",CareBond()==bond);
+                    catPoint=FindCatPoint(stage);double elapsed=app.Model.State.elapsed;
+                    yield return TouchGesture(catPoint,catPoint,1.05f);
+                    CheckCareGain("deliberate pet hold grants exact friendship","pet",bond);
                     Check("hotel simulation continues during care",app.Model.State.elapsed>elapsed+.5);
-                    Check("care friendship does not regress",app.Model.State.cats.Sum(c=>c.bond)>=bond);
-                    yield return Click("Brush");yield return MouseGesture(catPoint+Vector2.left*12,catPoint+Vector2.right*15,.35f);
-                    yield return Click("Feather");yield return MouseGesture(stage.center+Vector2.left*30,stage.center+Vector2.right*35,.35f);
-                    yield return Click("Yarn");yield return TouchGesture(stage.center+Vector2.left*40,stage.center+Vector2.right*50,.12f);
-                    yield return Click("Cushion");yield return TouchGesture(stage.center,stage.center,.1f);
-                    yield return Click("Box");yield return MouseGesture(stage.center,stage.center,.1f);yield return MouseGesture(stage.center,stage.center,.1f);
-                    Check("care gestures retain persistent stage",app.UI.GetComponentInChildren<CareGestureInput>().GetInstanceID()==gestureId);
+                    int rewarded=CareBond();yield return Frames(8);
+                    Check("completed pet gesture grants only once",CareBond()==rewarded);
+
+                    if(cases.Count==1)
+                    {
+                    yield return Click("Brush");ResetCareRewardFixture();bond=CareBond();
+                    catPoint=FindCatPoint(stage);yield return MouseGesture(catPoint,catPoint,.8f);
+                    Check("stationary brush grants no friendship",CareBond()==bond);
+                    yield return BrushCoat(stage);
+                    CheckCareGain("deliberate coat strokes grant exact friendship","brush",bond);
+
+                    yield return Click("Feather");ResetCareRewardFixture();bond=CareBond();
+                    catPoint=FindCatPoint(stage);yield return MouseGesture(catPoint,catPoint,.025f);
+                    yield return new WaitForSecondsRealtime(.8f);
+                    Check("feather tap grants no friendship",CareBond()==bond);
+                    yield return FeatherEngagement(stage,bond);
+                    CheckCareGain("cat catching deliberately dragged feather grants exact friendship","wand",bond);
+
+                    yield return Click("Yarn");ResetCareRewardFixture();bond=CareBond();
+                    float unit=app.UI.GetComponent<Canvas>().scaleFactor;
+                    Vector2 yarnFrom=stage.center-Vector2.right*30*unit,yarnTo=stage.center+Vector2.right*30*unit;
+                    yield return TouchGesture(yarnFrom,yarnTo,1f);
+                    yield return new WaitForSecondsRealtime(1f);
+                    Check("slow yarn drag grants no friendship",CareBond()==bond);
+                    yield return ValidYarnFlick(stage);Check("fast yarn release recognizes deliberate flick",gesture.HasRecognizedGesture);yield return WaitForCareReward(bond,8f);
+                    CheckCareGain("deliberate yarn flick and chase grant exact friendship","yarn",bond);
+
+                    yield return Click("Cushion");ResetCareRewardFixture();bond=CareBond();
+                    yield return TouchGesture(stage.center,stage.center,.025f);
+                    Check("cushion placement alone grants no friendship",CareBond()==bond);
+                    yield return WaitForCareReward(bond,8f);
+                    CheckCareGain("walking to cushion and settling grants exact friendship","cushion",bond);
+                    yield return Click("Box");ResetCareRewardFixture();bond=CareBond();
+                    yield return MouseGesture(stage.center,stage.center,.025f);
+                    Check("box placement alone grants no friendship",CareBond()==bond);
+                    yield return WaitForCareReward(bond,8f);
+                    CheckCareGain("walking to box and investigating grants exact friendship","box",bond);
+                    yield return Click("Box");ResetCareRewardFixture();bond=CareBond();
+                    yield return MouseGesture(stage.center,stage.center,.025f);yield return Click("Pet");
+                    yield return new WaitForSecondsRealtime(1.2f);
+                    Check("tool change cancels pending placement reward",CareBond()==bond);
+                    ResetCareRewardFixture();bond=CareBond();yield return SecondaryPointerIgnored(stage);
+                    Check("second pointer cannot grant care reward",CareBond()==bond);
+                    yield return Click("Brush");ResetCareRewardFixture();bond=CareBond();
+                    Vector2 outside=FindOffCatPoint(stage);yield return MouseGesture(outside,outside+Vector2.right*4,.9f);
+                    Check("off-cat brush input grants no friendship",CareBond()==bond);
+                    // Rebuild through the normal layout entry after changing the isolated fixture setting.
+                    app.Model.State.settings.assistedCare=true;app.UI.ConfigureAcceptanceLayout(safe,scale);yield return Frames(3);
+                    gesture=app.UI.GetComponentInChildren<CareGestureInput>();gesture.RewardObserved+=ObserveCareReward;
+                    ResetCareRewardFixture();bond=CareBond();yield return Click("Help me use this tool");
+                    Check("assisted action waits for cat response",CareBond()==bond);
+                    yield return WaitForCareReward(bond,4f);CheckCareGain("assisted brush grants exact friendship after response","brush",bond);
+                    app.Model.State.settings.assistedCare=false;app.UI.ConfigureAcceptanceLayout(safe,scale);yield return Frames(3);
+                    gesture=app.UI.GetComponentInChildren<CareGestureInput>();gesture.RewardObserved+=ObserveCareReward;gestureId=gesture.GetInstanceID();
+                    }
+
+                    Check("care gesture input remains active",app.UI.GetComponentInChildren<CareGestureInput>().GetInstanceID()==gestureId);
                     Check("care gestures do not move world camera",CameraEqual(carePosition,careZoom));
                     yield return Screenshot("care");
                     yield return Click("Back","Hotel status");
@@ -124,9 +180,12 @@ namespace Purrington.Presentation
                 button=FindButton(label,ancestor);if(button)break;
                 var scroll=app.UI.GetComponentsInChildren<ScrollRect>().FirstOrDefault(s=>s.vertical&&s.isActiveAndEnabled);
                 if(!scroll)break;
-                yield return Wheel(HotelUI.ScreenBounds(scroll.viewport).center,step<24?-180:360);
+                var viewport=HotelUI.ScreenBounds(scroll.viewport);
+                float low=Mathf.Lerp(viewport.yMin,viewport.yMax,.25f),high=Mathf.Lerp(viewport.yMin,viewport.yMax,.70f);
+                float x=Mathf.Lerp(viewport.xMin,viewport.xMax,.5f);
+                yield return MouseGesture(new Vector2(x,step<24?low:high),new Vector2(x,step<24?high:low),.18f);
             }
-            if(!button){Check("click "+(label??ancestor),false,"No visible raycastable control after real scroll input");yield break;}
+            if(!button){Check("click "+(label??ancestor),false,"No visible raycastable control after real pointer-drag scrolling");yield break;}
             yield return MouseGesture(HotelUI.ScreenBounds((RectTransform)button.transform).center,HotelUI.ScreenBounds((RectTransform)button.transform).center,.07f);
         }
         IEnumerator Wheel(Vector2 position,float delta)
@@ -147,7 +206,73 @@ namespace Purrington.Presentation
             float elapsed=0;while(elapsed<seconds){elapsed+=Time.unscaledDeltaTime;InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Moved,position=Vector2.Lerp(from,to,Mathf.Clamp01(elapsed/seconds)),pressure=1});yield return null;}
             InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Ended,position=to});yield return Frames(3);
         }
-        Vector2 FindCatPoint(Rect stage){for(int y=2;y<9;y++)for(int x=2;x<9;x++){var p=new Vector2(Mathf.Lerp(stage.xMin,stage.xMax,x/10f),Mathf.Lerp(stage.yMin,stage.yMax,y/10f));if(app.World.CareHit(p))return p;}return stage.center;}
+        // Count only observed, persisted care transactions for the selected cat; ambient bonds cannot satisfy a check.
+        int CareBond()=>careRewardCount;
+        void ObserveCareReward(string tool,int gain,bool timestampChanged){if(timestampChanged){careRewardCount++;careRewardGain=gain;careRewardTool=tool;}}
+        void CheckCareGain(string name,string tool,int before){var cat=app.Model.State.cats.First(c=>c.id==careRewardCatId);int expected=cat.favoriteAction==tool?6:3;Check(name,careRewardCount==before+1&&careRewardTool==tool&&careRewardGain==expected,"care transactions="+(careRewardCount-before)+", gain="+careRewardGain+", expected="+expected);}
+        Vector2 FindOffCatPoint(Rect stage){for(int x=1;x<10;x++)for(int y=1;y<10;y++){var p=new Vector2(Mathf.Lerp(stage.xMin,stage.xMax,x/10f),Mathf.Lerp(stage.yMin,stage.yMax,y/10f));if(!app.World.CareHit(p)&&!app.World.CareHit(p+Vector2.right*4))return p;}return stage.min+Vector2.one*5;}
+        IEnumerator SecondaryPointerIgnored(Rect stage)
+        {
+            var first=FindOffCatPoint(stage);var second=FindCatPoint(stage);
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Began,position=first,pressure=1});yield return Frames(2);
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=2,phase=UnityEngine.InputSystem.TouchPhase.Began,position=second,pressure=1});yield return new WaitForSecondsRealtime(.8f);
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=2,phase=UnityEngine.InputSystem.TouchPhase.Ended,position=second});yield return Frames(2);
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Ended,position=first});yield return Frames(3);
+        }
+        IEnumerator ValidYarnFlick(Rect stage)
+        {
+            float unit=app.UI.GetComponent<Canvas>().scaleFactor;Vector2 end=FindCatPoint(stage);
+            float direction=stage.xMax-end.x>=end.x-stage.xMin?1:-1;
+            Vector2 start=end+Vector2.right*(65*unit*direction);start.x=Mathf.Clamp(start.x,stage.xMin+4,stage.xMax-4);
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=start});yield return null;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=start,buttons=1});yield return Frames(2);
+            // Establish movement before acceleration so initial pointer-down latency is not part of flick velocity.
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=Vector2.Lerp(start,end,.04f),buttons=1});yield return null;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=end,buttons=1});yield return null;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=end});yield return Frames(3);
+        }
+        void ResetCareRewardFixture(){var cat=app.Model.State.cats.First(c=>c.id==careRewardCatId);cat.bond=20;cat.lastCare=(float)app.Model.State.elapsed-20;}
+        IEnumerator WaitForCareReward(int before,float seconds){float until=Time.unscaledTime+seconds;while(CareBond()==before&&Time.unscaledTime<until)yield return null;}
+        Vector2 FindCatPoint(Rect stage)
+        {
+            Vector2 best=stage.center;int bestScore=-1;
+            for(float y=stage.yMin+4;y<stage.yMax-3;y+=8)for(float x=stage.xMin+4;x<stage.xMax-3;x+=8)
+            {
+                var p=new Vector2(x,y);
+                if(!app.World.CareHit(p))continue;
+                int score=0;foreach(var offset in new[]{Vector2.left,Vector2.right,Vector2.up,Vector2.down})for(int r=3;r<=15;r+=3)if(app.World.CareHit(p+offset*r))score++;
+                if(score>bestScore){best=p;bestScore=score;}
+            }
+            return best;
+        }
+        IEnumerator BrushCoat(Rect stage)
+        {
+            Vector2 center=FindCatPoint(stage);float unit=app.UI.GetComponent<Canvas>().scaleFactor;
+            float radius=8*unit;while(radius>2&&(!app.World.CareHit(center+Vector2.left*radius)||!app.World.CareHit(center+Vector2.right*radius)))radius-=1;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=center});yield return null;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=center,buttons=1});yield return Frames(2);
+            float elapsed=0;Vector2 point=center;
+            while(elapsed<1.4f)
+            {
+                elapsed+=Time.unscaledDeltaTime;point=center+Vector2.right*(Mathf.Sin(elapsed*24)*radius);
+                InputSystem.QueueStateEvent(mouse,new MouseState{position=point,buttons=1});yield return null;
+            }
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=point});yield return Frames(3);
+        }
+        IEnumerator FeatherEngagement(Rect stage,int before)
+        {
+            float unit=app.UI.GetComponent<Canvas>().scaleFactor;var center=FindCatPoint(stage);
+            // Finish near the cat, then keep the feather still for a visible approach/catch.
+            float direction=stage.xMax-center.x>=center.x-stage.xMin?1:-1;
+            Vector2 from=center+Vector2.right*(48*unit*direction);from.x=Mathf.Clamp(from.x,stage.xMin+4,stage.xMax-4);
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=from});yield return null;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=from,buttons=1});yield return Frames(2);
+            Check("feather pointer down grants no friendship",CareBond()==before);
+            float elapsed=0;while(elapsed<.25f){elapsed+=Time.unscaledDeltaTime;InputSystem.QueueStateEvent(mouse,new MouseState{position=Vector2.Lerp(from,center,Mathf.Clamp01(elapsed/.25f)),buttons=1});yield return null;}
+            Check("feather drag awaits the cat response",CareBond()==before);
+            yield return WaitForCareReward(before,5f);
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=center});yield return Frames(3);
+        }
         bool CameraEqual(Vector3 position,float zoom)=>Vector3.Distance(position,app.World.WorldCamera.transform.position)<.015f&&Mathf.Abs(zoom-app.World.WorldCamera.orthographicSize)<.015f;
         void CheckLayout(Rect safe)
         {
@@ -171,7 +296,7 @@ namespace Purrington.Presentation
         }
         void Check(string name,bool passed,string detail=""){checks?.Add(new JObject{{"name",name},{"passed",passed},{"detail",detail}});if(!passed)failures++;if(checks!=null)Write("running");}
         void OnLog(string message,string trace,LogType type){if(type!=LogType.Exception&&type!=LogType.Error)return;if(errors.Count<40)errors.Add(new JObject{{"message",message},{"trace",trace}});}
-        void Write(string status){File.WriteAllText(Path.Combine(output,"input-acceptance.json"),new JObject{{"status",status},{"cases",cases},{"failedChecks",failures},{"runtimeErrors",errors},{"inputMethod","queued MouseState and TouchState through InputSystemUIInputModule"},{"layoutSetup","Viewport, simulated safe insets and text scale configured before each case"}}.ToString(Formatting.Indented));}
+        void Write(string status){File.WriteAllText(Path.Combine(output,"input-acceptance.json"),new JObject{{"status",status},{"cases",cases},{"failedChecks",failures},{"runtimeErrors",errors},{"inputMethod","queued MouseState and TouchState through InputSystemUIInputModule"},{"layoutSetup","Viewport, simulated safe insets and text scale configured before each case; opt-in care fixtures reset bonds to 20 and clear cooldown before gesture assertions"}}.ToString(Formatting.Indented));}
         void Finish(string status){if(finished)return;finished=true;Write(status);Application.logMessageReceived-=OnLog;if(mouse!=null)InputSystem.RemoveDevice(mouse);if(touch!=null)InputSystem.RemoveDevice(touch);if(app)app.ExitWithoutSaving();else Application.Quit();}
         void Update(){if(!finished&&deadline>0&&Time.realtimeSinceStartup>deadline)Finish("timeout");}
     }

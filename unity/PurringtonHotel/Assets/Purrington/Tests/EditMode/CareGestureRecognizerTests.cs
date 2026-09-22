@@ -1,90 +1,18 @@
 using NUnit.Framework;
 using Purrington.Domain;
-
 namespace Purrington.Tests
 {
  public sealed class CareGestureRecognizerTests
  {
-  [Test]
-  public void PetRequiresStrokeOrHold_NotMereTouch()
-  {
-   var g = new CareGestureRecognizer();
-   g.SetTool("pet");
-   g.Begin();
-   g.SetContact(true);
-   Assert.IsFalse(g.TryInitialReward(), "tap alone must not reward");
-   g.Move(CareGestureRecognizer.StrokePixels);
-   Assert.IsTrue(g.TryInitialReward(), "stroke distance should reward");
-  }
-
-  [Test]
-  public void PetHoldAfterThresholdRewards()
-  {
-   var g = new CareGestureRecognizer();
-   g.SetTool("pet");
-   g.Begin();
-   g.SetContact(true);
-   g.Tick(CareGestureRecognizer.HoldSeconds);
-   Assert.IsTrue(g.TryInitialReward());
-  }
-
-  [Test]
-  public void BrushRequiresCoatStroke()
-  {
-   var g = new CareGestureRecognizer();
-   g.SetTool("brush");
-   g.Begin();
-   g.SetContact(true);
-   g.Move(CareGestureRecognizer.BrushPixels - 1f);
-   Assert.IsFalse(g.TryInitialReward());
-   g.Move(2f);
-   Assert.IsTrue(g.TryInitialReward());
-  }
-
-  [Test]
-  public void WandRequiresDrag_YarnAcceptsFlick()
-  {
-   var wand = new CareGestureRecognizer();
-   wand.SetTool("wand");
-   wand.Begin();
-   Assert.IsFalse(wand.CompleteYarnOrWand(0f));
-   wand.Move(CareGestureRecognizer.WandDragPixels);
-   Assert.IsTrue(wand.TryInitialReward());
-
-   var yarn = new CareGestureRecognizer();
-   yarn.SetTool("yarn");
-   yarn.Begin();
-   Assert.IsTrue(yarn.CompleteYarnOrWand(CareGestureRecognizer.YarnFlickSpeed));
-  }
-
-  [Test]
-  public void CushionAndBoxRewardOnTap()
-  {
-   var cushion = new CareGestureRecognizer();
-   cushion.SetTool("cushion");
-   cushion.Begin();
-   Assert.IsTrue(cushion.TapPlacement());
-
-   var box = new CareGestureRecognizer();
-   box.SetTool("box");
-   box.Begin();
-   Assert.IsTrue(box.TapPlacement());
-  }
-
-  [Test]
-  public void PulseOnlyWhileGestureStaysActive()
-  {
-   var g = new CareGestureRecognizer();
-   g.SetTool("pet");
-   g.Begin();
-   g.SetContact(true);
-   g.Move(CareGestureRecognizer.StrokePixels);
-   Assert.IsTrue(g.TryInitialReward());
-   g.Tick(CareGestureRecognizer.PulseSeconds);
-   Assert.IsTrue(g.TryPulseReward());
-   g.SetContact(false);
-   g.Tick(CareGestureRecognizer.PulseSeconds);
-   Assert.IsFalse(g.TryPulseReward());
-  }
+  [Test] public void PetNeedsDeliberateStrokeOrHold(){var g=new CareGestureRecognizer();g.SetContact(true);Assert.IsFalse(g.TryInitialReward());g.Move(36);Assert.IsTrue(g.TryInitialReward());Assert.IsFalse(g.TryInitialReward());}
+  [Test] public void PetHoldCompletesOnce(){var g=new CareGestureRecognizer();g.SetContact(true);g.Tick(.45f);Assert.IsTrue(g.TryInitialReward());g.Tick(20);Assert.IsFalse(g.TryPulseReward());Assert.IsFalse(g.TryInitialReward());}
+  [TestCase("pet")][TestCase("brush")] public void OffCatTravelDoesNotCount(string tool){var g=new CareGestureRecognizer();g.SetTool(tool);g.Move(1000);g.SetContact(true);Assert.AreEqual(0,g.PathPixels);Assert.IsFalse(g.TryInitialReward());}
+  [TestCase("pet")][TestCase("brush")] public void BrokenContactResetsIncompleteStroke(string tool){var g=new CareGestureRecognizer();g.SetTool(tool);g.SetContact(true);g.Move(20);g.SetContact(false);g.SetContact(true);g.Move(20);Assert.IsFalse(g.TryInitialReward());}
+  [Test] public void BrushNeedsMotionNotHold(){var g=new CareGestureRecognizer();g.SetTool("brush");g.SetContact(true);g.Tick(10);Assert.IsFalse(g.TryInitialReward());g.Move(28);Assert.IsTrue(g.TryInitialReward());}
+  [Test] public void TinyJitterDoesNotBuildBrushStroke(){var g=new CareGestureRecognizer();g.SetTool("brush");g.SetContact(true);for(int i=0;i<1000;i++)g.Move(.2f);Assert.IsFalse(g.TryInitialReward());}
+  [Test] public void FeatherRequiresDrag(){var g=new CareGestureRecognizer();g.SetTool("wand");Assert.IsFalse(g.CompleteYarnOrWand(0));g.Move(40);Assert.IsTrue(g.TryInitialReward());Assert.IsFalse(g.TryInitialReward());}
+  [Test] public void YarnNeedsBothDistanceAndFastRelease(){var g=new CareGestureRecognizer();g.SetTool("yarn");g.Move(100);Assert.IsFalse(g.TryInitialReward());Assert.IsFalse(g.CompleteYarnOrWand(100));g.Begin();Assert.IsFalse(g.CompleteYarnOrWand(1000));g.Move(48);Assert.IsTrue(g.CompleteYarnOrWand(900));Assert.IsFalse(g.CompleteYarnOrWand(900));}
+  [TestCase("box")][TestCase("cushion")] public void PlacementAndAssistanceNeverDirectlyReward(string tool){var g=new CareGestureRecognizer();g.SetTool(tool);Assert.IsFalse(g.TapPlacement());Assert.IsFalse(g.AccessibilityUse());Assert.IsFalse(g.TryInitialReward());}
+  [Test] public void CancelOrToolChangeDiscardsMotion(){var g=new CareGestureRecognizer();g.SetTool("wand");g.Move(40);g.ClearMotion();Assert.IsFalse(g.TryInitialReward());g.Move(40);g.SetTool("pet");Assert.IsFalse(g.TryInitialReward());}
  }
 }

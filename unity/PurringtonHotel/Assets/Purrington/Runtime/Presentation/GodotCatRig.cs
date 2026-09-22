@@ -14,7 +14,8 @@ public sealed class GodotCatRig {
  void Close(){foreach(var e in eyes)ScaleY(e,.012f);}
  void Prop(string name){if(Bindings.TryGetValue("props."+name,out var t))t.gameObject.SetActive(true);}
  Transform PropNode(string name){Bindings.TryGetValue("props."+name,out var t);return t;}
- public void Speech(string text){if(thought){thought.text=text??"";thought.gameObject.SetActive(!string.IsNullOrEmpty(text));}}
+ // The shared screen-space overlay owns dialogue; never leave floating text on the rig.
+ public void Speech(string text){if(thought){thought.text="";thought.gameObject.SetActive(false);}}
  public void React(string kind,float duration=4){Reaction=kind;ReactionTime=0;ReactionDuration=duration;}
  public void Advance(float delta,bool motion,string action,bool walking,string gesture="",float activityTime=0,bool staff=false,int role=0){
   if(Reaction!=""){ReactionTime+=delta;if(ReactionTime>=ReactionDuration)Reaction="";}

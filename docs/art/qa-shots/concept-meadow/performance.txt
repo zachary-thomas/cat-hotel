@@ -1,0 +1,1 @@
+Windows development preview, 1280x800, starter Meadow; 180 frames / 3.00 s; average 60.0 FPS; worst frame 16.9 ms. Target cap: 60 FPS. This is not mobile-device performance.

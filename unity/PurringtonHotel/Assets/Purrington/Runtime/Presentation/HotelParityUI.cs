@@ -1,3 +1,4 @@
+﻿using Purrington.Domain;
 using System;
 
 using System.Linq;
@@ -150,7 +151,7 @@ namespace Purrington.Presentation
 
         {
 
-            if(category=="All"||category=="Rooms")
+            if(category=="Rooms")
 
                 foreach(var kind in new[]{"regular","suite","cottage"})
 
@@ -206,15 +207,17 @@ namespace Purrington.Presentation
 
             var content=Sheet("Hotel life","Life at "+mapName,.70f);
 
-            int staying=app.Model.Actors.Count(a=>a.catId<1000);
-            int arriving=app.Model.Actors.Count(a=>a.catId<1000&&!a.checkedIn);
+            int staying=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest);
+            int arriving=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest&&!a.checkedIn);
             int capacity=app.Model.GuestCapacity();
             Info(content,"Little things. Happy cats.",
                 staying+" staying · "+capacity+" capacity · "+(arriving>0?arriving+" arriving":"reception ready")+"\n"+
                 "+"+Math.Round(app.Model.Rate()).ToString("N0")+" / min · "+Math.Floor(app.Model.State.coins).ToString("N0")+" coins · "+(hotel["visits"]??0)+" visits · "+(hotel["happy"]??0)+" happy");
 
 
-            var guestLines=app.Model.Actors.Where(a=>a.catId<1000).Select(a=>{string intent=!string.IsNullOrEmpty(a.speech)?a.speech:a.action;return string.IsNullOrEmpty(intent)||intent=="rest"?null:a.name+" · "+intent;}).Where(line=>line!=null).Take(3).ToArray();
+            if(app.Model.DayVisitorCount>0)Info(content,"Day visitors",app.Model.DayVisitorCount+" visiting the milkshake bar � no beds needed");
+
+            var guestLines=app.Model.Actors.Where(a=>a.kind==ActorKind.Guest).Select(a=>{string intent=!string.IsNullOrEmpty(a.speech)?a.speech:a.action;return string.IsNullOrEmpty(intent)||intent=="rest"?null:a.name+" · "+intent;}).Where(line=>line!=null).Take(3).ToArray();
 
             if(guestLines.Length>0)Info(content,"Guests right now",string.Join("\n",guestLines));
 
@@ -396,27 +399,30 @@ namespace Purrington.Presentation
 
             var cat=app.Model.State.cats.First(c=>c.id==careCat);
 
-            var bondPanel=Panel("Care friendship",safe,Cream);
-            Pin(bondPanel,new Vector2(0,1),Vector2.one,Vector2.one,new Vector2(12,-146),new Vector2(-12,-94));
-            careBond=Text(bondPanel,cat.name+" · friendship "+cat.bond+" / 100",17,Ink,true);Stretch(careBond.rectTransform,12,4,12,4);
+            bool compactCare=lastSafe.height<540&&lastSafe.width>lastSafe.height;
 
-            var surface=Rect("Care gesture surface",safe);Pin(surface,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(10,250),new Vector2(-10,-148));
+            var bondPanel=Panel("Care friendship",safe,Cream);
+            Pin(bondPanel,new Vector2(0,1),Vector2.one,Vector2.one,new Vector2(12,compactCare?-114:-146),new Vector2(-12,compactCare?-74:-94));
+            careBond=Text(bondPanel,cat.name+" \u00b7 friendship "+cat.bond+" / 100",17,Ink,true);Stretch(careBond.rectTransform,12,4,12,4);
+
+            var surface=Rect("Care gesture surface",safe);Pin(surface,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(10,compactCare?166:250),new Vector2(-10,compactCare?-116:-148));
 
             surface.gameObject.AddComponent<UnityEngine.UI.Image>().color=new Color(1,1,1,.001f);
 
             gestureInput=surface.gameObject.AddComponent<CareGestureInput>();gestureInput.Initialize(app,careCat,careTool,OnCareAction);
 
-            var tray=Panel("Care tools",safe,Cream);Pin(tray,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,10),new Vector2(-10,244));
+            var tray=Panel("Care tools",safe,Cream);Pin(tray,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,10),new Vector2(-10,compactCare?160:244));
 
-            var column=Vertical(tray,5,8);careHint=Text(column,CareGestureInput.Help(careTool),13,Ink);Height(careHint.rectTransform,40);
+            var column=Vertical(tray,5,8);careHint=Text(column,CareGestureInput.Help(careTool),13,Ink);Height(careHint.rectTransform,compactCare?24:40);
 
             string[] tools={"pet","brush","wand","yarn","cushion","box"};
 
             var choices=new System.Collections.Generic.Dictionary<string,UnityEngine.UI.Image>();
 
-            for(int r=0;r<2;r++){var row=Row(column,48);for(int c=0;c<3;c++){string tool=tools[r*3+c];var button=Button(row,tool=="wand"?"Feather":char.ToUpper(tool[0])+tool.Substring(1),()=>{careTool=tool;gestureInput.SetTool(tool);careHint.text=CareGestureInput.Help(tool);foreach(var entry in choices)entry.Value.color=entry.Key==tool?Gold:Lilac;},careTool==tool?Gold:Lilac,13);choices[tool]=button.GetComponent<UnityEngine.UI.Image>();}}
+            int columns=compactCare?6:3;
+            for(int r=0;r<6/columns;r++){var row=Row(column,48);for(int c=0;c<columns;c++){string tool=tools[r*columns+c];var button=Button(row,tool=="wand"?"Feather":char.ToUpper(tool[0])+tool.Substring(1),()=>{careTool=tool;gestureInput.SetTool(tool);careHint.text=CareGestureInput.Help(tool);foreach(var entry in choices)entry.Value.color=entry.Key==tool?Gold:Lilac;},careTool==tool?Gold:Lilac,13);choices[tool]=button.GetComponent<UnityEngine.UI.Image>();}}
 
-            var footer=Row(column,50);Button(footer,"Use tool",()=>gestureInput.UseSelectedTool(),Mint,13);Button(footer,"About & friends",()=>{careDetails=true;Rebuild();},Gold,13);
+            var footer=Row(column,compactCare?48:50);if(app.Model.State.settings.assistedCare)Button(footer,"Help me use this tool",()=>gestureInput.UseSelectedTool(),Mint,13);Button(footer,"About & friends",()=>{careDetails=true;Rebuild();},Gold,13);
 
             if(careDetails)
 
@@ -438,7 +444,7 @@ namespace Purrington.Presentation
 
             var result=app.Model.Care(careCat,tool);if(!result.success||result.progressChanged)app.Report(result);
 
-            var cat=app.Model.State.cats.First(c=>c.id==careCat);if(careBond)careBond.text=cat.name+" · friendship "+cat.bond+" / 100";
+            var cat=app.Model.State.cats.First(c=>c.id==careCat);if(careBond)careBond.text=cat.name+" \u00b7 friendship "+cat.bond+" / 100";
 
             if(result.success&&result.progressChanged)app.Audio?.PlayEffect(tool=="pet"||tool=="brush"?"purr":"toy");
 

@@ -76,7 +76,7 @@ namespace Purrington.Presentation
 
    }
 
-   catch(Exception ex){initializationError="Couldn't open the hotel safely. "+ex.Message;if(UI){UI.gameObject.SetActive(false);Destroy(UI.gameObject);}if(World){World.gameObject.SetActive(false);Destroy(World.gameObject);}UI=null;World=null;Model=null;}
+   catch(Exception ex){Debug.LogException(ex);initializationError="Couldn't open the hotel safely. "+ex.Message;if(UI){UI.gameObject.SetActive(false);Destroy(UI.gameObject);}if(World){World.gameObject.SetActive(false);Destroy(World.gameObject);}UI=null;World=null;Model=null;}
 
   }
 
