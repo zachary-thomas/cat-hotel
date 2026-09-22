@@ -161,3 +161,15 @@ Known textual hotspots (resolve by keeping both sides; none are semantic conflic
 ## Idea backlog handoff
 
 The spec's "Idea backlog" items marked **Next** each need a mini-spec (via `superpowers:brainstorming`) before planning. Suggested order once Gate 4 passes: Staff uniforms (small, reuses plan 05) → Sunbeam spots → Lobby charm score → Guest requests.
+
+## Execution log (orchestrator)
+
+Execution runs on `test/combined-screenshot-reality` (user's choice), one task at a time, no worktrees.
+
+| Plan/Task | Commits | Review notes and follow-ups |
+|---|---|---|
+| 02/T1 | 448521c | Approved. |
+| 02/T2 | e44c6aa, b804690, 3c3533b | Review caught that `SyncRoomWalls` made door edges order-dependent between touching rooms (a door lost to a neighbour's wall would make saves invalid once Task 4 lands). Fixed with doors placed first, plus migration guards (absurd sizes, overflow, v2 floor reset) and a requirement that v3 saves carry `floors`. |
+| 02/T3 | d80281b, 0eba6b9 | Approved. **Follow-up for plan 04:** each shell wall edge is its own nav solid (roughly 2.5x more solids than legacy rooms), and the dense simulation clears floors, so it doesn't measure this. When plan 04 rewrites the wall-solid line, merge contiguous edges through `ShellDraw.Runs`, and add a migrated dense run. |
+| 02/T4 | 5b39fe8, e658dac | Approved. The reviewer probed 3000 random v2 layouts, and every one still passes `Valid` after migration. Added load-gate tamper tests. The review found plan gaps: moving or resizing interior rooms broke, and a pricing loophole appeared (both handled in T5). |
+| 02/T5 | deee9d6, b357c76, 8826be0 | Addendum: move and resize carry the hotel, and a copy onto floor is repriced to fitting (a copy onto bare land stays a legacy pavilion, as the Godot oracle requires). The review then found a Critical exploit: an interior resize at 25/tile lets draw-big-then-shrink yield a free room. Fixed in 8826be0; needs re-review. See the HANDOFF doc. |

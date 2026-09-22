@@ -1,0 +1,143 @@
+# Hotel Growth: Handoff (2026-09-22)
+
+Written by the orchestrating session for the next agent. Read this first, then the [roadmap](2026-09-22-hotel-growth-00-roadmap.md). Also read `CLAUDE.md` at the repo root.
+
+## What the user asked for
+
+1. **Lawn fix:** owned-plot grass doesn't match the world's ground color on the first map (and others).
+2. **Rework expansion.** Buying plots feels boring, the hotel sprawls flat, and space runs out. The user wants:
+   - a continuous building "shell" that can be expanded, with hallways, a lobby, and open space for scratchers and windows;
+   - rooms placed inside the shell, and also outdoors;
+   - both a rectangle room tool (option 1) and a Sims-style wall tool (option 3);
+   - stairs and extra floors, with themed floors (sunroom, rooftop garden, basement spa).
+3. **Cat clothing.**
+4. **Brainstorm more ideas.** The backlog is in the spec.
+5. **Make it clear the repo is moving to Unity.** Done: README banner, `CLAUDE.md`, and a memory entry.
+6. Plan it all with superpowers (brainstorming, writing-plans), then execute with **superpowers:subagent-driven-development**, with the main session as orchestrator.
+
+The user approved committing and pushing on the current branch: **`test/combined-screenshot-reality`**, tracking `origin`. Work happens directly on this branch, one task at a time. There are no worktrees, because the skill forbids parallel implementers.
+
+## Key documents
+
+| Doc | Purpose |
+|---|---|
+| `docs/superpowers/specs/2026-09-22-hotel-growth-design.md` | Spec, decisions and idea backlog |
+| `docs/superpowers/plans/2026-09-22-hotel-growth-00-roadmap.md` | Orchestration: lanes, roles, gates, merge order, **execution log** (uncommitted additions) |
+| `…-01-lawn-color.md` | Plan 01 (Unity presentation, 3 tasks) |
+| `…-02-shell-domain.md` | Plan 02 (domain, 8 tasks), **in progress** |
+| `…-03-shell-presentation.md` | Plan 03 (T1 domain, T2–T6 Unity) |
+| `…-04-floors-stairs.md` | Plan 04 (T1–T4 domain, T5–T8 Unity) |
+| `…-05-wardrobe.md` | Plan 05 (T1 domain, T2–T4 Unity) |
+| `…-06-wall-tool.md` | Plan 06 (T1 domain, T2–T4 Unity) |
+
+Per-task extracts of plan 02 live in the session scratchpad (`…/scratchpad/tasks/p02_t*.md`), which may not survive. Re-extract any task by taking its `### Task N` section from the plan file.
+
+**How much of the plans is proven:** during planning, every domain task in plans 02–06 was applied mechanically from the plan markdown to a scratch copy and passed the .NET harness, reaching 676,123 checks for the full stack. Unity presentation tasks were **never compiled**, because the user has the Unity editor open on this project.
+
+## How to run and test
+
+- **Domain tests (no Unity needed):** from the repo root, `dotnet run --project tests/unity-domain`. It takes about 1–2 minutes. The last line must read `PASS <n> checks`.
+- **The "Godot oracle construction/maps" section guards parity.** Never edit the oracle to make a change pass. The user moved the project to Unity, but the oracle still fixes legacy construction semantics.
+- **Unity tests:** `.\tools\unity.ps1 Test` currently **fails to start**, because the editor has the project open (`Temp/UnityLockfile`).
+  - For Unity tasks, either ask the user to close the editor, or use the `unity:unity-cli` skill to drive the running editor, for example to run tests or C# in the live editor.
+  - The open editor recompiles changed scripts automatically, so domain changes compile in it already.
+
+## Progress
+
+### Done and committed (HEAD `8826be0`, all pushed to origin)
+
+| Commit | What |
+|---|---|
+| `4567722` | The user's prior Unity work in progress (committed at their request) |
+| `a57a7cb` | Docs: Unity banner, `CLAUDE.md`, spec, 7 plans (**pushed**) |
+| `448521c` | 02/T1: grid helpers `ShellGrid`, and the `FloorState`/`EdgeState` types |
+| `e44c6aa` `b804690` `3c3533b` | 02/T2: save v3 plus lossless v2→v3 migration. Review fixes: `SyncRoomWalls` is two-pass (doors first, so touching rooms keep their doors); migration skips absurd rooms and sets floor 0; overflow-safe guards; v3 saves must carry `floors` |
+| `d80281b` `0eba6b9` `5590ee7` | 02/T3: navigation walls come from shell edges; indoor cells are walkable; constructed-graph test |
+| `5b39fe8` `e658dac` | 02/T4: per-tile `paint_floor`/`erase_floor` with plot auto-buy; `ValidateShell` now gates `Valid`; load-gate tamper tests; God-mode tiles are stored free |
+| `deee9d6` `b357c76` | 02/T5: interior rooms at fitting price (45% of pavilion); `draw_room`. Addendum: `move_room`/`resize_room` of an interior room auto-paint the missing floor. `copy_room` onto floor is repriced to fitting; onto bare land it stays a legacy full-price pavilion, which the oracle requires |
+
+Harness at `b357c76`: **PASS 676028**.
+
+### Last step before handoff
+
+`8826be0` fix(domain): price interior resizes by fitting; refuse bad drawings early. This fixes a Critical exploit found in code review: interior-room `resize_room` used the legacy 25/tile diff, so a player could draw a big room and shrink it for a free room. Interior resizes are now priced by the change in fitting, with refunds capped at what was paid. A pavilion moved into the hotel is refunded down to fitting and never charged more. `draw_room` checks `RoomShape` before building its missing-cell list. Harness: **PASS 676034**.
+
+**It has NOT been re-reviewed.** The next agent should first dispatch a code quality re-review of `b357c76..8826be0` (it was a response to Task 5's "Changes requested"). Once that is approved, mark plan 02 Task 5 done and continue with Task 6.
+
+### Remaining work, in order
+
+**Merge order:** 02 → 01 → 03 → 05 → 04 → 06. Plan 01 needs Unity, so it was deferred behind 02.
+
+1. **Plan 02**
+   - T5: re-review `8826be0`.
+   - T6: `set_edge` for doors, windows, walls and archways.
+   - T7: furniture in hallways and lobbies.
+   - T8: undo test, plus the Unity compile gate, which needs the editor closed or the live-editor route.
+   - Then tick the plan's checkboxes and push.
+2. **Plan 01, lawn** (Unity):
+   - Root cause: owned-parcel lawns in `GodotGeometry.json` use their own swatches, which differ from each map's 400×400 world ground. Meadow `#60a830` remaps to olive `#82934D`, against sage `#83a36e`.
+   - Fix: `GodotGeometry.LawnColor`/`Recolor` and `VoxelWorld.BuildOwnedPlots`.
+3. **Plan 03**
+   - T1 (domain): `RoomState.door` side, `ShellDraw` helpers, `RoomDraft`.
+   - T2–T6 (Unity): shell rendering, touch input, Hotel build tools, pavilion wording, QA.
+4. **Plan 05, wardrobe**
+   - T1 (domain, independent of 03/04).
+   - T2–T4 (Unity).
+5. **Plan 04, floors and stairs**
+   - T1–T4 (domain): floor rules and stairs, 3D navigation, life across floors, themed room income.
+   - T5–T8 (Unity).
+6. **Plan 06, wall tool**
+   - T1 (domain).
+   - T2–T4 (Unity).
+7. **Finish:** update the Unity README, run a final whole-branch review, then `superpowers:finishing-a-development-branch`.
+
+### Plan text that no longer matches the code
+
+These review-driven changes made the plan docs stale, so the next implementers need to know about them:
+
+- **Plan 02 T2:** `SyncRoomWalls` is now two-pass, and `Upgrade` has guards. The anchor strings later plans use are preserved: `h.rooms.Where(v=>v.floor==f.level&&IndoorKind(v.kind)&&Interior(h,v))`, `new[]{r.rotation}`, `Numbers(r,"floor",true,true);`.
+- **Plan 02 T4/T5:**
+  - Apply now has `RoomState r=null;`, plus a pre-switch `editedRoom`/`wasInterior` line.
+  - There is a post-switch block for move/resize/copy just before `SyncRoomWalls(h);`.
+  - **Plan 04 Task 1** anchors on `r.paid=cost=Price(Interior(h,r)?Fitting(r):Shell(r));h.rooms.Add(r);break;` and `case "draw_room":{int level=(int?)p["floor"]??0;`. Both still exist.
+  - **Plan 04 Task 1** also adds `OpenLanding` for stairs. When plan 04 runs, check that the new resize-by-fitting logic doesn't mis-price stairs (stairs can't be resized meaningfully; consider refusing resize and move for `stairs`).
+- **Plan 03 T4** registers suites after `ShellSuites.RunShellUndo`, but Program.cs has since gained `RunShellLoadGate` and `RunInteriorEdits`. Register new suites anywhere after them; order doesn't matter.
+
+### Open review follow-ups (logged in the roadmap's execution log)
+
+- Each shell wall edge is its own navigation solid, roughly 2.5× more solids than legacy rooms. The dense simulation clears floors, so it doesn't measure this. When plan 04 rewrites the wall-solid line, merge contiguous edges using `ShellDraw.Runs`, and add a migrated dense run.
+- `ValidateShell` re-reads map scenery for every cell, about 1.4 ms per call. Cache the protected rectangles if `Quote` runs every frame during drags.
+- Messages:
+  - `draw_room` replaces the "Bought plot" message with "Room added".
+  - A too-low "Need N more coins" can appear from the nested validation.
+  - Painting under a pavilion gives a room-oriented error message.
+- Plan 02 T7 will reject furniture that straddles walls. Floors painted under straddling or outdoor-only objects between T4 and T7 could fail validation on load; these are dev saves only.
+- Room-owned edges pointing at missing rooms aren't cross-checked on load; `SyncRoomWalls` self-heals them on the next command.
+
+## Process being followed (per task)
+
+1. Extract the task text and dispatch an **implementer** (`general-purpose`, sonnet) with the task text, repo and branch context, test commands, "don't run Unity", and "stop if an anchor or the oracle breaks". Commits end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+2. **Spec reviewer** (sonnet) verifies the diff against the task text and must not trust the report.
+3. **Code quality reviewer** (opus for risky domain work) uses the `requesting-code-review` template, with base and head SHAs.
+4. Send fixes back to the **same implementer** through SendMessage, then re-review. Minor items become logged follow-ups.
+5. Keep the roadmap execution log updated. Don't stage the roadmap in implementer commits.
+
+## Decisions made (and why)
+
+| Decision | Why |
+|---|---|
+| Per-tile growth at 20 coins/tile; doors 20, windows 15, walls 5, archways 10 | Recommended default. The user didn't answer the per-tile vs chunks question. **Revisit at the balancing checkpoint.** |
+| Interior room fitting = 45% of the pavilion price | A 4×3 bedroom plus floor costs about the old 450 |
+| Floors unlock at hotel level 3 (upstairs), 5 (rooftop), 7 (basement) | Pacing default |
+| Themed rooms reuse existing items (perch, planters, fireplace), +15/+20/+25 coins/min | Avoids new art for v1 |
+| `copy_room` onto bare land stays a full-price pavilion | Required by the Godot oracle; not a loophole |
+| Rooms keep legacy `RoomShape`; plan 03 adds a `door` side field | The legacy shape rules force doors onto the short side, and loosening them would break the oracle |
+
+## Other things in the working tree (not ours)
+
+`docs/superpowers/plans/2026-09-22-main-street.md` and `docs/superpowers/specs/2026-09-22-main-street-design.md` are untracked. They appeared mid-session from another session or the user. **Don't commit or modify them** unless asked.
+
+## Notes for the user
+
+- The task-tracker connectors (Linear, Asana, Notion and others) aren't authorized, so no tickets exist.
+- The roadmap asks for a 🧑 balancing checkpoint after Gate 4 (floors), and screenshot gates 1–5 once the Unity work lands.
