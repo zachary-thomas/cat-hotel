@@ -103,6 +103,7 @@ static class ShellSuites
 		ground.edges[ShellGrid.Edge('v',x,z+1)]=new EdgeState{kind="door"};Check(m.Save().success,"nav: save door");
 		var doored=new HotelModel(store,content);doored.LoadOrCreate();
 		Check(doored.Route(outside,inside,false).Count>0,"nav: an exterior door lets cats in");
+		Check(doored.Route(new LotPoint(x+.25f,z+.25f),new LotPoint(x+2.75f,z+2.75f)).Count>0,"nav: shell floor is walkable in the constructed graph");
 		ground.edges[ShellGrid.Edge('v',x,z+1)].kind="window";Check(m.Save().success,"nav: save window");
 		var glazed=new HotelModel(store,content);glazed.LoadOrCreate();
 		Check(glazed.Route(outside,inside,false).Count==0,"nav: windows block like walls");
