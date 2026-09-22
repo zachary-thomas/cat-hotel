@@ -188,8 +188,8 @@ namespace Purrington.Presentation
                 var viewport=HotelUI.ScreenBounds(scroll.viewport);
                 if(scroll.horizontal)
                 {
-                    float low=Mathf.Lerp(viewport.xMin,viewport.xMax,.25f),high=Mathf.Lerp(viewport.xMin,viewport.xMax,.75f);
-                    yield return MouseGesture(new Vector2(low,viewport.center.y),new Vector2(high,viewport.center.y),.18f);continue;
+                    float left=Mathf.Lerp(viewport.xMin,viewport.xMax,.25f),right=Mathf.Lerp(viewport.xMin,viewport.xMax,.75f);
+                    yield return MouseGesture(new Vector2(left,viewport.center.y),new Vector2(right,viewport.center.y),.18f);continue;
                 }
                 float low=Mathf.Lerp(viewport.yMin,viewport.yMax,.25f),high=Mathf.Lerp(viewport.yMin,viewport.yMax,.70f);
                 float x=Mathf.Lerp(viewport.xMin,viewport.xMax,.5f);
