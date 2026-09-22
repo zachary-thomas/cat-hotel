@@ -211,4 +211,28 @@ static class ShellSuites
 		coins=pav.State.coins;Check(pav.Execute("move_room",new JObject{{"id",hut.id},{"x",px},{"y",pz+4}}).success&&HotelModel.Interior(pav.Hotel(),hut)&&Math.Abs(hut.paid-203)<.01&&Math.Abs(pav.State.coins-coins-247)<.01,"edits: moving a pavilion into the hotel refunds down to the fitting");
 		Console.WriteLine("Shell interior edits suite passed");
 	}
+	static JObject EdgePayload(string kind,params string[] edges){return new JObject{{"floor",0},{"kind",kind},{"edges",new JArray(edges)}};}
+	public static void RunEdges(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;OwnPlots(m);
+		Check(FindClear(m,8,4,out int x,out int z),"edges: clear land");Check(m.Execute("paint_floor",Paint(x,z,3,3)).success,"edges: lobby");
+		string west="v:"+x+","+(z+1),inner="v:"+(x+1)+","+z;
+		double coins=m.State.coins;Check(m.Execute("set_edge",EdgePayload("window",west)).success&&Math.Abs(coins-m.State.coins-15)<.01,"edges: exterior window costs 15");
+		Check(ShellGrid.WallAt(HotelModel.Floor(m.Hotel(),0),west)=="window","edges: window stored");
+		coins=m.State.coins;Check(m.Execute("set_edge",EdgePayload("door",west)).success&&Math.Abs(coins-m.State.coins-5)<.01,"edges: swapping window for door charges the difference");
+		coins=m.State.coins;Check(m.Execute("set_edge",EdgePayload("wall",inner)).success&&Math.Abs(coins-m.State.coins-5)<.01,"edges: interior wall costs 5");
+		var arch=m.Quote("set_edge",EdgePayload("open",inner));Check(!arch.success&&arch.message.Contains("Archways"),"edges: no archways inside");
+		coins=m.State.coins;Check(m.Execute("set_edge",EdgePayload("none",west)).success&&Math.Abs(m.State.coins-coins-20)<.01,"edges: removing refunds");
+		Check(ShellGrid.WallAt(HotelModel.Floor(m.Hotel(),0),west)=="wall","edges: removed exterior door falls back to a wall");
+		Check(!m.Quote("set_edge",EdgePayload("wall","v:"+(x+50)+","+z)).success,"edges: edges must touch the hotel");
+		Check(m.Execute("draw_room",Room(x+3,z,4,3,0)).success,"edges: room beside the lobby");var room=m.Hotel().rooms.Last();
+		string roomInside="v:"+(x+4)+","+z,roomWall="v:"+(x+3)+","+(z+1);
+		Check(HotelModel.Floor(m.Hotel(),0).edges.TryGetValue(roomWall,out var owned)&&owned.room==room.id,"edges: the wall facing the lobby belongs to the room");
+		var cut=m.Quote("set_edge",EdgePayload("wall",roomInside));Check(!cut.success&&cut.message.Contains("cut through"),"edges: no walls through rooms");
+		var keep=m.Quote("set_edge",EdgePayload("none",roomWall));Check(!keep.success&&keep.message.Contains("encloses"),"edges: room walls can't be removed ("+keep.message+")");
+		Check(!m.Quote("set_edge",EdgePayload("none","h:"+x+","+z)).success,"edges: nothing to remove on a plain outside wall");
+		Check(m.Execute("set_edge",EdgePayload("window",roomWall)).success,"edges: a room wall can become a window");
+		Check(m.Execute("remove_room",P("{\"id\":\""+room.id+"\"}")).success&&ShellGrid.WallAt(HotelModel.Floor(m.Hotel(),0),roomWall)=="window","edges: player windows outlive the room");
+		Console.WriteLine("Shell edges suite passed");
+	}
 }
