@@ -180,6 +180,9 @@ static class ShellSuites
 		Check(ShellDraw.NextKind(f,"h:0,0")=="door"&&ShellDraw.NextKind(f,"h:1,2")=="window"&&ShellDraw.NextKind(f,"v:1,0")=="door","draw: tapping cycles wall → door → window");
 		f.edges["h:0,0"]=new EdgeState{kind="window"};Check(ShellDraw.NextKind(f,"h:0,0")=="open","draw: outside windows cycle to an archway");
 		f.edges["v:1,0"].kind="window";Check(ShellDraw.NextKind(f,"v:1,0")=="wall","draw: inside windows cycle back to a wall");
+		var pavilion=new HotelModel(new MemoryStore(),content);pavilion.LoadOrCreate();pavilion.State.coins=100000;OwnPlots(pavilion);Check(FindClear(pavilion,4,3,out int px,out int pz),"draw: clear land for a pavilion");
+		Check(pavilion.Execute("place_room",new JObject{{"kind","regular"},{"x",px},{"y",pz},{"w",4},{"h",3},{"rotation",0},{"door",1}}).success,"draw: pavilion with an explicit south door");
+		Check(pavilion.MovementSegmentClear(new LotPoint(px+1.75f,pz+2.75f),new LotPoint(px+1.75f,pz+3.25f),false)&&!pavilion.MovementSegmentClear(new LotPoint(px+3.75f,pz+1.25f),new LotPoint(px+4.25f,pz+1.25f),false),"draw: pavilion navigation opens only on its explicit door side");
 		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;OwnPlots(m);
 		Check(FindClear(m,8,6,out int x,out int z),"draw: clear land");
 		Check(m.Execute("paint_floor",Paint(x,z+3,8,1)).success,"draw: hallway south of the new room");
