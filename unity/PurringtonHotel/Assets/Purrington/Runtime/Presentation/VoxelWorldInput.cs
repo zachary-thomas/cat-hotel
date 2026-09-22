@@ -37,10 +37,13 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
                 float distance=Vector2.Distance(first.position.ReadValue(),second.position.ReadValue());
                 if(!pinchActive || pinchFirstId!=firstId || pinchSecondId!=secondId) {
                     // Latch once when the second finger joins. Moving onto the world never steals a UI gesture.
-                    pinchActive=true; pinchFirstId=firstId; pinchSecondId=secondId;
+                    pinchActive=true; pinchFirstId=firstId; pinchSecondId=secondId; pinchMidValid=false;
                     pinchOwned=touchStartedOnWorld[firstId] && touchStartedOnWorld[secondId];
                     pinchDistance=pinchOwned?distance:0;
                 } else if(pinchOwned) {
+                    var mid=(first.position.ReadValue()+second.position.ReadValue())/2;
+                    if(pinchMidValid) { manualCamera=true; focus += (ScreenToGround(pinchMid)-ScreenToGround(mid))*Unit; LimitCamera(); }
+                    pinchMid=mid; pinchMidValid=true;
                     if(pinchDistance>0) manualCamera=true; if(pinchDistance>0) zoom=Mathf.Clamp(zoom*pinchDistance/Mathf.Max(distance,1),3,90);
                     pinchDistance=distance;
                 }
@@ -65,12 +68,12 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
             if(pressed && held)
             {
                 if(Vector2.Distance(point,down)>10) dragged=true;
-                if(pathPainting) { GroundDragged?.Invoke(ScreenToGround(point)); } else if(dragged) { manualCamera=true;focus += (ScreenToGround(previous)-ScreenToGround(point))*Unit; LimitCamera(); }
+                if(pathPainting) { GroundDragged?.Invoke(ScreenToGround(DrawPoint(point))); } else if(dragged) { manualCamera=true;focus += (ScreenToGround(previous)-ScreenToGround(point))*Unit; LimitCamera(); }
                 previous=point;
             }
             if(end && pressed)
             {
-                pressed=false;
+                pressed=false; if(pathPainting) GroundDragEnded?.Invoke();
                 if((dragged && !pathPainting) || OverUI(point)) return;
                 var ray=WorldCamera.ScreenPointToRay(point);
                 if(Physics.Raycast(ray,out var hit,500))
