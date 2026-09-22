@@ -55,6 +55,21 @@ static class ShellSuites
 		var bad=JObject.Parse(JsonConvert.SerializeObject(m.State));bad["hotels"][0]["floors"][0]["edges"]["v:0,0"]=new JObject{{"kind",5},{"room",""},{"paid",0}};
 		Check(!restored.RestoreJson(bad.ToString()),"migration: strict JSON rejects a non-string edge kind");
 		Check(!HotelModel.Valid(new HotelState{version=2}),"migration: unmigrated state is invalid");
+		foreach(bool doorRoomFirst in new[]{true,false})
+		{
+			var s=HotelModel.Copy(m.State);s.version=2;foreach(var hh in s.hotels)hh.floors.Clear();var h0=s.hotels[0];h0.objects.Clear();h0.paths.Clear();
+			var a=new RoomState{id="room_a",kind="regular",x=0,z=0,width=4,depth=3,rotation=0};var b=new RoomState{id="room_b",kind="regular",x=4,z=0,width=4,depth=3,rotation=0};var c=new RoomState{id="room_c",kind="shared",x=0,z=5,width=3,depth=3,floor=1};
+			h0.rooms=doorRoomFirst?new List<RoomState>{a,b,c}:new List<RoomState>{b,a,c};h0.paths["1,1"]=new PathState{style="brick",paid=6};double before=s.coins;
+			Check(ShellMigration.Upgrade(s),"migration: touching rooms upgrade");var g=HotelModel.Floor(h0,0);
+			Check(g.edges.TryGetValue("v:4,1",out var shared)&&shared.kind=="door"&&shared.room=="room_a","migration: a door flush against a neighbour survives (door room first="+doorRoomFirst+")");
+			Check(g.edges.Values.Count(e=>e.room=="room_c"&&e.kind=="door")==4&&c.floor==0,"migration: lounges keep four doors and v2 rooms land on the ground floor");
+			Check(!h0.paths.ContainsKey("1,1")&&Math.Abs(s.coins-before-6)<.01,"migration: paths under rooms are refunded");
+			string once=JsonConvert.SerializeObject(s);ShellMigration.Upgrade(s);Check(once==JsonConvert.SerializeObject(s),"migration: upgrading twice changes nothing");
+		}
+		var gate=HotelModel.Copy(m.State);gate.version=2;Check(!HotelModel.Valid(gate),"migration: Valid requires save v3");
+		var huge=HotelModel.Copy(m.State);huge.version=2;huge.hotels[0].floors.Clear();huge.hotels[0].rooms.Add(new RoomState{id="room_huge",kind="regular",width=2000000000,depth=2000000000});
+		Check(ShellMigration.Upgrade(huge)&&!HotelModel.Valid(huge),"migration: absurd v2 rooms are skipped, then rejected, without hanging");
+		var noFloors=JObject.Parse(JsonConvert.SerializeObject(m.State));((JObject)noFloors["hotels"][0]).Remove("floors");Check(!restored.RestoreJson(noFloors.ToString()),"migration: v3 saves must carry floors");
 		Console.WriteLine("Shell migration suite passed");
 	}
 }
