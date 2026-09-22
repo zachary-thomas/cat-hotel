@@ -166,6 +166,32 @@ static class ShellSuites
 		Check(HotelModel.Valid(m.State),"undo: state stays valid");
 		Console.WriteLine("Shell undo suite passed");
 	}
+	public static void RunDraw(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var f=new FloorState();foreach(var c in ShellGrid.Cells(0,0,3,2))f.cells[c]=0;f.edges["h:1,2"]=new EdgeState{kind="door"};
+		var runs=ShellDraw.Runs(f);
+		Check(runs.Count(r=>r.kind=="door")==1&&runs.Sum(r=>r.length)==10,"draw: 3x2 island outline is 10 edges with one door");
+		var south=runs.Where(r=>r.axis=='h'&&r.z==2).OrderBy(r=>r.x).ToList();
+		Check(south.Count==3&&south[0].kind=="wall"&&south[1].kind=="door"&&south[2].kind=="wall"&&south.All(r=>r.inward==-1),"draw: a door splits the south wall into wall/door/wall facing inward");
+		Check(runs.Single(r=>r.axis=='h'&&r.z==0).length==3&&runs.Single(r=>r.axis=='h'&&r.z==0).inward==1,"draw: the north wall merges into one run");
+		f.edges["v:1,0"]=new EdgeState{kind="wall"};Check(ShellDraw.Runs(f).Any(r=>r.axis=='v'&&r.x==1&&r.inward==0),"draw: interior walls face both ways");
+		Check(ShellDraw.NearestEdge(2.1f,5.5f)=="v:2,5"&&ShellDraw.NearestEdge(2.5f,5.9f)=="h:2,6","draw: taps pick the nearest edge");
+		Check(ShellDraw.Line(0,0,3,1).Count==4&&ShellDraw.Line(0,0,3,1).Last()==(3,1),"draw: strokes fill the cells between samples");
+		Check(ShellDraw.NextKind(f,"h:0,0")=="door"&&ShellDraw.NextKind(f,"h:1,2")=="window"&&ShellDraw.NextKind(f,"v:1,0")=="door","draw: tapping cycles wall → door → window");
+		f.edges["h:0,0"]=new EdgeState{kind="window"};Check(ShellDraw.NextKind(f,"h:0,0")=="open","draw: outside windows cycle to an archway");
+		f.edges["v:1,0"].kind="window";Check(ShellDraw.NextKind(f,"v:1,0")=="wall","draw: inside windows cycle back to a wall");
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;OwnPlots(m);
+		Check(FindClear(m,8,6,out int x,out int z),"draw: clear land");
+		Check(m.Execute("paint_floor",Paint(x,z+3,8,1)).success,"draw: hallway south of the new room");
+		var draft=m.RoomDraft(x+3,z+2,x,z,"regular");
+		Check((int)draft["rotation"]==0&&(int)draft["door"]==1&&(int)draft["w"]==4&&(int)draft["h"]==3&&(int)draft["x"]==x&&(int)draft["y"]==z,"draw: a 4x3 drag puts its door on the hallway side ("+draft.ToString(Newtonsoft.Json.Formatting.None)+")");
+		var drawn=m.Execute("draw_room",draft);Check(drawn.success,"draw: drafted room is valid ("+drawn.message+")");var room=m.Hotel().rooms.Last();
+		Check(ShellGrid.WallAt(HotelModel.Floor(m.Hotel(),0),"h:"+(x+1)+","+(z+3))=="door","draw: the double door opens onto the hallway");
+		HotelModel.DoorPosition(room,out float dx,out float dz);Check(Math.Abs(dx-(x+2))<.01&&Math.Abs(dz-(z+3.25f))<.01,"draw: DoorPosition follows the door side ("+dx+","+dz+")");
+		Check(m.Execute("move_room",new JObject{{"id",room.id},{"x",x},{"y",z},{"rotation",room.rotation}}).success&&room.door==1,"draw: moving without turning keeps the door side");
+		Check(!m.Quote("draw_room",m.RoomDraft(x+5,z,x+7,z+2,"regular")).success,"draw: a 3x3 bedroom is refused");
+		Console.WriteLine("Shell draw suite passed");
+	}
 	public static JObject Room(int x,int z,int w,int d,int rotation,string kind="regular")
 	{
 		return new JObject{{"kind",kind},{"x",x},{"y",z},{"w",w},{"h",d},{"rotation",rotation},{"floor",0}};

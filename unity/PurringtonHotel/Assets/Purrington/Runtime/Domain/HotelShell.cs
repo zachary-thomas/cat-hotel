@@ -39,7 +39,7 @@ public sealed partial class HotelModel {
  public static bool IndoorKind(string kind){return kind=="regular"||kind=="suite"||kind=="shared";}
  static void RoomCells(RoomState r,out int x,out int z,out int w,out int d){RoomSize(r,out float fw,out float fd);x=r.x;z=r.z;w=(int)fw;d=(int)fd;}
  public static bool Interior(HotelData h,RoomState r){var f=Floor(h,r.floor);if(f==null)return false;RoomCells(r,out int x,out int z,out int w,out int d);return ShellGrid.Cells(x,z,w,d).All(f.cells.ContainsKey);}
- static IEnumerable<int> DoorSides(RoomState r){return r.kind=="shared"?new[]{0,1,2,3}:new[]{r.rotation};}
+ static IEnumerable<int> DoorSides(RoomState r){return r.kind=="shared"?new[]{0,1,2,3}:new[]{r.door>=0?r.door:r.rotation};}
  static double Fitting(RoomState r){return Math.Round(Shell(r)*.45,MidpointRounding.AwayFromZero);}
  // Room walls are regenerated from room rectangles after every command; player-placed edges (room=="") are never touched. Doors go first so a neighbour's wall never swallows a room's only door.
  internal static void SyncRoomWalls(HotelData h){foreach(var f in h.floors){foreach(var k in f.edges.Where(e=>e.Value.room!="").Select(e=>e.Key).ToList())f.edges.Remove(k);var rooms=h.rooms.Where(v=>v.floor==f.level&&IndoorKind(v.kind)&&Interior(h,v)).ToList();foreach(var r in rooms){RoomCells(r,out int x,out int z,out int w,out int d);foreach(var e in DoorSides(r).SelectMany(s=>ShellGrid.DoorEdges(x,z,w,d,s)))if(!f.edges.ContainsKey(e))f.edges[e]=new EdgeState{kind="door",room=r.id};}foreach(var r in rooms){RoomCells(r,out int x,out int z,out int w,out int d);foreach(var e in ShellGrid.Boundary(x,z,w,d))if(!f.edges.ContainsKey(e)&&!ShellGrid.Exterior(f,e))f.edges[e]=new EdgeState{kind="wall",room=r.id};}}}
