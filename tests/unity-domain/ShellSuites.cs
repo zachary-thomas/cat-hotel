@@ -72,4 +72,41 @@ static class ShellSuites
 		var noFloors=JObject.Parse(JsonConvert.SerializeObject(m.State));((JObject)noFloors["hotels"][0]).Remove("floors");Check(!restored.RestoreJson(noFloors.ToString()),"migration: v3 saves must carry floors");
 		Console.WriteLine("Shell migration suite passed");
 	}
+	// Finds a w×d area of owned, empty land with a one-cell margin (no rooms, objects, paths, shell or protected scenery).
+	// Searches the base lot and owned plots for a w×d area of empty land with a one-cell margin.
+	public static bool FindClear(HotelModel m,int w,int d,out int x,out int z)
+	{
+		var rects=new List<float[]>{m.Map()["base"].Select(v=>(float)v).ToArray()};
+		foreach(var p in m.Map()["plots"])if(m.Hotel().plots.Contains((string)p["id"]))rects.Add(p["rect"].Select(v=>(float)v).ToArray());
+		foreach(var r in rects)for(x=(int)r[0]+1;x+w+1<=r[0]+r[2];x++)for(z=(int)r[1]+1;z+d+1<=r[1]+r[3];z++)if(Clear(m,x,z,w,d))return true;
+		x=z=0;return false;
+	}
+	// Grants every plot except the last `keep` so tests have open land; Execute re-validates everything afterwards.
+	public static void OwnPlots(HotelModel m,int keep=0){var ids=m.Map()["plots"].Select(p=>(string)p["id"]).ToList();m.Hotel().plots=ids.Take(ids.Count-keep).ToList();}
+	public static bool Clear(HotelModel m,int x,int z,int w,int d)
+	{
+		var h=m.Hotel();float x0=x-1,z0=z-1,x1=x+w+1,z1=z+d+1;
+		foreach(var r in h.rooms){HotelModel.RoomSize(r,out float rw,out float rd);if(x0<r.x+rw&&x1>r.x&&z0<r.z+rd&&z1>r.z)return false;}
+		foreach(var o in h.objects){HotelModel.Size(o,out float ow,out float od);if(x0<o.x+ow&&x1>o.x&&z0<o.z+od&&z1>o.z)return false;}
+		foreach(var s in (m.Map()["scenery"]??new JArray()).Where(v=>(bool?)v["protected"]==true)){float sx=(float)s["x"],sz=(float)s["y"],ss=(float?)s["size"]??2;if(x0<sx+ss&&x1>sx&&z0<sz+ss&&z1>sz)return false;}
+		for(int i=x-1;i<x+w+1;i++)for(int j=z-1;j<z+d+1;j++){if(h.paths.ContainsKey(i+","+j))return false;if(h.floors.Any(f=>f.cells.ContainsKey(ShellGrid.Cell(i,j))))return false;}
+		return true;
+	}
+	public static void RunNavigation(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var store=new MemoryStore();var m=new HotelModel(store,content);m.LoadOrCreate();OwnPlots(m);
+		Check(FindClear(m,3,3,out int x,out int z),"nav: found clear land");
+		var ground=HotelModel.Floor(m.Hotel(),0,true);foreach(var c in ShellGrid.Cells(x,z,3,3))ground.cells[c]=0;Check(m.Save().success,"nav: save island");
+		var outside=new LotPoint(x-1.5f,z+1.5f);var inside=new LotPoint(x+1.5f,z+1.5f);
+		var sealedIsland=new HotelModel(store,content);sealedIsland.LoadOrCreate();
+		Check(sealedIsland.Route(outside,inside,false).Count==0,"nav: shell walls block a sealed island");
+		ground.edges[ShellGrid.Edge('v',x,z+1)]=new EdgeState{kind="door"};Check(m.Save().success,"nav: save door");
+		var doored=new HotelModel(store,content);doored.LoadOrCreate();
+		Check(doored.Route(outside,inside,false).Count>0,"nav: an exterior door lets cats in");
+		ground.edges[ShellGrid.Edge('v',x,z+1)].kind="window";Check(m.Save().success,"nav: save window");
+		var glazed=new HotelModel(store,content);glazed.LoadOrCreate();
+		Check(glazed.Route(outside,inside,false).Count==0,"nav: windows block like walls");
+		Check(glazed.GuestCapacity(0)==4&&glazed.Rate(0)==64,"nav: Meadow capacity/rate unchanged with shell walls");
+		Console.WriteLine("Shell navigation suite passed");
+	}
 }
