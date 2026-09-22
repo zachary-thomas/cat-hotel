@@ -28,6 +28,7 @@ namespace Purrington.Presentation
         JObject current;
         JArray checks;
         int failures,careRewardCount,careRewardGain,careRewardCatId;string careRewardTool;
+        InputSettings.BackgroundBehavior priorBackgroundBehavior;bool backgroundBehaviorChanged;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Install()
@@ -42,6 +43,7 @@ namespace Purrington.Presentation
             Directory.CreateDirectory(output);deadline=Time.realtimeSinceStartup+600;
             Application.logMessageReceived+=OnLog;
             while((app=FindFirstObjectByType<HotelApp>())==null||app.UI==null){if(Time.realtimeSinceStartup>deadline){Finish("startup timeout");yield break;}yield return null;}
+            priorBackgroundBehavior=InputSystem.settings.backgroundBehavior;InputSystem.settings.backgroundBehavior=InputSettings.BackgroundBehavior.IgnoreFocus;backgroundBehaviorChanged=true;
             mouse=InputSystem.AddDevice<Mouse>("Parity acceptance mouse");touch=InputSystem.AddDevice<Touchscreen>("Parity acceptance touch");
             var sizes=new[]{new Vector2Int(360,640),new Vector2Int(360,800),new Vector2Int(390,844),new Vector2Int(430,932),new Vector2Int(640,480),new Vector2Int(800,760),new Vector2Int(1280,800)};
             foreach(var size in sizes)foreach(float scale in new[]{1f,1.25f,1.5f})
@@ -349,7 +351,7 @@ namespace Purrington.Presentation
         void Check(string name,bool passed,string detail=""){checks?.Add(new JObject{{"name",name},{"passed",passed},{"detail",detail}});if(!passed)failures++;if(checks!=null)Write("running");}
         void OnLog(string message,string trace,LogType type){if(type!=LogType.Exception&&type!=LogType.Error)return;if(errors.Count<40)errors.Add(new JObject{{"message",message},{"trace",trace}});}
         void Write(string status){File.WriteAllText(Path.Combine(output,"input-acceptance.json"),new JObject{{"status",status},{"cases",cases},{"failedChecks",failures},{"runtimeErrors",errors},{"inputMethod","queued MouseState and TouchState through InputSystemUIInputModule"},{"layoutSetup","Viewport, simulated safe insets and text scale configured before each case; opt-in care fixtures reset bonds to 20 and clear cooldown before gesture assertions"}}.ToString(Formatting.Indented));}
-        void Finish(string status){if(finished)return;finished=true;Write(status);Application.logMessageReceived-=OnLog;if(mouse!=null)InputSystem.RemoveDevice(mouse);if(touch!=null)InputSystem.RemoveDevice(touch);if(app)app.ExitWithoutSaving();else Application.Quit();}
+        void Finish(string status){if(finished)return;finished=true;Write(status);Application.logMessageReceived-=OnLog;if(mouse!=null)InputSystem.RemoveDevice(mouse);if(touch!=null)InputSystem.RemoveDevice(touch);if(backgroundBehaviorChanged)InputSystem.settings.backgroundBehavior=priorBackgroundBehavior;if(app)app.ExitWithoutSaving();else Application.Quit();}
         void Update(){if(!finished&&deadline>0&&Time.realtimeSinceStartup>deadline)Finish("timeout");}
     }
 }
