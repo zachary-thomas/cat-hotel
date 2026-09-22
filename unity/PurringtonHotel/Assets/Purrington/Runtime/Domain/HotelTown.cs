@@ -18,6 +18,13 @@ namespace Purrington.Domain
    if(string.IsNullOrWhiteSpace(name)||name!=name.Trim()||name.IndexOf('<')>=0||name.IndexOf('>')>=0)return false;
    for(int i=0;i<name.Length;i++)
    {
+    if(char.IsHighSurrogate(name[i]))
+    {
+     if(i+1>=name.Length||!char.IsLowSurrogate(name[i+1]))return false;
+    }
+    else if(char.IsLowSurrogate(name[i]))return false;
+    // These are classified as letters or symbols but render as blank glyphs.
+    if("\u2800\u3164\u115F\u1160\uFFA0".IndexOf(name[i])>=0)return false;
     var category=CharUnicodeInfo.GetUnicodeCategory(name,i);
     if(category==UnicodeCategory.Control||category==UnicodeCategory.Format||category==UnicodeCategory.LineSeparator||category==UnicodeCategory.ParagraphSeparator||category==UnicodeCategory.OtherNotAssigned||category==UnicodeCategory.PrivateUse||category==UnicodeCategory.Surrogate)return false;
     if(char.IsHighSurrogate(name[i]))i++;

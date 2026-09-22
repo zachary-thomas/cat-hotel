@@ -56,6 +56,11 @@ static class TownSuites
   check(!manager.RenameManager("<size=0>hidden</size>").success,"reject markup name");
   check(!manager.RenameManager("\u200B").success&&manager.State.managerName=="Poppy","reject invisible manager name");
   check(!manager.RenameManager("Po\u202Eppy").success&&manager.State.managerName=="Poppy","reject spoofed manager name");
+  foreach(var filler in new[]{"\u2800","\u3164","\u115F","\u1160","\uFFA0"})
+   check(!manager.RenameManager(filler).success&&manager.State.managerName=="Poppy","reject blank filler manager name");
+  check(!manager.RenameManager("\uD800").success&&manager.State.managerName=="Poppy","reject unmatched high surrogate");
+  check(!manager.RenameManager("\uDC00").success&&manager.State.managerName=="Poppy","reject unmatched low surrogate");
+  check(manager.RenameManager("\uD83D\uDC31").success&&manager.RenameManager("Poppy").success,"visible emoji remains a valid manager name");
   check(!manager.RenameManager(new string('x',25)).success,"reject long name");
   check(!manager.RenameManager("   ").success,"reject blank name");
   check(!manager.SetManagerAppearance("purple","solid").success,"reject unknown coat");
@@ -68,6 +73,8 @@ static class TownSuites
   var changed=JObject.FromObject(manager.State);
   changed["managerName"]="\u200B";
   check(!manager.RestoreJson(changed.ToString()),"reject invisible manager name in save");
+  changed=JObject.FromObject(manager.State);changed["managerName"]="\u2800";
+  check(!manager.RestoreJson(changed.ToString()),"reject blank filler manager name in save");
   changed=JObject.FromObject(manager.State);
   ((JObject)changed["hotels"][0]["town"])["x"]=1e99;
   check(!manager.RestoreJson(changed.ToString()),"reject unsafe town position");
