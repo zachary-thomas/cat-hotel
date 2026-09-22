@@ -15,14 +15,20 @@ namespace Purrington.Domain
  {
   internal static bool ValidManagerName(string name)
   {
-   if(string.IsNullOrWhiteSpace(name)||name!=name.Trim()||name.IndexOf('<')>=0||name.IndexOf('>')>=0||name.Any(char.IsControl))return false;
+   if(string.IsNullOrWhiteSpace(name)||name!=name.Trim()||name.IndexOf('<')>=0||name.IndexOf('>')>=0)return false;
+   for(int i=0;i<name.Length;i++)
+   {
+    var category=CharUnicodeInfo.GetUnicodeCategory(name,i);
+    if(category==UnicodeCategory.Control||category==UnicodeCategory.Format||category==UnicodeCategory.LineSeparator||category==UnicodeCategory.ParagraphSeparator||category==UnicodeCategory.OtherNotAssigned||category==UnicodeCategory.PrivateUse||category==UnicodeCategory.Surrogate)return false;
+    if(char.IsHighSurrogate(name[i]))i++;
+   }
    int count=new StringInfo(name).LengthInTextElements;
    return count>=1&&count<=24;
   }
   public CommandResult RenameManager(string name)
   {
    string clean=(name??"").Trim();
-   if(!ValidManagerName(clean))return CommandResult.Fail("Choose a name with 1–24 characters.");
+   if(!ValidManagerName(clean))return CommandResult.Fail("Choose a name with 1\u201324 characters.");
    return Transaction(()=>State.managerName=clean,"Manager renamed.");
   }
   public CommandResult SetManagerAppearance(string coat,string markings)

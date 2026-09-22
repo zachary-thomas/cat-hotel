@@ -49,9 +49,13 @@ static class TownSuites
   check((string)JObject.FromObject(manager.State)["managerName"]=="Manager","default manager name saved");
   check(manager.State.managerCoat=="honey"&&manager.State.managerMarkings=="solid","default manager appearance");
   check(manager.State.hotels[0].town!=null&&town.Point("hotel_gate").Distance(new LotPoint(manager.State.hotels[0].town.x,manager.State.hotels[0].town.z))<.001f,"Meadow town starts at gate");
+  var badOutfit=JObject.FromObject(manager.State);badOutfit["managerOutfit"]=new JObject{{"hat","unowned-id"}};
+  check(!manager.RestoreJson(badOutfit.ToString()),"reject unvalidated manager outfit in save");
   check(manager.RenameManager("  Poppy  ").success&&manager.State.managerName=="Poppy","trim and rename");
   check(manager.SetManagerAppearance("charcoal","tuxedo").success&&manager.State.managerCoat=="charcoal"&&manager.State.managerMarkings=="tuxedo","appearance saved");
   check(!manager.RenameManager("<size=0>hidden</size>").success,"reject markup name");
+  check(!manager.RenameManager("\u200B").success&&manager.State.managerName=="Poppy","reject invisible manager name");
+  check(!manager.RenameManager("Po\u202Eppy").success&&manager.State.managerName=="Poppy","reject spoofed manager name");
   check(!manager.RenameManager(new string('x',25)).success,"reject long name");
   check(!manager.RenameManager("   ").success,"reject blank name");
   check(!manager.SetManagerAppearance("purple","solid").success,"reject unknown coat");
@@ -62,6 +66,9 @@ static class TownSuites
   foreach(var hotel in oldJson["hotels"])((JObject)hotel).Remove("town");
   check(manager.RestoreJson(oldJson.ToString())&&manager.State.managerName=="Manager"&&manager.State.hotels[0].town!=null,"legacy v3 defaults");
   var changed=JObject.FromObject(manager.State);
+  changed["managerName"]="\u200B";
+  check(!manager.RestoreJson(changed.ToString()),"reject invisible manager name in save");
+  changed=JObject.FromObject(manager.State);
   ((JObject)changed["hotels"][0]["town"])["x"]=1e99;
   check(!manager.RestoreJson(changed.ToString()),"reject unsafe town position");
   changed=JObject.FromObject(manager.State);((JObject)changed["hotels"][0]["town"])["destination"]="missing";
