@@ -27,3 +27,15 @@
 
 - Unity EditMode execution and Play mode visual checks were deferred because the original checkout has an active Unity Editor and this isolated worktree must not start another Editor. In particular, hat clearance between ears and bow tie placement under the chin require visual confirmation.
 - The parent integration task must connect the wardrobe UI to `VoxelWorld.PreviewOutfit` and manager outfit application after ownership validation. Street neighbors remain undressed because they are not roster cats.
+
+## Follow-up fix: deferred destruction flash
+
+Review identified that detaching an active old wear root before calling Unity's deferred `Destroy` could make its voxels render at world origin for one frame. `CatOutfitView` now calls `SetActive(false)` before detaching and releasing that root. Added `ReplacedAndClearedWearStopsRenderingImmediately`: it checks that replacement and clearing remove prior roots; its Play mode branch also checks that those roots are inactive before deferred destruction. The EditMode branch checks immediate destruction. The Play mode branch remains unexecuted until Editor access is safe.
+
+Verification after this fix:
+
+- `dotnet build unity/PurringtonHotel/Purrington.EditModeTests.csproj --no-restore -nologo -v:q`: passed, 0 warnings, 0 errors (final run after the focused test was separated).
+- `dotnet run --project tests/unity-domain/Purrington.Domain.Tests.csproj --no-restore`: passed, 676,159 checks.
+- `git diff --check`: passed.
+
+Self-review: old wear is deactivated before its transform changes, so deferred destruction cannot display it at the origin; new wear is built under its correct anchor. Unity EditMode test execution and Play mode visual verification remain deferred.

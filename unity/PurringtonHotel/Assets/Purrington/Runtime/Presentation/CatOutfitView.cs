@@ -12,7 +12,7 @@ public static class CatOutfitView {
   foreach(var slot in Wardrobe.Slots) {
    if(!rig.Bindings.TryGetValue(slot=="head"?"head":"body",out var anchor))continue;
    var old=anchor.Find("Wear_"+slot);
-   if(old){old.SetParent(null,false);Release(old.gameObject);}
+   if(old){old.gameObject.SetActive(false);old.SetParent(null,false);Release(old.gameObject);}
    if(outfit==null||!outfit.TryGetValue(slot,out var id)||string.IsNullOrEmpty(id))continue;
    var wear=Wardrobe.Find(id);
    if(wear==null||wear.slot!=slot)continue;
