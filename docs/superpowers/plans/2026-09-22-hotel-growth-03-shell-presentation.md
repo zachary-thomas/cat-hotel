@@ -283,7 +283,7 @@ git commit -m "feat(input): two-finger pan, offset draw cursor, stroke end event
 - Create: `unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/HotelShellUI.cs`
 - Modify: `…/Presentation/HotelParityUI.cs`, `HotelUI.cs:770`, `HotelApp.cs:71`, `VoxelWorldPreview.cs`
 
-- [ ] **Step 1: Create `HotelShellUI.cs`**
+- [x] **Step 1: Create `HotelShellUI.cs`**
 
 ```csharp
 using System.Linq;
@@ -342,7 +342,7 @@ namespace Purrington.Presentation {
 
 Check that `Coral`, `Mint` and `Gold` are the color fields `Card` already receives elsewhere (`HotelParityUI.cs:182` uses `Mint`). If `Coral` doesn't exist, use the color that `HotelUI` uses for destructive actions.
 
-- [ ] **Step 2: Hook it into the command flow (`HotelParityUI.cs`)**
+- [x] **Step 2: Hook it into the command flow (`HotelParityUI.cs`)**
 
 1. In `BeginCommand`, change `lastPathCell=null;` to `lastPathCell=null;roomAnchor=null;`, and change `app.World.SetPathPainting(action=="paint_path"||action=="erase_path");` to `app.World.SetPathPainting(action=="paint_path"||action=="erase_path"||ShellDrawing(action));`.
 2. Make `if(ShellTarget(point))return;` the first statement of `UpdateCommandTarget(Vector3 point)`.
@@ -353,7 +353,7 @@ In `HotelUI.cs:770`, change `new[]{"All","Rooms","Arrangements","Land","Paths"}`
 
 In `HotelApp.cs:71`, change `World.GroundDragged+=UI.GroundDragged;` to `World.GroundDragged+=UI.GroundDragged;World.GroundDragEnded+=UI.GroundDragEnded;`.
 
-- [ ] **Step 3: Preview the shell tools (`VoxelWorldPreview.cs`)**
+- [x] **Step 3: Preview the shell tools (`VoxelWorldPreview.cs`)**
 
 1. Change `if(action=="paint_path"||action=="erase_path"){` to `if(action=="paint_path"||action=="erase_path"||action=="paint_floor"||action=="erase_floor"){`.
 2. In the room branch, change `var room=new RoomState{x=(int)x,z=(int)z,width=(int)w,depth=(int)d,rotation=rotation};` to `var room=new RoomState{x=(int)x,z=(int)z,width=(int)w,depth=(int)d,rotation=rotation,door=(int?)p["door"]??-1};`. The door marker then follows the drafted door side. `draw_room` already goes through this branch because its action name contains `room`.
@@ -367,7 +367,7 @@ Run: `.\tools\unity.ps1 Test` (exit 0). In Play mode:
 4. Undo reverts each step.
 5. Drag Grow onto the "for sale" plot. The quote includes the plot price and names it.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation
