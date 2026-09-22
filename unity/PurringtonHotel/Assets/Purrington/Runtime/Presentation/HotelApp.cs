@@ -68,7 +68,7 @@ namespace Purrington.Presentation
 
     World=new GameObject("Voxel Hotel").AddComponent<VoxelWorld>();World.Initialize(Model);
 
-    UI=new GameObject("Mobile Interface").AddComponent<HotelUI>();UI.Initialize(this);World.CatSelected+=UI.OpenCare;World.GroundClicked+=UI.GroundClicked;World.ObjectSelected+=UI.SelectObject;World.RoomSelected+=UI.SelectRoom;World.GroundDragged+=UI.GroundDragged;
+    UI=new GameObject("Mobile Interface").AddComponent<HotelUI>();UI.Initialize(this);World.CatSelected+=UI.OpenCare;World.GroundClicked+=UI.GroundClicked;World.ObjectSelected+=UI.SelectObject;World.RoomSelected+=UI.SelectRoom;World.GroundDragged+=UI.GroundDragged;World.GroundDragEnded+=UI.GroundDragEnded;
 
     Audio=GetComponent<HotelAudio>()??gameObject.AddComponent<HotelAudio>();
 

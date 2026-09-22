@@ -1,4 +1,4 @@
-using NUnit.Framework;using Purrington.Domain;using Purrington.Presentation;using UnityEngine;
+using Newtonsoft.Json.Linq;using NUnit.Framework;using Purrington.Domain;using Purrington.Presentation;using UnityEngine;
 namespace Purrington.Tests {
 public sealed class ShellPresentationTests {
  [Test]public void WallRunsMapOntoRoomWallSides(){
@@ -11,5 +11,11 @@ public sealed class ShellPresentationTests {
   Assert.AreEqual(2.1f,VoxelWorld.CutawayHeight(2,1),1e-4f);Assert.AreEqual(2.1f,VoxelWorld.CutawayHeight(3,1),1e-4f);
   Assert.AreEqual(.25f,VoxelWorld.CutawayHeight(0,-1),1e-4f);Assert.AreEqual(.25f,VoxelWorld.CutawayHeight(1,-1),1e-4f);
   Assert.AreEqual(2.1f,VoxelWorld.CutawayHeight(2,0),1e-4f);}
+ [Test]public void DraggedRoomReleaseDoesNotOverwriteDraft(){
+  var payload=new JObject{{"x",2},{"y",3},{"w",4},{"h",3}};
+  bool releaseClick=VoxelWorld.ShouldSendReleaseClick(true,false);
+  if(releaseClick)payload=new JObject{{"x",5},{"y",6},{"w",1},{"h",1}};
+  Assert.IsFalse(releaseClick);Assert.AreEqual(4,(int)payload["w"]);Assert.AreEqual(3,(int)payload["h"]);
+  Assert.IsTrue(VoxelWorld.ShouldSendReleaseClick(false,false));}
 }
 }

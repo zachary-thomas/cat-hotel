@@ -9,6 +9,7 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
             EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position=position }, result);
             return result.Count>0;
         }
+        public static bool ShouldSendReleaseClick(bool dragged,bool overUI){return !dragged&&!overUI;}
         void ReadInput()
         {
             Vector2 point=default; bool start=false, held=false, end=false;
@@ -74,7 +75,7 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
             if(end && pressed)
             {
                 pressed=false; if(pathPainting) GroundDragEnded?.Invoke();
-                if((dragged && !pathPainting) || OverUI(point)) return;
+                if(!ShouldSendReleaseClick(dragged,OverUI(point))) return;
                 var ray=WorldCamera.ScreenPointToRay(point);
                 if(Physics.Raycast(ray,out var hit,500))
                 {

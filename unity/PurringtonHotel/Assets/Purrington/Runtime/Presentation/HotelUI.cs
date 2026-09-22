@@ -767,7 +767,7 @@ namespace Purrington.Presentation
 
             }
 
-            var categories=new[]{"All","Rooms","Arrangements","Land","Paths"}.Concat(Catalog.All.Select(x=>x.category).Distinct()).Concat(new[]{"Storage"}).ToArray();
+            var categories=new[]{"All","Hotel","Rooms","Arrangements","Land","Paths"}.Concat(Catalog.All.Select(x=>x.category).Distinct()).Concat(new[]{"Storage"}).ToArray();
 
             CategoryChips(content,categories);
 
