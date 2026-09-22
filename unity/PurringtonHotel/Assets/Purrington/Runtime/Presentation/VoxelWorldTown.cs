@@ -6,7 +6,8 @@ namespace Purrington.Presentation {
  public sealed partial class VoxelWorld {
   MainStreetArt townArt;GodotCatRig managerRig;StoreInteriorView storeInterior;
   bool townMode,townFollowing,townSavedManual;Vector3 townSavedFocus;float townSavedZoom;Bounds? townSavedBounds;
-  string previewCoat,previewMarkings,managerLook;
+  string previewCoat,previewMarkings,managerLook,managerOutfitSignature;
+  public GodotCatRig StreetManagerRig=>managerRig;
   bool interiorPointerOwned;
   public bool IsTownMode=>townMode;
   public int TownStorefrontCount=>townArt?.Storefronts.Count??0;
@@ -86,7 +87,10 @@ namespace Purrington.Presentation {
   void SyncManager(float delta){
    if(TownContent.Current==null)return;
    string coat=previewCoat??model.State.managerCoat,marking=previewMarkings??model.State.managerMarkings,look=coat+"/"+marking;
-   if(managerRig==null||managerLook!=look){DisposeNode(managerRig?.Root);managerRig=new GodotCatRig(geometry,renderRoot,ManagerCatArt.Recipe(coat,marking),91);managerRig.Root.localScale=Vector3.one*.83f;managerLook=look;}
+   if(managerRig==null||managerLook!=look){DisposeNode(managerRig?.Root);managerRig=new GodotCatRig(geometry,renderRoot,ManagerCatArt.Recipe(coat,marking),91);managerRig.Root.localScale=Vector3.one*.83f;managerLook=look;managerOutfitSignature=null;}
+   string outfit=CatOutfitView.Signature(model.State.managerOutfit);
+   if(managerOutfitSignature!=outfit){CatOutfitView.Apply(geometry,managerRig,model.State.managerOutfit);managerOutfitSignature=outfit;}
+   storeInterior?.SetManagerOutfit(model.State.managerOutfit);
    managerRig.Root.gameObject.SetActive(currentMap==0&&(storeInterior==null||!storeInterior.IsVisible));
    if(currentMap!=0)return;
    var t=model.Hotel(0).town;var at=new Vector3(t.x*Unit,GroundY,t.z*Unit);var moved=at-managerRig.Root.localPosition;

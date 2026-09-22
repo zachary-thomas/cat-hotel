@@ -20,6 +20,7 @@ namespace Purrington.Presentation {
   public void SelectStore(string id){var store=TownContent.Current.Shop(id);if(store!=null)Destination(store.door);}
  }
  public sealed partial class HotelUI {
+  int clothingCat=-1;string clothingSlot="head";
   bool managerEditing;string townCoat,townMarkings,townName,storeChoice="";
   public void StoreArrived(string target){if(tab=="Town"&&app.World.StoreInterior.IsVisible){storeChoice="";Rebuild();}}
   public void CashierArrived(string id){if(tab=="Town"){storeChoice="";Rebuild();}}
@@ -27,7 +28,7 @@ namespace Purrington.Presentation {
   bool BackFromStore(){
    var interior=app.World.StoreInterior;
    if(interior==null||!interior.IsVisible)return false;
-   if(storeChoice.Length>0){storeChoice="";Rebuild();return true;}
+   if(storeChoice.Length>0){interior.ClearClothingPreview();storeChoice="";Rebuild();return true;}
    if(interior.IsConversationOpen){interior.CloseConversation();Rebuild();return true;}
    LeaveStore();return true;
   }
@@ -67,6 +68,18 @@ namespace Purrington.Presentation {
   }
   void BuyGroceries(string id){var result=app.Model.BuyTownItem(id);if(result.success)app.World.StoreInterior.StartPurchaseRoutine(id);ReportCashier(result);}
   void ReportCashier(CommandResult result)=>HotelTownUI.RefreshCashier(result,Rebuild,value=>app.Report(value));
+  void EquipClothing(string slot,string id,bool forceManager=false){
+   bool manager=forceManager||clothingCat<0;
+   var result=manager?app.Model.DressManager(slot,id):app.Model.Dress(clothingCat,slot,id);
+   app.World.StoreInterior.ClearClothingPreview();
+   if(result.success&&manager){
+    app.World.StoreInterior.SetManagerOutfit(app.Model.State.managerOutfit);
+    if(app.Model.State.managerOutfit.TryGetValue("neck",out var neck)&&neck=="store_ribbon"&&app.Model.TownQuestAccepted("first_look")&&!app.Model.TownQuestCompleted("first_look")){
+     var completed=app.Model.CompleteTownQuest("first_look");if(!completed.success){Rebuild();app.Report(completed);return;}
+    }
+   }
+   Rebuild();app.Report(result);
+  }
   void StorePanel(StoreInteriorView interior){
    string name=interior.OwnerName;
    var content=Sheet(interior.ActiveStoreId=="paw_mart"?"Paw Mart":"Thread & Paw",interior.IsConversationOpen?name+" · cashier":"Tap "+name+" at the counter",.48f);
@@ -81,7 +94,7 @@ namespace Purrington.Presentation {
       string id=(string)quest["id"];bool accepted=app.Model.TownQuestAccepted(id),done=app.Model.TownQuestCompleted(id);
       Info(content,(string)quest["name"],done?"Completed · reward claimed":accepted?"Accepted":id=="first_look"?"Free ribbon · equip it on your manager":"Welcome Basket · 30 Cat Coins · invite Biscuit");
       if(!done){Height(Button(content,accepted?"Complete quest":"Accept quest",()=>ReportCashier(accepted?app.Model.CompleteTownQuest(id):app.Model.AcceptTownQuest(id)),Gold,14),52*textScale);
-       if(id=="first_look"&&accepted)Height(Button(content,"Equip store ribbon",()=>ReportCashier(app.Model.DressManager("neck","store_ribbon")),Mint,14),52*textScale);}
+       if(id=="first_look"&&accepted)Height(Button(content,"Equip store ribbon",()=>EquipClothing("neck","store_ribbon",true),Mint,14),52*textScale);}
      }
     }else if(interior.ActiveStoreId=="paw_mart"){
      foreach(var offer in TownContent.Current.Offers.Where(o=>(string)o["store"]=="paw_mart")){
@@ -90,14 +103,29 @@ namespace Purrington.Presentation {
       if(!owned)Height(Button(content,"Buy "+(string)offer["name"],()=>BuyGroceries(id),Gold,14),52*textScale);
      }
     }else{
-     foreach(var wear in Wardrobe.All){
+     var target=Row(content,52*textScale);
+     string targetName=clothingCat<0?app.Model.State.managerName:app.Model.State.cats.First(c=>c.id==clothingCat).name;
+     Button(target,"Try on: "+targetName,()=>{
+      var targets=new[]{-1}.Concat(app.Model.State.cats.Where(c=>c.known).Select(c=>c.id)).ToArray();
+      clothingCat=targets[(System.Array.IndexOf(targets,clothingCat)+1)%targets.Length];interior.ClearClothingPreview();Rebuild();
+     },Mint,14);
+     if(interior.IsTryingOn){Button(target,"Turn",interior.TurnClothingPreview,Lilac,14);Button(target,"Cancel",()=>{interior.ClearClothingPreview();Rebuild();},Cream,14);}
+     var slots=Row(content,48*textScale);
+     foreach(var slot in Wardrobe.Slots){string chosen=slot;Button(slots,slot,()=>{clothingSlot=chosen;interior.ClearClothingPreview();Rebuild();},slot==clothingSlot?Gold:Mint,14);}
+     Height(Button(content,"Take off "+clothingSlot,()=>EquipClothing(clothingSlot,""),Cream,14),48*textScale);
+     foreach(var wear in Wardrobe.All.Where(w=>w.slot==clothingSlot)){
       string id=wear.id,slot=wear.slot;bool owned=app.Model.OwnsWear(id);
-      Info(content,wear.name,owned?"Owned":wear.quest!=null?"Free · First Look quest":wear.giftCat>=0?"Friendship gift · "+app.Model.State.cats[wear.giftCat].name:wear.price+" Cat Coins");
-      if(owned)Height(Button(content,"Equip on manager",()=>ReportCashier(app.Model.DressManager(slot,id)),Mint,14),52*textScale);
-      else if(wear.giftCat<0&&wear.quest==null)Height(Button(content,"Buy "+wear.name,()=>ReportCashier(app.Model.BuyWear(id)),Gold,14),52*textScale);
+      Info(content,wear.name,owned?"Owned":wear.quest!=null?"Free � First Look quest":wear.giftCat>=0?"Friendship gift � "+app.Model.State.cats[wear.giftCat].name:wear.price+" Cat Coins");
+      var wearActions=Row(content,52*textScale);
+      Button(wearActions,"Try on",()=>{
+       var outfit=clothingCat<0?app.Model.State.managerOutfit:app.Model.State.cats.First(c=>c.id==clothingCat).outfit;
+       interior.PreviewClothing(clothingCat,app.Model.State.managerCoat,app.Model.State.managerMarkings,outfit,id);Rebuild();
+      },Lilac,14);
+      if(owned)Button(wearActions,"Wear",()=>EquipClothing(slot,id),Mint,14);
+      else if(wear.giftCat<0&&wear.quest==null)Button(wearActions,"Buy",()=>ReportCashier(app.Model.BuyWear(id)),Gold,14);
      }
     }
-    Height(Button(content,"Back to "+name,()=>{storeChoice="";Rebuild();},Mint,14),52*textScale);return;
+    Height(Button(content,"Back to "+name,()=>{interior.ClearClothingPreview();storeChoice="";Rebuild();},Mint,14),52*textScale);return;
    }   var choices=Row(content,54*textScale);Button(choices,"Talk",()=>{storeChoice="Talk";Rebuild();},Mint,14);Button(choices,"Quest",()=>{storeChoice="Quest";Rebuild();},Gold,14);
    var actions=Row(content,54*textScale);Button(actions,"Buy",()=>{storeChoice="Buy";Rebuild();},Coral,14);Button(actions,"Leave",LeaveStore,Cream,14);
   }

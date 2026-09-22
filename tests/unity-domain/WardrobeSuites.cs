@@ -30,6 +30,13 @@ static class WardrobeSuites
 		Check(m.Dress(1,"head","sun_hat").success,"wardrobe: a purchased item is shared with another cat");
 		var earned=codec.Deserialize(codec.Serialize(m.State));
 		Check(HotelModel.Valid(earned)&&earned.cats[0].outfit["head"]=="tiny_crown"&&earned.cats[1].outfit["head"]=="sun_hat","wardrobe: earned gift and purchased wear survive a save together");
+        Check(m.DressManager("head","sun_hat").success,"boutique: manager uses shared purchased clothing");
+        var sharedReload=new HotelModel(store,content);sharedReload.LoadOrCreate();
+        Check(sharedReload.State.managerOutfit["head"]=="sun_hat"&&sharedReload.State.cats[1].outfit["head"]=="sun_hat","boutique: manager and cat share clothing through reload");
+        m.DressManager("head","");
+        var beforePreview=codec.Serialize(m.State);var preview=new System.Collections.Generic.Dictionary<string,string>(m.State.managerOutfit);preview["neck"]="bow_tie";
+        Check(codec.Serialize(m.State)==beforePreview,"boutique: preview copy leaves coins, inventory and outfits untouched");
+
 		var legacy=JObject.Parse(codec.Serialize(m.State));((JObject)legacy).Remove("wardrobe");foreach(var c in legacy["cats"])((JObject)c).Remove("outfit");
 		var old=new HotelModel(new MemoryStore(),content);old.LoadOrCreate();Check(old.RestoreJson(legacy.ToString())&&old.State.cats.All(c=>c.outfit.Count==0),"wardrobe: older saves load undressed");
 		var bad=JObject.Parse(codec.Serialize(m.State));bad["cats"][0]["outfit"]["head"]=5;Check(!old.RestoreJson(bad.ToString()),"wardrobe: strict JSON rejects a non-string outfit");

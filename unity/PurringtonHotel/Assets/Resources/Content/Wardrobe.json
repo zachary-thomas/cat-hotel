@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "note": "Parts are voxel boxes [x,y,z,w,h,d] in anchor units: 1 = the anchor's width. Origin: head = top center of the head; neck = front top of the body; back = top center of the body.",
+  "note": "Shared hotel and Thread & Paw catalogue; friendship gifts and quest rewards are not shop purchases. Parts are voxel boxes [x,y,z,w,h,d] in anchor units: 1 = the anchor's width. Origin: head = top center of the head; neck = front top of the body; back = top center of the body.",
   "items": [
     {"id":"store_ribbon","name":"Store ribbon","slot":"neck","price":0,"quest":"first_look","parts":[{"box":[-0.35,-0.12,0,0.25,0.2,0.08],"color":"7C9B58"},{"box":[-0.1,-0.1,0,0.2,0.16,0.1],"color":"E8C77A"},{"box":[0.1,-0.12,0,0.25,0.2,0.08],"color":"7C9B58"}]},
     {"id": "sun_hat", "name": "Straw sun hat", "slot": "head", "price": 180, "parts": [

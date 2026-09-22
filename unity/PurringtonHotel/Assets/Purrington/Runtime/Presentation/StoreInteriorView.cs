@@ -12,6 +12,30 @@ namespace Purrington.Presentation {
   readonly GodotGeometry geometry;
   readonly Transform parent;
   readonly StoreInteriorPause pause;
+  Dictionary<string,string> managerOutfit=new Dictionary<string,string>();
+  string outfitSignature="";
+  GodotCatRig previewRig;
+  public GodotCatRig ManagerRig=>manager;
+  public GodotCatRig PreviewRig=>previewRig;
+  public bool IsTryingOn=>previewRig!=null;
+  public void SetManagerOutfit(IDictionary<string,string> outfit){
+   string signature=CatOutfitView.Signature(outfit);if(signature==outfitSignature)return;
+   managerOutfit=new Dictionary<string,string>(outfit);outfitSignature=signature;
+   CatOutfitView.Apply(geometry,manager,managerOutfit);
+  }
+  public void PreviewClothing(int catId,string coat,string markings,IDictionary<string,string> outfit,string wearId){
+   if(ActiveStoreId!="clothing")return;
+   var wear=Purrington.Domain.Wardrobe.Find(wearId);if(wear==null)return;
+   ClearClothingPreview();
+   previewRig=catId<0?new GodotCatRig(geometry,clothingRoot,ManagerCatArt.Recipe(coat,markings),91):new GodotCatRig(geometry,clothingRoot,"cats",catId.ToString(),catId);
+   previewRig.Root.name="Fitting preview";previewRig.Root.localScale=Vector3.one*.83f;
+   previewRig.Root.localPosition=new Vector3(240*VoxelWorld.Unit-2.8f,.26f,2.45f);
+   var preview=new Dictionary<string,string>(outfit);preview[wear.slot]=wearId;
+   CatOutfitView.Apply(geometry,previewRig,preview);
+  }
+  public void TurnClothingPreview(){if(previewRig!=null)previewRig.Root.Rotate(0,90,0);}
+  public void ClearClothingPreview(){if(previewRig==null)return;ReleaseRig(previewRig.Root);previewRig=null;}
+  static void ReleaseRig(Transform root){root.gameObject.SetActive(false);if(Application.isPlaying)UnityEngine.Object.Destroy(root.gameObject);else UnityEngine.Object.DestroyImmediate(root.gameObject);}
   string managerLook="honey/solid";
   Vector3 entry,aisle,counter;
   int waypoint;
@@ -43,7 +67,8 @@ namespace Purrington.Presentation {
    }
    pawOwner=Owner(pawMartRoot,"Miso","ginger","tuxedo",new Vector3(200*VoxelWorld.Unit+2.8f,.2f,3.3f),"Grocery apron","738448");
    pawOwner.Root.localRotation=Quaternion.Euler(0,180,0);
-   clothingOwner=Owner(clothingRoot,"Clover","gray","patchwork",new Vector3(240*VoxelWorld.Unit+2,.2f,1.4f),"Boutique scarf","BF7958");
+   clothingOwner=Owner(clothingRoot,"Clover","gray","patchwork",new Vector3(240*VoxelWorld.Unit+2,.2f,3.3f),"Boutique scarf","BF7958");
+   clothingOwner.Root.localRotation=Quaternion.Euler(0,180,0);
    manager=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe("honey","solid"),91);
    managerRoot=manager.Root;managerRoot.name="Interior manager";managerRoot.localScale=Vector3.one*.83f;managerRoot.gameObject.SetActive(false);
    pawMartRoot.gameObject.SetActive(false);clothingRoot.gameObject.SetActive(false);
@@ -53,8 +78,8 @@ namespace Purrington.Presentation {
    var replacement=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe(coat,markings),91);
    replacement.Root.name="Interior manager";replacement.Root.localScale=Vector3.one*.83f;
    replacement.Root.gameObject.SetActive(false);
-   if(managerRoot!=null){managerRoot.gameObject.SetActive(false);UnityEngine.Object.Destroy(managerRoot.gameObject);}
-   manager=replacement;managerRoot=replacement.Root;managerLook=look;
+   if(managerRoot!=null)ReleaseRig(managerRoot);
+   manager=replacement;managerRoot=replacement.Root;managerLook=look;CatOutfitView.Apply(geometry,manager,managerOutfit);
   }
   GodotCatRig Owner(Transform parent,string name,string coat,string markings,Vector3 at,string outfit,string color){
    var rig=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe(coat,markings),-1);
@@ -78,25 +103,17 @@ namespace Purrington.Presentation {
   }
   void BuildClothing(Transform root,float x){
    Base(root,x,"F4E4D8");
-   foreach(float side in new[]{-2.5f,0f}){
-    Furnish(root,x,"Clothing rack",new Vector3(side,1.35f,-.7f),new Vector3(.12f,1.8f,2.5f),"425C35");
-    foreach(float z in new[]{-1.4f,-.7f,0f})Furnish(root,x,"Hanging garment",new Vector3(side,1.32f,z),new Vector3(.65f,.75f,.48f),z<-.8f?"BF7958":"738448");
-   }
-   Furnish(root,x,"Mirror",new Vector3(-2.8f,1.45f,3.78f),new Vector3(1.5f,2.2f,.12f),"DCE5C5");
-   Furnish(root,x,"Try on platform",new Vector3(-2.8f,.12f,2.45f),new Vector3(1.8f,.18f,1.5f),"D2AD77");
-   Furnish(root,x,"Checkout counter",new Vector3(2,.65f,2.3f),new Vector3(3.2f,1.15f,1),"B3824C");
-   Furnish(root,x,"Register",new Vector3(2.5f,1.33f,2.35f),new Vector3(.5f,.3f,.4f),"425C35");
-   Furnish(root,x,"Folded clothes",new Vector3(3.2f,1.3f,2.3f),new Vector3(.55f,.2f,.5f),"BF7958");
+   ClothingStoreArt.Build(geometry,root,x);
   }
   public void Enter(string storeId){
    if(storeId!="paw_mart"&&storeId!="clothing")throw new ArgumentException("Unknown store",nameof(storeId));
-   ActiveStoreId=storeId;conversation=walking=IsShopping=false;waypoint=0;managerDistance=checkoutTime=0;carts[0].Root.gameObject.SetActive(false);
+   ClearClothingPreview();ActiveStoreId=storeId;conversation=walking=IsShopping=false;waypoint=0;managerDistance=checkoutTime=0;carts[0].Root.gameObject.SetActive(false);
    pawMartRoot.gameObject.SetActive(storeId=="paw_mart");clothingRoot.gameObject.SetActive(storeId=="clothing");
    float x=(storeId=="paw_mart"?200:240)*VoxelWorld.Unit;
    entry=new Vector3(x,.18f,-3);aisle=new Vector3(x+.8f,.18f,-.6f);counter=new Vector3(x+2,.18f,.35f);
    managerRoot.localPosition=entry;managerRoot.localRotation=Quaternion.identity;managerRoot.gameObject.SetActive(true);AdvanceShoppers(0,false);
   }
-  public void Exit(){conversation=walking=IsShopping=false;ActiveStoreId="";pawMartRoot.gameObject.SetActive(false);clothingRoot.gameObject.SetActive(false);managerRoot.gameObject.SetActive(false);}
+  public void Exit(){ClearClothingPreview();conversation=walking=IsShopping=false;ActiveStoreId="";pawMartRoot.gameObject.SetActive(false);clothingRoot.gameObject.SetActive(false);managerRoot.gameObject.SetActive(false);}
   public bool SelectCashier(){if(!IsVisible||walking||conversation||IsShopping)return false;walking=true;waypoint=0;return true;}
   public void Advance(float seconds,bool motion){
    if(!IsVisible)return;
@@ -158,8 +175,8 @@ namespace Purrington.Presentation {
     carts[i+1].SetPose(shoppers[i].Root.localPosition,shoppers[i].Root.localRotation,shopperDistance[i],!motion);
    }
   }
-  public bool Back(){if(!IsVisible)return false;if(conversation){conversation=false;return true;}Exit();return true;}
-  public void CloseConversation(){conversation=false;}
+  public bool Back(){if(!IsVisible)return false;if(conversation){CloseConversation();return true;}Exit();return true;}
+  public void CloseConversation(){ClearClothingPreview();conversation=false;}
  }
  public sealed class StoreInteriorPause:MonoBehaviour {
   public bool IsPaused {get;private set;}
