@@ -9,6 +9,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="ConstructionSuites.cs" />
     <Compile Include="ShellSuites.cs" />
+    <Compile Include="TownSuites.cs" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>

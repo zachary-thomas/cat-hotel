@@ -63,6 +63,8 @@ namespace Purrington.Presentation
    {
 
     var manifest=Resources.Load<TextAsset>("Content/GodotReference");if(manifest==null)throw new InvalidOperationException("The complete hotel content is missing.");
+    var townManifest=Resources.Load<TextAsset>("Content/MainStreet");if(townManifest==null)throw new InvalidOperationException("The Main Street content is missing.");
+    TownContent.LoadJson(townManifest.text);
 
     var content=ParityContent.LoadJson(manifest.text);Model=new HotelModel(new JournalSaveStore(Path.Combine(profile,"hotel"),new NewtonsoftSaveCodec()),content);var loaded=Model.LoadOrCreate();
 
