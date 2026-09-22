@@ -38,9 +38,9 @@ public sealed class ShoppingCartTests {
   Assert.AreEqual(at,first.Root.localPosition);Assert.AreEqual(angle,first.WheelAngle);
   view.Advance(0,false);Assert.AreEqual(at,first.Root.localPosition);Assert.AreEqual(0,first.WheelAngle);
   Assert.IsFalse(view.StartPurchaseRoutine("welcome_basket"));
-  root.SendMessage("OnApplicationPause",true);view.Advance(5,true);
+  typeof(StoreInteriorPause).GetMethod("OnApplicationPause",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(root.GetComponent<StoreInteriorPause>(),new object[]{true});view.Advance(5,true);
   Assert.AreEqual(at,first.Root.localPosition);Assert.AreEqual(0,first.WheelAngle);
-  root.SendMessage("OnApplicationPause",false);view.Advance(1,true);
+  typeof(StoreInteriorPause).GetMethod("OnApplicationPause",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(root.GetComponent<StoreInteriorPause>(),new object[]{false});view.Advance(1,true);
   Assert.That(Vector3.Distance(at,first.Root.localPosition),Is.GreaterThan(.1f));
  }
  [Test] public void ReducedMotionKeepsStaticPawPoseAndPurchaseDestination(){

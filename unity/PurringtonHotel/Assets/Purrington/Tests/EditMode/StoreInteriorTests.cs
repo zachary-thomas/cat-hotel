@@ -85,6 +85,25 @@ public sealed class StoreInteriorTests {
    var screen=camera.WorldToViewportPoint(new Vector3(stage.x,stage.y,-stage.z));
    Assert.That(screen.x,Is.InRange(.1f,.9f));
    Assert.That(screen.y,Is.InRange(.1f,.9f));
+   // A portrait sheet leaves only the upper half for the shop: fit every floor corner.
+   var viewport=new Rect(0,Screen.height*.5f,Screen.width,Screen.height*.5f);world.SetWorldRect(viewport);
+   foreach(float x in new[]{-4.5f,4.5f})foreach(float z in new[]{-4f,4f}){
+    var point=camera.WorldToScreenPoint(new Vector3(stage.x+x,0,-z));
+    Assert.IsTrue(viewport.Contains(point),"Shop floor is cropped at "+point);
+   }
   } finally {Object.DestroyImmediate(host);}
  }
-}
+ [TestCase(true)]
+ [TestCase(false)]
+ public void LeavingStoreRestoresStreetFollow(bool following){
+  var model=new HotelModel(new MemoryStore(),ParityContent.LoadJson(Resources.Load<TextAsset>("Content/GodotReference").text));
+  Assert.IsTrue(model.LoadOrCreate().success);
+  var host=new GameObject("street follow regression");
+  try {
+   var world=host.AddComponent<VoxelWorld>();world.Initialize(model);world.EnterTownMode();
+   if(!following)world.FitTown();
+   model.Hotel(0).town.shop="paw_mart";world.EnterStoreInterior("paw_mart");world.ExitStoreInterior();
+   var field=typeof(VoxelWorld).GetField("townFollowing",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);
+   Assert.AreEqual(following,(bool)field.GetValue(world));
+  } finally {Object.DestroyImmediate(host);}
+ }}

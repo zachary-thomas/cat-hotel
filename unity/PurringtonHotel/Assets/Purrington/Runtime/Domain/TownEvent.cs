@@ -2,6 +2,7 @@ using System;
 
 namespace Purrington.Domain {
  public sealed partial class HotelModel {
+  float marketCheckpointElapsed;
   public float MarketDayRemaining=>Hotel(0).town.eventRemaining;
   // A durable serial lets views play each completion reaction at most once.
   public int MarketDayReactionToken=>Hotel(0).town.marketCompletionSerial;
@@ -19,8 +20,13 @@ namespace Purrington.Domain {
    float before=town.eventRemaining;int token=town.marketCompletionSerial;
    town.eventRemaining=Math.Max(0,before-seconds);
    if(town.eventRemaining==0)town.marketCompletionSerial++;
-   // The timer and completion token are one saved transition.
+   // Keep the visible timer smooth without forcing a journal fsync every frame.
+   // Explicit Save and application pause save current state; a crash can replay <1s.
+   marketCheckpointElapsed+=seconds;
+   if(town.eventRemaining>0&&marketCheckpointElapsed<1f)return;
+   // Completion and its token are always one immediate saved transition.
    if(!TrySave()){town.eventRemaining=before;town.marketCompletionSerial=token;}
+   else marketCheckpointElapsed=0;
   }
  }
 }

@@ -117,7 +117,7 @@ namespace Purrington.Presentation {
      Height(Button(content,"Take off "+clothingSlot,()=>EquipClothing(clothingSlot,""),Cream,14),48*textScale);
      foreach(var wear in Wardrobe.All.Where(w=>w.slot==clothingSlot)){
       string id=wear.id,slot=wear.slot;bool owned=app.Model.OwnsWear(id);
-      Info(content,wear.name,owned?"Owned":wear.quest!=null?"Free � First Look quest":wear.giftCat>=0?"Friendship gift � "+app.Model.State.cats[wear.giftCat].name:wear.price+" Cat Coins");
+      Info(content,wear.name,owned?"Owned":wear.quest!=null?"Free · First Look quest":wear.giftCat>=0?"Friendship gift · "+app.Model.State.cats[wear.giftCat].name:wear.price+" Cat Coins");
       var wearActions=Row(content,52*textScale);
       Button(wearActions,"Try on",()=>{
        var outfit=clothingCat<0?app.Model.State.managerOutfit:app.Model.State.cats.First(c=>c.id==clothingCat).outfit;

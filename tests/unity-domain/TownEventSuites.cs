@@ -33,5 +33,14 @@ static class TownEventSuites {
   var blocked=new MemoryStore();var fresh=new HotelModel(blocked,content);check(fresh.LoadOrCreate().success,"blocked start setup");
   check(fresh.BuyTownItem("market_bundle").success,"blocked start bundle");blocked.fail=true;
   check(!fresh.StartMarketDay().success&&fresh.MarketDayRemaining==0&&fresh.TownInventory.Contains("market_bundle"),"failed start save retains bundle");
- }
+  var pacedStore=new MemoryStore();var paced=new HotelModel(pacedStore,content);paced.LoadOrCreate();paced.State.coins=1000;paced.BuyTownItem("market_bundle");paced.StartMarketDay();
+  int writes=0;for(int frame=0;frame<60;frame++){var saved=pacedStore.state;paced.Tick(1f/60);if(!ReferenceEquals(saved,pacedStore.state))writes++;}
+  check(writes<=2,"market timer checkpoints at most once a second, not each frame");
+  check(paced.MarketDayRemaining<89.1f&&paced.MarketDayRemaining>88.9f,"market clock remains smooth between checkpoints");
+  paced.Tick(.125f);check(paced.Save().success,"explicit save flushes subsecond market time");
+  var pacedReload=new HotelModel(pacedStore,content);check(pacedReload.LoadOrCreate().success&&Math.Abs(pacedReload.MarketDayRemaining-paced.MarketDayRemaining)<.0001f,"explicit save reload preserves current timer");
+  before=paced.MarketDayRemaining;pacedStore.fail=true;paced.Tick(1);check(paced.MarketDayRemaining==before,"failed periodic checkpoint rolls back its tick");
+  pacedStore.fail=false;paced.Tick(95);int completed=paced.MarketDayReactionToken;
+  var finalReload=new HotelModel(pacedStore,content);check(finalReload.LoadOrCreate().success&&finalReload.MarketDayRemaining==0&&finalReload.MarketDayReactionToken==completed,"completion flushes immediately");
+  finalReload.Tick(1);check(finalReload.MarketDayReactionToken==completed,"checkpoint cadence cannot repeat completion after reload"); }
 }

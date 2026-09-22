@@ -5,7 +5,7 @@ using Purrington.Domain;
 using Purrington.Presentation;
 using UnityEngine;
 public sealed class ClothingStoreTests {
- [SetUp] public void Load(){Wardrobe.LoadJson(Resources.Load<TextAsset>("Content/Wardrobe").text);}
+ [SetUp] public void Load(){TownContent.LoadJson(Resources.Load<TextAsset>("Content/MainStreet").text);Wardrobe.LoadJson(Resources.Load<TextAsset>("Content/Wardrobe").text);}
  [Test] public void BoutiqueHasDistinctFixturesAndNoCarts(){
   using(var geometry=new GodotGeometry()){
    var root=new GameObject("boutique test");try{
