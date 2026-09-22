@@ -183,9 +183,14 @@ namespace Purrington.Presentation
             for(int step=0;step<36;step++)
             {
                 button=FindButton(label,ancestor);if(button)break;
-                var scroll=app.UI.GetComponentsInChildren<ScrollRect>().FirstOrDefault(s=>s.vertical&&s.isActiveAndEnabled);
+                var scroll=app.UI.GetComponentsInChildren<ScrollRect>().FirstOrDefault(s=>(ancestor=="Catalogue categories"?s.horizontal:s.vertical)&&s.isActiveAndEnabled);
                 if(!scroll)break;
                 var viewport=HotelUI.ScreenBounds(scroll.viewport);
+                if(scroll.horizontal)
+                {
+                    float low=Mathf.Lerp(viewport.xMin,viewport.xMax,.25f),high=Mathf.Lerp(viewport.xMin,viewport.xMax,.75f);
+                    yield return MouseGesture(new Vector2(low,viewport.center.y),new Vector2(high,viewport.center.y),.18f);continue;
+                }
                 float low=Mathf.Lerp(viewport.yMin,viewport.yMax,.25f),high=Mathf.Lerp(viewport.yMin,viewport.yMax,.70f);
                 float x=Mathf.Lerp(viewport.xMin,viewport.xMax,.5f);
                 yield return MouseGesture(new Vector2(x,step<24?low:high),new Vector2(x,step<24?high:low),.18f);
