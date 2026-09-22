@@ -92,6 +92,35 @@ static class ShellSuites
 		for(int i=x-1;i<x+w+1;i++)for(int j=z-1;j<z+d+1;j++){if(h.paths.ContainsKey(i+","+j))return false;if(h.floors.Any(f=>f.cells.ContainsKey(ShellGrid.Cell(i,j))))return false;}
 		return true;
 	}
+	public static JObject Paint(int x,int z,int w,int d,bool buy=false)
+	{
+		var cells=new JArray();for(int i=0;i<w;i++)for(int j=0;j<d;j++)cells.Add(new JArray(x+i,z+j));
+		var p=new JObject{{"floor",0},{"cells",cells}};if(buy)p["buy"]=true;return p;
+	}
+	public static void RunGrow(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;OwnPlots(m,1);
+		Check(FindClear(m,4,4,out int x,out int z),"grow: clear land");
+		double coins=m.State.coins;var r=m.Execute("paint_floor",Paint(x,z,4,1));
+		Check(r.success,"grow: paint a strip ("+r.message+")");Check(Math.Abs(coins-m.State.coins-80)<.01,"grow: 4 tiles cost 80");
+		Check(!m.Execute("paint_floor",Paint(x,z,4,1)).success,"grow: repainting existing floor is rejected");
+		coins=m.State.coins;Check(m.Execute("paint_floor",Paint(x,z,4,2)).success&&Math.Abs(coins-m.State.coins-80)<.01,"grow: an overlapping drag charges only the new tiles");
+		coins=m.State.coins;Check(m.Execute("erase_floor",Paint(x,z+1,4,1)).success&&Math.Abs(m.State.coins-coins-80)<.01,"grow: erasing refunds");
+		Check(m.Undo().success&&HotelModel.Floor(m.Hotel(),0).cells.ContainsKey(ShellGrid.Cell(x,z+1)),"grow: undo restores erased floor");
+		var plot=m.Map()["plots"].First(p=>!m.Hotel().plots.Contains((string)p["id"]));var rect=plot["rect"];int ux=0,uz=0;bool found=false;
+		for(int i=(int)(float)rect[0]+1;i<(int)(float)rect[0]+(int)(float)rect[2]-1&&!found;i++)for(int j=(int)(float)rect[1]+1;j<(int)(float)rect[1]+(int)(float)rect[3]-1&&!found;j++)if(Clear(m,i,j,1,1)){ux=i;uz=j;found=true;}
+		Check(found,"grow: clear cell on unowned plot");
+		Check(!m.Quote("paint_floor",Paint(ux,uz,1,1)).success,"grow: unowned land rejected without buy");
+		var q=m.Quote("paint_floor",Paint(ux,uz,1,1,true));Check(q.success&&Math.Abs(q.cost-((double)plot["cost"]+20))<.01,"grow: buy flag quotes plot + tile ("+q.cost+")");
+		Check(m.Execute("paint_floor",Paint(ux,uz,1,1,true)).success&&m.Hotel().plots.Contains((string)plot["id"]),"grow: painting buys the plot");
+		string pathKey=m.Hotel().paths.Keys.FirstOrDefault(k=>{var s=k.Split(',');int px=int.Parse(s[0]),pz=int.Parse(s[1]);return m.Hotel().objects.All(o=>{HotelModel.Size(o,out float ow,out float od);return !(px+1>o.x&&px<o.x+ow&&pz+1>o.z&&pz<o.z+od);})&&(m.Map()["scenery"]??new JArray()).All(s2=>(bool?)s2["protected"]!=true||!(px+1>(float)s2["x"]&&px<(float)s2["x"]+((float?)s2["size"]??2)&&pz+1>(float)s2["y"]&&pz<(float)s2["y"]+((float?)s2["size"]??2)));});
+		Check(pathKey!=null,"grow: a free path cell exists");
+		var parts=pathKey.Split(',');double paidPath=m.Hotel().paths[pathKey].paid;coins=m.State.coins;
+		var pp=m.Execute("paint_floor",Paint(int.Parse(parts[0]),int.Parse(parts[1]),1,1));
+		Check(pp.success&&!m.Hotel().paths.ContainsKey(pathKey)&&Math.Abs(coins-m.State.coins-(20-paidPath))<.01,"grow: floor replaces and refunds a path ("+pp.message+")");
+		Check(m.SetGodMode(true).success&&m.Quote("paint_floor",Paint(x,z+2,1,1)).cost==0,"grow: God mode growth is free");
+		Console.WriteLine("Shell grow suite passed");
+	}
 	public static void RunNavigation(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
 	{
 		var store=new MemoryStore();var m=new HotelModel(store,content);m.LoadOrCreate();OwnPlots(m);
