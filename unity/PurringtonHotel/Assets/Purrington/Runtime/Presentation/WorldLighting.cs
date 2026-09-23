@@ -12,7 +12,7 @@ namespace Purrington.Presentation
         public static float Glow { get; private set; }
         public Light Sun { get; private set; }
         HotelModel model; Camera cam; GodotGeometry geometry; DayCycle cycle; float? pinned;
-        VolumeProfile profile; ColorAdjustments adjust; WhiteBalance balance;
+        VolumeProfile profile; ColorAdjustments adjust; WhiteBalance balance; DayLight light;
 
         public float Minute => pinned ?? (model != null ? model.Clock.minute : HotelClock.StartMinute);
 
@@ -27,7 +27,8 @@ namespace Purrington.Presentation
             var volume = FindFirstObjectByType<Volume>();
             if (volume != null && volume.sharedProfile != null)
             {
-                profile = Instantiate(volume.sharedProfile); volume.profile = profile;
+                // Volume.profile deep-clones the shared profile and its components, so Override never writes to ParityGrading.asset.
+                profile = volume.profile;
                 profile.TryGet(out adjust); profile.TryGet(out balance);
             }
             Apply();
@@ -39,7 +40,7 @@ namespace Purrington.Presentation
 
         void Apply()
         {
-            var l = cycle.Evaluate(Minute);
+            var l = light = cycle.Evaluate(Minute, light);
             ApplyTo(Sun, cam, l);
             if (adjust != null) adjust.postExposure.Override(l.exposure);
             if (balance != null) balance.temperature.Override(l.temperature);
@@ -58,6 +59,11 @@ namespace Purrington.Presentation
 
         static Color C(float[] linear) => new Color(linear[0], linear[1], linear[2]).gamma;
 
-        void OnDestroy() { if (profile != null) Destroy(profile); }
+        void OnDestroy()
+        {
+            if (profile == null) return;
+            foreach (var c in profile.components) if (c != null) Destroy(c);
+            Destroy(profile);
+        }
     }
 }

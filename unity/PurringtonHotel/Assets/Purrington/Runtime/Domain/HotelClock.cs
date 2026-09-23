@@ -44,10 +44,11 @@ namespace Purrington.Domain
             return (float)Math.Pow(Math.Sin(Math.PI * (minute - Sunrise) / (Sunset - Sunrise)), .6);
         }
 
+        // Compact (portrait phones) stacks "Day N" over the time so both fit a narrow chip.
         public static string Label(ClockReading r, bool compact)
         {
             string time = r.Hour.ToString("00") + ":" + r.MinuteOfHour.ToString("00");
-            return compact ? time : "Day " + r.day + " · " + time;
+            return "Day " + r.day + (compact ? "\n" : " · ") + time;
         }
     }
 

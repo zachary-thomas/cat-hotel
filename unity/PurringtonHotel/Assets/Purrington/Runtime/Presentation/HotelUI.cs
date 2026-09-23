@@ -469,24 +469,28 @@ namespace Purrington.Presentation
 
             if(wideLayout)Pin(panel,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(12,-8-headerH),new Vector2(420,-8));
 
-            float chipW=textScale>1?176f:158f;
+            // Portrait canvases are ~360 units wide on every phone: size the chips from textScale and auto-size their text so balance, rate, day and time always show.
+            void Fit(TextMeshProUGUI t,float max,float min){t.enableAutoSizing=true;t.fontSizeMin=min;t.fontSizeMax=max*textScale;t.textWrappingMode=TextWrappingModes.NoWrap;}
+            float chipW=Mathf.Round(50+60*textScale);
 
             var chip=Panel("Wallet chip",panel,CardTone);
 
             Pin(chip,new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(8,-22),new Vector2(8+chipW,22));
             var coin=UiCoin.Create(chip,rounded,26);coin.anchorMin=coin.anchorMax=coin.pivot=new Vector2(0,.5f);coin.anchoredPosition=new Vector2(4,0);
 
-            wallet=Text(chip,"",13,Ink,true);
-            var ratePill=Panel("Rate pill",chip,Mint);Pin(ratePill,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(32,3),new Vector2(-6,19));walletRate=Text(ratePill,"",10,LeafText,true);Stretch(walletRate.rectTransform,6,1,6,1);
+            wallet=Text(chip,"",13,Ink,true);Fit(wallet,13,8);
+            var ratePill=Panel("Rate pill",chip,Mint);Pin(ratePill,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(32,3),new Vector2(-6,19));walletRate=Text(ratePill,"",10,LeafText,true);Fit(walletRate,10,7);Stretch(walletRate.rectTransform,6,1,6,1);
 
             Stretch(wallet.rectTransform,34,2,8,20);
 
             float clockW=0f;
-            if(careCat<0){bool compactClock=((RectTransform)safe).rect.width<380||textScale>1.25f;clockW=compactClock?68f:116f;var clockPanel=Panel("Clock chip",panel,CardTone);Pin(clockPanel,new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(14+chipW,-16),new Vector2(14+chipW+clockW,16));var sunImg=Panel("Sun",clockPanel,Coin).GetComponent<UnityEngine.UI.Image>();var moonImg=Panel("Moon",clockPanel,InkSoft).GetComponent<UnityEngine.UI.Image>();foreach(var g in new[]{sunImg,moonImg}){var r=g.rectTransform;r.anchorMin=r.anchorMax=r.pivot=new Vector2(0,.5f);r.sizeDelta=new Vector2(16,16);r.anchoredPosition=new Vector2(8,0);g.raycastTarget=false;}var clockText=Text(clockPanel,"",11,Ink,true);Stretch(clockText.rectTransform,28,2,6,2);clockPanel.gameObject.AddComponent<HotelClockChip>().Bind(app.Model,clockText,sunImg,moonImg,compactClock);}
+            if(careCat<0){bool compactClock=((RectTransform)safe).rect.width<380||textScale>1.25f;clockW=compactClock?Mathf.Round(40+28*textScale):116f;float clockH=compactClock?22f:16f;var clockPanel=Panel("Clock chip",panel,CardTone);Pin(clockPanel,new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(14+chipW,-clockH),new Vector2(14+chipW+clockW,clockH));var sunImg=Panel("Sun",clockPanel,Coin).GetComponent<UnityEngine.UI.Image>();var moonImg=Panel("Moon",clockPanel,InkSoft).GetComponent<UnityEngine.UI.Image>();foreach(var g in new[]{sunImg,moonImg}){var r=g.rectTransform;r.anchorMin=r.anchorMax=r.pivot=new Vector2(0,.5f);r.sizeDelta=new Vector2(16,16);r.anchoredPosition=new Vector2(8,0);g.raycastTarget=false;}var clockText=Text(clockPanel,"",11,Ink,true);Fit(clockText,11,7);Stretch(clockText.rectTransform,28,2,6,2);clockPanel.gameObject.AddComponent<HotelClockChip>().Bind(app.Model,clockText,sunImg,moonImg,compactClock);}
 
-            var title=Text(panel,careCat>=0?"CAT TIME":(string)app.Model.Map()["name"],14,Ink,true);title.enableAutoSizing=true;title.fontSizeMin=10*textScale;title.fontSizeMax=14*textScale;title.textWrappingMode=TextWrappingModes.NoWrap;
+            var title=Text(panel,careCat>=0?"CAT TIME":(string)app.Model.Map()["name"],14,Ink,true);title.enableAutoSizing=true;title.fontSizeMin=10*textScale;title.fontSizeMax=14*textScale;title.textWrappingMode=wideLayout?TextWrappingModes.NoWrap:TextWrappingModes.Normal;
 
             Pin(title.rectTransform,new Vector2(0,.5f),new Vector2(1,.5f),new Vector2(0,.5f),new Vector2(20+chipW+clockW,-14),new Vector2(careCat>=0?-96:-58,14));
+            // Below ~80 units the name is only an ellipsis (360 px at 150%), so it steps aside for the wallet and clock.
+            float titleW=(wideLayout?408f:((RectTransform)safe).rect.width-20)-(careCat>=0?96:58)-(20+chipW+clockW);title.gameObject.SetActive(titleW>=80);
 
             if(careCat>=0)
             {

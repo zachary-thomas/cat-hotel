@@ -52,18 +52,26 @@ namespace Purrington.Domain
             return new DayCycle(list);
         }
 
-        public DayLight Evaluate(float minute)
+        public DayLight Evaluate(float minute) => Evaluate(minute, default);
+
+        // Per-frame form: fills reuse's color arrays in place (allocating only the ones that are null), so a caller that keeps the result allocates nothing.
+        public DayLight Evaluate(float minute, DayLight reuse)
         {
             minute = ((minute % 1440f) + 1440f) % 1440f;
-            int b = keys.FindIndex(k => k.n[0] > minute); if (b < 0) b = 0;
+            int b = 0; while (b < keys.Count && keys[b].n[0] <= minute) b++; if (b == keys.Count) b = 0;
             int a = (b - 1 + keys.Count) % keys.Count;
             var ka = keys[a]; var kb = keys[b];
             float span = ((kb.n[0] - ka.n[0]) + 1440f) % 1440f; if (span <= 0) span = 1440f;
             float t = (((minute - ka.n[0]) + 1440f) % 1440f) / span;
             float N(int f) => ka.n[f] + (kb.n[f] - ka.n[f]) * t;
             float yawDelta = ((kb.n[2] - ka.n[2] + 540f) % 360f) - 180f;
-            float[] C(int f) => new[] { ka.c[f][0] + (kb.c[f][0] - ka.c[f][0]) * t, ka.c[f][1] + (kb.c[f][1] - ka.c[f][1]) * t, ka.c[f][2] + (kb.c[f][2] - ka.c[f][2]) * t };
-            return new DayLight(N(1), ka.n[2] + yawDelta * t, N(3), N(4), N(5), N(6), N(7), C(0), C(1), C(2), C(3), C(4));
+            float[] C(int f, float[] into)
+            {
+                if (into == null || into.Length != 3) into = new float[3];
+                for (int i = 0; i < 3; i++) into[i] = ka.c[f][i] + (kb.c[f][i] - ka.c[f][i]) * t;
+                return into;
+            }
+            return new DayLight(N(1), ka.n[2] + yawDelta * t, N(3), N(4), N(5), N(6), N(7), C(0, reuse.sun), C(1, reuse.sky), C(2, reuse.equator), C(3, reuse.ground), C(4, reuse.background));
         }
 
         static float[] Linear(string hex)

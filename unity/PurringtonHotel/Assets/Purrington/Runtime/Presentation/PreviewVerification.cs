@@ -39,7 +39,17 @@ namespace Purrington.Presentation
             app.UI.Navigate("Map");yield return Capture(output,"07-map");
             Screen.SetResolution(430,932,FullScreenMode.Windowed);
             yield return new WaitForSecondsRealtime(1);
-            app.UI.Navigate("Hotel");yield return Capture(output,"hotel-430x932");
+            app.UI.Navigate("Hotel");yield return Capture(output,"hotel-430x932");CheckHeader(app,"430x932");
+            foreach(var (minute,label) in new[]{(750f,"noon"),(1050f,"golden"),(1170f,"dusk"),(1380f,"night")}){app.World.Lighting.Pin(minute);yield return Capture(output,"living-"+label+"-430x932");}
+            app.World.Lighting.Pin(1380);var lit=app.Model.State.settings;app.Model.SetSettings(lit.textScale,false,lit.music,lit.sound);yield return new WaitForSecondsRealtime(.3f);
+            // Emission only survives a player build if the _EMISSION variant was kept, so count glowing world pixels with the HUD hidden (none before the fix).
+            yield return CountGlow(app,output,"living-night-world-430x932");Check(glowPixels>=150,"Windows and lamps must glow at 23:00 (glowing pixels "+glowPixels+")");
+            var lamps=FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None).Where(r=>r.sharedMaterial&&r.sharedMaterial.IsKeywordEnabled("_EMISSION")&&r.HasPropertyBlock()).ToArray();
+            var block=new MaterialPropertyBlock();Check(lamps.Length==0||lamps.Any(r=>{r.GetPropertyBlock(block);return block.GetColor("_EmissionColor").maxColorComponent>.5f;}),"Lamps must glow at night with reduced motion");
+            app.Model.SetSettings(lit.textScale,true,lit.music,lit.sound);app.World.Lighting.Pin(null);
+            var tokens=ConceptTheme.Ui.All;var safeArea=app.UI.transform.Find("SafeArea");
+            foreach(var chrome in new[]{"Hotel status","Navigation"}){var root=safeArea.Find(chrome);Check(root!=null,"Missing chrome "+chrome);if(root==null)continue;
+             foreach(var g in root.GetComponentsInChildren<UnityEngine.UI.Graphic>(true)){var c=g.color;Check(tokens.Any(t=>Mathf.Abs(t.r-c.r)<.01f&&Mathf.Abs(t.g-c.g)<.01f&&Mathf.Abs(t.b-c.b)<.01f),chrome+" uses an off-token color on "+g.name);}}
             app.UI.Navigate("Build");yield return Capture(output,"build-430x932");
             app.UI.OpenCare(0);yield return Capture(output,"care-430x932");app.UI.Back();
             app.UI.Navigate("Hotel");
@@ -48,12 +58,14 @@ namespace Purrington.Presentation
             Screen.SetResolution(360,640,FullScreenMode.Windowed);
             yield return new WaitForSecondsRealtime(1);
             app.UI.Navigate("Hotel");yield return Capture(output,"08-hotel-360x640-150");
+            CheckHeader(app,"360x640@150%");
             app.UI.Navigate("Build");yield return Capture(output,"09-build-360x640-150");
             app.UI.OpenSettings();yield return Capture(output,"10-settings-360x640-150");
             app.Model.SetSettings(1,true,true,true);
             Screen.SetResolution(1280,800,FullScreenMode.Windowed);
             yield return new WaitForSecondsRealtime(1);
             app.UI.Navigate("Hotel");yield return Capture(output,"11-hotel-desktop");
+            app.World.Lighting.Pin(750);yield return Capture(output,"living-noon-desktop");app.World.Lighting.Pin(1380);yield return Capture(output,"living-night-desktop");app.World.Lighting.Pin(null);
             app.UI.Navigate("Build");yield return Capture(output,"12-build-desktop");
             foreach(var size in new[]{new Vector2Int(640,480),new Vector2Int(800,760),new Vector2Int(320,480)})
             {
@@ -94,9 +106,33 @@ namespace Purrington.Presentation
             QualitySettings.SetQualityLevel(previousQuality,true);
             var save=app.Model.Save();
             bool passed=save.success&&!failed;
-            File.WriteAllText(Path.Combine(output,"result.txt"),passed?"PASS: startup, orthographic camera, navigation, care stage, panel bounds, wheel zoom, layouts, save. Screenshots require visual review.":"FAIL: inspect player.log; "+save.message);
+            File.WriteAllText(Path.Combine(output,"result.txt"),passed?"PASS: startup, orthographic camera, navigation, care stage, panel bounds, wheel zoom, layouts, night glow, header fit, save. Screenshots require visual review.":"FAIL: inspect player.log; "+save.message);
             Debug.Log(passed?"PURRINGTON_SMOKE_OK":"PURRINGTON_SMOKE_FAILED");
             Application.Quit(passed?0:2);
+        }
+        int glowPixels;
+        IEnumerator CountGlow(HotelApp app,string output,string name)
+        {
+            var canvas=app.UI.GetComponent<Canvas>();if(canvas)canvas.enabled=false;
+            yield return new WaitForSecondsRealtime(.3f);yield return new WaitForEndOfFrame();
+            var texture=ScreenCapture.CaptureScreenshotAsTexture();int count=0;
+            // Tonemapped glow reads as near-white cream; nothing else in the night world gets this bright. Rows start at the bottom: skip the build watermark.
+            var pixels=texture.GetPixels32();for(int i=texture.width*(texture.height/16);i<pixels.Length;i++){var p=pixels[i];if(p.r>229&&p.g>204)count++;}
+            File.WriteAllBytes(Path.Combine(output,name+".png"),texture.EncodeToPNG());Destroy(texture);
+            if(canvas)canvas.enabled=true;glowPixels=count;Debug.Log("PURRINGTON_SMOKE_GLOW_PIXELS "+name+" "+count);
+        }
+        // Each header text must show in full on portrait phones, and the clock chip must carry "Day N".
+        void CheckHeader(HotelApp app,string where)
+        {
+            var status=app.UI.transform.Find("SafeArea/Hotel status");Check(status!=null,where+": missing Hotel status");if(status==null)return;
+            foreach(var (path,label) in new[]{("Wallet chip/Text","wallet"),("Wallet chip/Rate pill/Text","rate"),("Clock chip/Text","clock"),("Text","title")})
+            {
+                var t=status.Find(path)?.GetComponent<TMPro.TextMeshProUGUI>();
+                if(label=="title"&&t!=null&&!t.gameObject.activeSelf)continue;
+                Check(t!=null,where+": missing header "+label);if(t==null)continue;
+                t.ForceMeshUpdate();Check(t.text.Length>0&&!t.isTextTruncated,where+": header "+label+" is truncated: "+t.text.Replace("\n"," / "));
+            }
+            var clock=status.Find("Clock chip/Text")?.GetComponent<TMPro.TextMeshProUGUI>();Check(clock!=null&&clock.text.Contains("Day"),where+": clock chip must show Day N");
         }
         void Check(bool condition,string reason){if(!condition){failed=true;Debug.LogError("PURRINGTON_SMOKE_FAILED: "+reason);}}
         IEnumerator Capture(string output,string name)

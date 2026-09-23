@@ -82,6 +82,7 @@ namespace Purrington.Editor
             if(shader==null)throw new InvalidOperationException("URP Lit shader is required.");
             if(AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/WorldMaterial.mat")==null)
                 AssetDatabase.CreateAsset(new Material(shader),"Assets/Resources/WorldMaterial.mat");
+            GlowMaterial();
             var waterShader=Shader.Find("Purrington/Authored Water");
             if(waterShader==null)throw new InvalidOperationException("Authored water shader is required.");
             if(AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/AuthoredWater.mat")==null)
@@ -125,6 +126,7 @@ namespace Purrington.Editor
                 EditorUtility.SetDirty(feature);
             }
             AddMobileSsao(renderer);
+            GlowMaterial();
             const string path="Assets/Resources/ParityGrading.asset";
             var profile=AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
             if(profile==null){profile=ScriptableObject.CreateInstance<VolumeProfile>();AssetDatabase.CreateAsset(profile,path);}
@@ -138,6 +140,21 @@ namespace Purrington.Editor
             if(profile.TryGet<Vignette>(out var vignette)){profile.Remove<Vignette>();UnityEngine.Object.DestroyImmediate(vignette,true);}
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();
+        }
+        // URP Lit's _EMISSION is a shader_feature: player builds keep that variant only if a built material enables it.
+        // Glass and lamp materials clone this template at runtime, so their night glow survives variant stripping.
+        public static Material GlowMaterial()
+        {
+            const string path="Assets/Resources/WorldGlowMaterial.mat";
+            var shader=Shader.Find("Universal Render Pipeline/Lit");
+            if(shader==null)throw new InvalidOperationException("URP Lit shader is required.");
+            var material=AssetDatabase.LoadAssetAtPath<Material>(path);
+            if(material==null){material=new Material(shader);AssetDatabase.CreateAsset(material,path);}
+            material.shader=shader;material.enableInstancing=true;material.SetColor("_EmissionColor",Color.black);
+            // RealtimeEmissive, not None: URP's material postprocessor re-derives _EMISSION from these flags on import and would clear it.
+            material.globalIlluminationFlags=MaterialGlobalIlluminationFlags.RealtimeEmissive;material.EnableKeyword("_EMISSION");
+            EditorUtility.SetDirty(material);AssetDatabase.SaveAssets();
+            return material;
         }
         // Mobile gets its own SSAO copy of the desktop feature: downsampled, low samples, soft contact shading.
         static void AddMobileSsao(UniversalRendererData desktop)

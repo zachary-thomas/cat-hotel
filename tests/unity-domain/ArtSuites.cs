@@ -8,7 +8,7 @@ static class ArtSuites
 	{
 		var r=HotelClock.Read(0);
 		Check(r.day==1&&r.minute==480&&r.phase==DayPhase.Day,"clock: a new hotel opens Day 1 at 08:00");
-		Check(HotelClock.Label(r,false)=="Day 1 · 08:00"&&HotelClock.Label(r,true)=="08:00","clock: full and compact labels");
+		Check(HotelClock.Label(r,false)=="Day 1 · 08:00"&&HotelClock.Label(r,true)=="Day 1\n08:00","clock: full label and two-line compact label");
 		r=HotelClock.Read(1440-480);
 		Check(r.day==2&&r.minute==0&&r.phase==DayPhase.Night,"clock: midnight starts the next day");
 		foreach(var (m,p) in new[]{(299f,DayPhase.Night),(300f,DayPhase.Dawn),(449f,DayPhase.Dawn),(450f,DayPhase.Day),(1049f,DayPhase.Day),(1050f,DayPhase.Dusk),(1199f,DayPhase.Dusk),(1200f,DayPhase.Night),(1439f,DayPhase.Night)})
@@ -77,6 +77,7 @@ static class ArtSuites
 		Check(night.sky.Max()>.05f,"day cycle: night ambient never goes black");
 		var key=cycle.Evaluate(1050);var before=cycle.Evaluate(1049.9f);Check(Math.Abs(key.sunPitch-before.sunPitch)<.1f,"day cycle: continuous into a key");
 		var wrapA=cycle.Evaluate(1439.99f);var wrapB=cycle.Evaluate(0);Check(Math.Abs(wrapA.glow-wrapB.glow)<.01f&&Math.Abs(wrapA.sky[2]-wrapB.sky[2])<.01f,"day cycle: continuous across midnight");
+		var reuse=cycle.Evaluate(0);var sky=reuse.sky;var into=cycle.Evaluate(1380,reuse);Check(ReferenceEquals(into.sky,sky)&&into.sky.SequenceEqual(night.sky)&&into.background.SequenceEqual(night.background)&&into.glow==night.glow,"day cycle: reuse form fills the same arrays with the same values");
 		for(float m=0;m<1440;m+=7.5f){var l=cycle.Evaluate(m);Check(l.glow>=0&&l.glow<=1&&l.sun.All(c=>c>=0&&c<=1),"day cycle: values in range at "+m);}
 		var noGlow=Newtonsoft.Json.Linq.JObject.Parse(json);((Newtonsoft.Json.Linq.JObject)noGlow["keys"][1]).Remove("glow");
 		Check(json.Contains("\"minute\": 750"),"day cycle: test fixture has a 12:30 key");

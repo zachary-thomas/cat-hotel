@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Purrington.Presentation
 {
-    // "Day 3 · 10:30" with a sun/moon glyph; refreshes once per in-game minute.
+    // "Day 3 · 10:30" (compact: "Day 3" over "10:30") with a sun/moon glyph; refreshes once per in-game minute.
     public sealed class HotelClockChip : MonoBehaviour
     {
         HotelModel model; TextMeshProUGUI label; Image sun, moon; bool compact; int lastMinute = -1, lastDay = -1;
