@@ -380,6 +380,43 @@ static class ShellSuites
 		Check(m.Actors.Any(a=>a.kind==ActorKind.Guest&&a.floor==1),"floor life: layout change preserves a guest upstairs");
 		Console.WriteLine("Shell floor life suite passed");
 	}
+	public static void RunThemedIncome(Action<bool,string> Check,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;
+		var h=m.Hotel();h.rooms.Clear();h.floors.Clear();h.objects.Clear();h.paths.Clear();h.level=7;
+		var arr=m.Map()["arrival"];int x=(int)Math.Floor((float)arr[0])-7,z=(int)Math.Floor((float)arr[1])-6;
+		Check(Catalog.All.Any(i=>i.id=="perch"&&i.role=="sun"&&i.surfaces.Contains("indoor")),"themed income: indoor sunny perch exists");
+		Check(Catalog.All.Any(i=>i.id=="bench"&&i.surfaces.Contains("outdoor")),"themed income: outdoor bench exists");
+		Check(Catalog.All.Any(i=>i.id=="fireplace"&&i.surfaces.Contains("indoor")),"themed income: indoor fireplace exists");
+		Check(m.Execute("paint_floor",Paint(x,z,8,7)).success,"themed income: ground lobby");
+		Check(m.Execute("draw_room",RoomOn(0,x+1,z+1,2,3,0,"stairs")).success,"themed income: upstairs stairs");
+		Check(m.Execute("paint_floor",PaintOn(1,x+3,z,5,6)).success,"themed income: upstairs floor");
+		Check(m.Execute("place_object",Furnish("reception_counter",0,x+4,z+4)).success,"themed income: reception");
+		Check(m.Execute("place_object",Furnish("box",0,x+4,z+2)).success,"themed income: existing activity service");
+		Check(m.Venues().Any(v=>v.item=="box"&&v.open),"themed income: existing activity is reachable");
+		Check(m.Execute("draw_room",m.RoomDraft(x+5,z+3,x+7,z+5,"sunroom",1)).success,"themed income: first sunroom");var sun=m.Hotel().rooms.Last();
+		double before=m.Rate();Check(!m.RoomStatus(sun.id).ready&&Math.Abs(m.Rate()-before)<.01,"themed income: empty sunroom earns nothing");
+		Check(m.Execute("place_object",Furnish("perch",1,x+6,z+4)).success,"themed income: sunroom perch");
+		Check(m.RoomStatus(sun.id).ready&&Math.Abs(m.Rate()-before-15)<.01,"themed income: one reachable sunroom adds exactly 15 ("+(m.Rate()-before)+")");
+		Check(m.Execute("draw_room",m.RoomDraft(x+5,z,x+7,z+2,"sunroom",1)).success,"themed income: second sunroom");var secondSun=m.Hotel().rooms.Last();
+		before=m.Rate();Check(m.Execute("place_object",Furnish("perch",1,x+6,z+1)).success,"themed income: second perch");
+		Check(m.RoomStatus(secondSun.id).ready&&Math.Abs(m.Rate()-before)<.01,"themed income: another ready sunroom cannot double the bonus ("+(m.Rate()-before)+")");
+		Check(m.Execute("draw_room",RoomOn(1,x+3,z+3,2,3,0,"stairs")).success,"themed income: rooftop stairs");
+		Check(m.Execute("paint_floor",PaintOn(2,x+5,z+3,3,3)).success,"themed income: rooftop floor");
+		Check(m.Execute("draw_room",m.RoomDraft(x+5,z+3,x+7,z+5,"garden",2)).success,"themed income: rooftop garden");var garden=m.Hotel().rooms.Last();
+		before=m.Rate();Check(!m.RoomStatus(garden.id).ready&&Math.Abs(m.Rate()-before)<.01,"themed income: empty rooftop garden earns nothing");
+		Check(m.Execute("place_object",Furnish("garden_planter",2,x+6,z+4)).success,"themed income: garden planter");
+		Check(!m.RoomStatus(garden.id).ready&&Math.Abs(m.Rate()-before)<.01,"themed income: decoration alone is not a reachable activity");
+		Check(m.Execute("place_object",Furnish("bench",2,x+5.5f,z+5)).success,"themed income: garden bench");
+		Check(m.RoomStatus(garden.id).ready&&Math.Abs(m.Rate()-before-20)<.01,"themed income: reachable rooftop garden adds exactly 20 ("+(m.Rate()-before)+")");
+		Check(m.Execute("draw_room",RoomOn(-1,x+1,z+4,2,3,0,"stairs")).success,"themed income: basement stairs");
+		Check(m.Execute("paint_floor",PaintOn(-1,x+3,z+4,3,3)).success,"themed income: basement floor");
+		Check(m.Execute("draw_room",m.RoomDraft(x+3,z+4,x+5,z+6,"spa",-1)).success,"themed income: basement spa");var spa=m.Hotel().rooms.Last();
+		before=m.Rate();Check(!m.RoomStatus(spa.id).ready&&Math.Abs(m.Rate()-before)<.01,"themed income: empty spa earns nothing");
+		Check(m.Execute("place_object",Furnish("fireplace",-1,x+4,z+5)).success,"themed income: spa fireplace");
+		Check(m.RoomStatus(spa.id).ready&&Math.Abs(m.Rate()-before-25)<.01,"themed income: reachable basement spa adds exactly 25 ("+(m.Rate()-before)+")");
+		Console.WriteLine("Shell themed income suite passed");
+	}
 	public static void RunMigratedDenseNavigation(Action<bool,string> Check,ParityContent content,HotelState denseSeed)
 	{
 		var seed=HotelModel.Copy(denseSeed);seed.version=2;
