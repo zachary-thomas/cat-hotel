@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 namespace Purrington.Presentation {public sealed partial class VoxelWorld {
  public event Action GroundDragEnded;
  Vector2 pinchMid;bool pinchMidValid;
+ readonly System.Collections.Generic.Dictionary<string,string> outfitShown=new System.Collections.Generic.Dictionary<string,string>();
  // Maps a domain wall run onto Wall()'s rectangle convention (side 0 at x=w, 1 at z=d, 2 at x=0, 3 at z=0, facing inward).
  public static void ShellWallPlacement(WallRun run,float unit,out Vector3 origin,out float w,out float d,out int side){float length=run.length*unit;origin=new Vector3(run.x*unit,0,run.z*unit);if(run.axis=='v'){w=0;d=length;side=run.inward<0?0:2;}else{w=length;d=0;side=run.inward<0?1:3;}}
  // Cutaway view: camera-facing outside walls drop to a curb; back walls and interior partitions stay tall, like pavilion rooms.
