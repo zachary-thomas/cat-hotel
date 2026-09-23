@@ -27,7 +27,7 @@ namespace Purrington.Presentation {
                 if(floor==null||ShellGrid.WallAt(floor,edge)==null){ShowNotice("Tap a wall of the hotel.",true);return true;}
                 var payload=new JObject{{"floor",0},{"kind",ShellDraw.NextKind(floor,edge)},{"edges",new JArray(edge)}};
                 var result=app.Model.Execute("set_edge",payload);if(result.success)app.Audio?.PlayEffect("build");
-                app.Report(result);Rebuild();ShowNotice(result.message+(result.success&&result.cost>0?" · "+result.cost.ToString("N0")+" coins":""),!result.success);
+                app.Report(result);Rebuild();ShowNotice(result.message+(result.success&&result.cost!=0?(result.cost>0?" · "+result.cost.ToString("N0")+" coins":" · "+(-result.cost).ToString("N0")+" coins refunded"):""),!result.success);
                 return true;
             }
             if(!ShellDrawing(commandAction))return false;
