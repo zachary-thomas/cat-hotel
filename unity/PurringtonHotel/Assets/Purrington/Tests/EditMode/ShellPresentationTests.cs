@@ -17,5 +17,9 @@ public sealed class ShellPresentationTests {
   if(releaseClick)payload=new JObject{{"x",5},{"y",6},{"w",1},{"h",1}};
   Assert.IsFalse(releaseClick);Assert.AreEqual(4,(int)payload["w"]);Assert.AreEqual(3,(int)payload["h"]);
   Assert.IsTrue(VoxelWorld.ShouldSendReleaseClick(false,false));}
+ [Test]public void FloorsStackAndHideAboveTheViewedFloor(){
+  Assert.AreEqual(0f,VoxelWorld.FloorY(0),1e-4f);Assert.AreEqual(VoxelWorld.FloorHeight,VoxelWorld.FloorY(1),1e-4f);Assert.AreEqual(-VoxelWorld.FloorHeight,VoxelWorld.FloorY(-1),1e-4f);
+  Assert.IsTrue(VoxelWorld.FloorVisible(1,1));Assert.IsTrue(VoxelWorld.FloorVisible(0,1));Assert.IsFalse(VoxelWorld.FloorVisible(2,1));
+  Assert.IsFalse(VoxelWorld.FloorVisible(0,-1),"viewing the basement hides everything above it");Assert.IsTrue(VoxelWorld.FloorVisible(-1,0),"the basement stays built under the ground floor");}
 }
 }
