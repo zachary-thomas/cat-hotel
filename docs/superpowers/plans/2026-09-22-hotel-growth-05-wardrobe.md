@@ -270,7 +270,7 @@ git commit -m "feat(domain): cat wardrobe with bought wear and friendship gifts"
 - Create: `unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/WardrobeTests.cs`
 - Modify: `…/Presentation/HotelApp.cs:65`, `VoxelWorld.cs:44`, `VoxelWorldCare.cs:7`
 
-- [ ] **Step 1: Write the failing EditMode tests**
+- [x] **Step 1: Write the failing EditMode tests**
 
 ```csharp
 using System.Collections.Generic;using NUnit.Framework;using Purrington.Domain;using Purrington.Presentation;using UnityEngine;
@@ -291,12 +291,12 @@ public sealed class WardrobeTests {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `.\tools\unity.ps1 Test`
 Expected: compile error `The name 'CatOutfitView' does not exist in the current context`.
 
-- [ ] **Step 3: Create `CatOutfitView.cs`**
+- [x] **Step 3: Create `CatOutfitView.cs`**
 
 ```csharp
 using System.Collections.Generic;
@@ -316,11 +316,11 @@ public static class CatOutfitView {
 }
 ```
 
-- [ ] **Step 4: Load wear content with the reference content**
+- [x] **Step 4: Load wear content with the reference content**
 
 At `HotelApp.cs:65`, right after the reference manifest is loaded and validated, add `Wardrobe.LoadJson(Resources.Load<TextAsset>("Content/Wardrobe").text);`.
 
-- [ ] **Step 5: Dress every cat that appears**
+- [x] **Step 5: Dress every cat that appears**
 
 - **Hotel actors** (`VoxelWorld.cs:44`, `SyncActors`): after the rig for actor `a` is found or created, and only for guests (`a.kind==ActorKind.Guest`), apply the outfit whenever it changes. Add `readonly Dictionary<string,string> outfitShown=new Dictionary<string,string>();` in `VoxelWorldShell.cs`, then:
 
@@ -331,13 +331,13 @@ if(a.kind==ActorKind.Guest&&a.catId>=0&&a.catId<model.State.cats.Count){var outf
 - **Care view** (`VoxelWorldCare.cs:7`): after `careRig=new GodotCatRig(geometry,careStage,"cats",catId.ToString(),catId);` add `CatOutfitView.Apply(geometry,careRig,model.State.cats[catId].outfit);`. Also add `public void PreviewOutfit(IDictionary<string,string> outfit){if(careRig!=null)CatOutfitView.Apply(geometry,careRig,outfit);}` to `VoxelWorldCare.cs` for the try-on flow.
 - **Street neighbors** (`NeighborhoodView.cs:44`) are not roster cats. Leave them undressed.
 
-- [ ] **Step 6: Run the tests and look at it**
+- [x] **Step 6: Run the tests and look at it**
 
 Run: `.\tools\unity.ps1 Test` (exit 0). In Play mode, give Miso a sun hat and bow tie through the Unity CLI's C# execution: `HotelApp` model → `BuyWear`, then `Dress`. Check that the hat sits on the head between the ears and that the bow tie sits under the chin, facing forward.
 - If the tie faces backward, the body's forward axis is −z. Use `bounds.min.z` for the neck origin instead.
 - Record which axis was right in a code comment.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/WardrobeTests.cs*
