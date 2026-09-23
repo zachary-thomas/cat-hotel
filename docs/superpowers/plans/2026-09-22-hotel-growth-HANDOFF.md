@@ -4,13 +4,15 @@ Written by the orchestrating session for the next agent. Read this first, then t
 
 ## Current continuation (supersedes the older progress sections below)
 
-Plans **02 (continuous hotel domain), 01 (lawn)** and **03 (shell presentation and build tools)** are complete, task-reviewed and verified. Work is on the user-authorized `test/combined-screenshot-reality` branch. The next implementation task is **Plan 05 Task 1, cat wardrobe domain**, followed by the remaining Plan 05 presentation/QA tasks, Plan 04 floors and stairs, and Plan 06 wall tool. The execution log in the roadmap has the commit list and review outcomes.
+Plans **02 (continuous hotel domain), 01 (lawn), 03 (shell presentation and build tools), and 05 (cat wardrobe)** are complete, task-reviewed and verified. Work is on the user-authorized `test/combined-screenshot-reality` branch. The next implementation task is **Plan 04 Task 1, floor rules and stairwells**, followed by the rest of Plan 04 and Plan 06 wall tool. The execution log in the roadmap has the commit list and review outcomes.
+
+Plan 05 Task 4 was approved at `4be565c`. The domain suite passed **676111** checks, isolated Unity EditMode passed **79/79**, and a Windows player built. Four wardrobe QA images are committed, including an actual 390×844 care view, three dressed roaming guests, and a 36-case contact sheet. Three saved outfits reloaded. All roster rigs have the same native dimensions, so the small and large contact-sheet columns are explicitly labeled QA scale probes. The task report is `.superpowers/sdd/2026-09-22-hotel-growth-05-wardrobe/task-4-report.md`.
 
 Plan 03's committed-only Unity snapshot passed 76/76 EditMode tests, a Windows build and smoke QA. Its queued mouse/touch Bedroom scenario passed 21 layout cases. A further focused run passed **25/25** checks for phone gestures, Grow and room dimensions, the three wall openings and coin notices, visible Undo, and a named sale-plot quote. That run found one real UI gap, fixed and independently approved in `8711ac5`: cheaper edge replacements now say how many coins were refunded. The focused helper is ignored in the disposable snapshot; the production fix is committed. The final report is `.superpowers/sdd/2026-09-22-hotel-growth-03-shell-presentation/deferred-task-3-4-verification-report.md`.
 
 Gate 2 visual review approved the four Meadow shell captures in `docs/art/qa-shots/hotel-growth/`, at 1080×2340 portrait and 2340×1080 landscape. They show a continuous hotel with lobby, hall, two bedrooms and suite, hall furniture, exterior openings, roof, and a separate pavilion. Touch verification used queued Input System events in a phone-sized hidden Unity player, not the editor's Device Simulator window.
 
-Unrelated live edits remain in `HotelUI.cs`, `VoxelWorld*.cs`, `CatSpeechOverlay.cs`, a room-status file, welcome art and screenshots, and separate main-street/playable-polish documents. Preserve them; do not stage them with hotel-growth commits. A Plan 05 Task 1 brief is in `.superpowers/sdd/2026-09-22-hotel-growth-05-wardrobe/task-1-brief.md`.
+Unrelated live edits remain in `HotelUI.cs`, `VoxelWorld*.cs`, `CatSpeechOverlay.cs`, a room-status file, welcome art and screenshots, and separate main-street/playable-polish documents. Preserve them; do not stage them with hotel-growth commits. The Plan 04 Task 1 brief is in `.superpowers/sdd/2026-09-22-hotel-growth-04-floors-stairs/task-1-brief.md`.
 
 ## Continuation update (later on 2026-09-22)
 
