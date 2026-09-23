@@ -1,7 +1,8 @@
 {
   "schema": 1,
-  "note": "Parts are voxel boxes [x,y,z,w,h,d] in anchor units: 1 = the anchor's width. Origin: head = top center of the head; neck = front top of the body; back = top center of the body.",
+  "note": "Shared hotel and Thread & Paw catalogue; friendship gifts and quest rewards are not shop purchases. Parts are voxel boxes [x,y,z,w,h,d] in anchor units: 1 = the anchor's width. Origin: head = top center of the head; neck = front top of the body; back = top center of the body.",
   "items": [
+    {"id":"store_ribbon","name":"Store ribbon","slot":"neck","price":0,"quest":"first_look","parts":[{"box": [-0.35, -0.57, 0, 0.25, 0.2, 0.08],"color":"7C9B58"},{"box": [-0.1, -0.55, 0, 0.2, 0.16, 0.1],"color":"E8C77A"},{"box": [0.1, -0.57, 0, 0.25, 0.2, 0.08],"color":"7C9B58"}]},
     {"id": "sun_hat", "name": "Straw sun hat", "slot": "head", "price": 180, "parts": [
       {"box": [-0.75, 0.0, -0.75, 1.5, 0.08, 1.5], "color": "E8C77A"},
       {"box": [-0.35, 0.08, -0.35, 0.7, 0.3, 0.7], "color": "E8C77A"},
@@ -25,24 +26,24 @@
       {"box": [-0.3, 0.12, 0.18, 0.12, 0.12, 0.12], "color": "E0B84A"},
       {"box": [0.18, 0.12, 0.18, 0.12, 0.12, 0.12], "color": "E0B84A"}]},
     {"id": "bow_tie", "name": "Bow tie", "slot": "neck", "price": 90, "parts": [
-      {"box": [-0.32, -0.12, 0.0, 0.24, 0.2, 0.08], "color": "C0584A"},
-      {"box": [-0.08, -0.1, 0.0, 0.16, 0.16, 0.1], "color": "8E3A30"},
-      {"box": [0.08, -0.12, 0.0, 0.24, 0.2, 0.08], "color": "C0584A"}]},
+      {"box": [-0.32, -0.57, 0.0, 0.24, 0.2, 0.08], "color": "C0584A"},
+      {"box": [-0.08, -0.55, 0.0, 0.16, 0.16, 0.1], "color": "8E3A30"},
+      {"box": [0.08, -0.57, 0.0, 0.24, 0.2, 0.08], "color": "C0584A"}]},
     {"id": "bandana", "name": "Bandana", "slot": "neck", "price": 80, "parts": [
-      {"box": [-0.4, -0.25, -0.05, 0.8, 0.25, 0.1], "color": "D9534F"},
-      {"box": [-0.15, -0.4, -0.03, 0.3, 0.15, 0.08], "color": "D9534F"}]},
+      {"box": [-0.4, -0.7, -0.05, 0.8, 0.25, 0.1], "color": "D9534F"},
+      {"box": [-0.15, -0.85, -0.03, 0.3, 0.15, 0.08], "color": "D9534F"}]},
     {"id": "bell_collar", "name": "Bell collar", "slot": "neck", "price": 70, "parts": [
-      {"box": [-0.45, -0.08, -0.3, 0.9, 0.08, 0.35], "color": "3F7F6E"},
-      {"box": [-0.07, -0.2, 0.0, 0.14, 0.14, 0.12], "color": "E6C45A"}]},
+      {"box": [-0.45, -0.53, -0.3, 0.9, 0.08, 0.35], "color": "3F7F6E"},
+      {"box": [-0.07, -0.65, 0.0, 0.14, 0.14, 0.12], "color": "E6C45A"}]},
     {"id": "knit_scarf", "name": "Knitted scarf", "slot": "neck", "price": 0, "giftCat": 1, "giftBond": 50, "parts": [
-      {"box": [-0.48, -0.12, -0.35, 0.96, 0.14, 0.4], "color": "E58B5A"},
-      {"box": [0.15, -0.45, 0.0, 0.14, 0.35, 0.08], "color": "E58B5A"}]},
+      {"box": [-0.48, -0.57, -0.35, 0.96, 0.14, 0.4], "color": "E58B5A"},
+      {"box": [0.15, -0.9, 0.0, 0.14, 0.35, 0.08], "color": "E58B5A"}]},
     {"id": "sweater", "name": "Striped sweater", "slot": "back", "price": 200, "parts": [
-      {"box": [-0.52, -0.3, -0.45, 1.04, 0.32, 0.9], "color": "B8465A"},
-      {"box": [-0.53, -0.18, -0.46, 1.06, 0.07, 0.92], "color": "F4EFE6"}]},
+      {"box": [-0.55, -0.55, -0.72, 1.1, 0.6, 1.44], "color": "B8465A"},
+      {"box": [-0.56, -0.36, -0.73, 1.12, 0.12, 1.46], "color": "F4EFE6"}]},
     {"id": "raincoat", "name": "Raincoat", "slot": "back", "price": 190, "parts": [
-      {"box": [-0.54, -0.35, -0.48, 1.08, 0.38, 0.96], "color": "F2C94C"}]},
+      {"box": [-0.56, -0.6, -0.73, 1.12, 0.65, 1.46], "color": "F2C94C"}]},
     {"id": "hero_cape", "name": "Hero cape", "slot": "back", "price": 0, "giftCat": 2, "giftBond": 50, "parts": [
-      {"box": [-0.45, -0.02, -0.2, 0.9, 0.06, 0.9], "color": "6A4C93"}]}
+      {"box": [-0.55, -0.55, -0.77, 1.1, 0.55, 0.12], "color": "6A4C93"}]}
   ]
 }

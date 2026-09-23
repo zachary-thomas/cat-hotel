@@ -16,7 +16,7 @@ namespace Purrington.Presentation
 {
     // Explicit opt-in player harness. All navigation and care use queued device
     // events through the real InputSystemUIInputModule; no Button.onClick calls.
-    public sealed class ParityInputAcceptance : MonoBehaviour
+    public sealed partial class ParityInputAcceptance : MonoBehaviour
     {
         HotelApp app;
         Mouse mouse;
@@ -29,6 +29,8 @@ namespace Purrington.Presentation
         JArray checks;
         int failures,careRewardCount,careRewardGain,careRewardCatId;string careRewardTool;
         InputSettings.BackgroundBehavior priorBackgroundBehavior;bool backgroundBehaviorChanged;
+        bool priorRunInBackground,runInBackgroundChanged;
+        readonly List<InputDevice> disabledPointers=new List<InputDevice>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Install()
@@ -43,8 +45,11 @@ namespace Purrington.Presentation
             Directory.CreateDirectory(output);deadline=Time.realtimeSinceStartup+600;
             Application.logMessageReceived+=OnLog;
             while((app=FindFirstObjectByType<HotelApp>())==null||app.UI==null){if(Time.realtimeSinceStartup>deadline){Finish("startup timeout");yield break;}yield return null;}
+            priorRunInBackground=Application.runInBackground;Application.runInBackground=true;runInBackgroundChanged=true;
             priorBackgroundBehavior=InputSystem.settings.backgroundBehavior;InputSystem.settings.backgroundBehavior=InputSettings.BackgroundBehavior.IgnoreFocus;backgroundBehaviorChanged=true;
+            foreach(var device in InputSystem.devices.Where(d=>d is Pointer&&d.enabled).ToArray()){disabledPointers.Add(device);InputSystem.DisableDevice(device);}
             mouse=InputSystem.AddDevice<Mouse>("Parity acceptance mouse");touch=InputSystem.AddDevice<Touchscreen>("Parity acceptance touch");
+            if(Environment.GetCommandLineArgs().Contains("-purrington-main-street")){yield return MainStreetAcceptance();Finish("completed");yield break;}
             var sizes=new[]{new Vector2Int(360,640),new Vector2Int(360,800),new Vector2Int(390,844),new Vector2Int(430,932),new Vector2Int(640,480),new Vector2Int(800,760),new Vector2Int(1280,800)};
             foreach(var size in sizes)foreach(float scale in new[]{1f,1.25f,1.5f})
             {
@@ -58,6 +63,7 @@ namespace Purrington.Presentation
                 Rect safe=new Rect(8,16,Screen.width-16,Screen.height-40);app.UI.ConfigureAcceptanceLayout(safe,scale);
                 yield return Frames(3);
                 yield return Click("Hotel","Navigation");
+                if(app.Model.State.currentHotel==0)yield return MainStreetInput(safe);
                 yield return Click("Build","Navigation");Check("Build navigation",app.UI.ActiveTab=="Build");
                 if(!app.Model.State.settings.godMode)app.Model.SetGodMode(true);
                 yield return DrawRoom(false);yield return DrawRoom(true);
@@ -165,6 +171,41 @@ namespace Purrington.Presentation
             Finish("completed");
         }
         IEnumerator Frames(int count){for(int i=0;i<count;i++)yield return null;}
+        IEnumerator MainStreetInput(Rect safe)
+        {
+            var savedCamera=app.World.WorldCamera.transform.position;float savedZoom=app.World.WorldCamera.orthographicSize;
+            yield return Click("Explore Main Street");
+            Check("Main Street opens without placement",app.World.IsTownMode&&!app.UI.IsPlacing);
+            yield return Click("Square");yield return Click("Skip walk");
+            yield return Click("Fit street");yield return new WaitForSecondsRealtime(5.2f);
+            CheckLayout(safe);yield return Screenshot("main-street");
+            // Find a visible storefront sign through the actual scene raycast.
+            var sign=app.World.GetComponentsInChildren<TownStoreHit>().FirstOrDefault(h=>h.StoreId=="paw_mart"&&h.name=="Store sign");
+            if(sign){
+                Vector2 screen=app.World.WorldCamera.WorldToScreenPoint(sign.transform.position);
+                bool visible=app.UI.AvailableWorldRect.Contains(screen);
+                Check("store sign lies in world viewport",visible);
+                if(visible){yield return TouchGesture(screen,screen,.04f);Check("sign tap begins manager travel",app.Model.Hotel(0).town.destination=="paw_mart_door","destination="+app.Model.Hotel(0).town.destination+" hits="+string.Join(",",Physics.RaycastAll(app.World.WorldCamera.ScreenPointToRay(screen),500).Select(h=>h.collider.name)));}
+            }else Check("store sign is hittable",false);
+            // End the sign-tap probe before testing outdoor camera gestures; travel can otherwise arrive during scrolling.
+            app.Model.SendManager("square");app.Model.SkipManagerTravel();app.World.ExitStoreInterior();app.UI.ExploreMainStreet();app.World.FitTown();yield return Frames(3);
+            var stage=app.UI.AvailableWorldRect;var before=app.World.WorldCamera.transform.position;
+            yield return TouchGesture(stage.center,stage.center+Vector2.right*35,.2f);
+            Check("street drag pans camera",Vector3.Distance(before,app.World.WorldCamera.transform.position)>.05f);
+            float zoom=app.World.WorldCamera.orthographicSize;
+            var a=stage.center-Vector2.right*24;var b=stage.center+Vector2.right*24;
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Began,position=a,pressure=1});yield return Frames(2);
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=2,phase=UnityEngine.InputSystem.TouchPhase.Began,position=b,pressure=1});yield return Frames(2);
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Moved,position=a-Vector2.right*16,pressure=1});
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=2,phase=UnityEngine.InputSystem.TouchPhase.Moved,position=b+Vector2.right*16,pressure=1});yield return Frames(3);
+            Check("street pinch zooms camera",app.World.WorldCamera.orthographicSize<zoom-.01f);
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=1,phase=UnityEngine.InputSystem.TouchPhase.Ended,position=a-Vector2.right*16});
+            InputSystem.QueueStateEvent(touch,new TouchState{touchId=2,phase=UnityEngine.InputSystem.TouchPhase.Ended,position=b+Vector2.right*16});yield return Frames(3);
+            yield return Click("Back","Main Street");
+            Check("Back returns to Hotel",app.UI.ActiveTab=="Hotel"&&!app.World.IsTownMode&&!app.UI.IsPlacing);
+            Check("street never shows an interior",app.World.ActiveStoreInteriorCount==0);
+            Check("Back restores hotel camera framing",CameraEqual(savedCamera,savedZoom));
+        }
         bool Ancestor(Transform item,string name){for(var t=item;t!=null;t=t.parent)if(t.name==name)return true;return false;}
         Button FindButton(string label,string ancestor)
         {
@@ -204,8 +245,12 @@ namespace Purrington.Presentation
                 }
                 float low=Mathf.Lerp(viewport.yMin,viewport.yMax,.25f),high=Mathf.Lerp(viewport.yMin,viewport.yMax,.70f);
                 float x=Mathf.Lerp(viewport.xMin,viewport.xMax,.5f);
-                yield return MouseGesture(new Vector2(x,step<24?low:high),new Vector2(x,step<24?high:low),.18f);
+                                var target=app.UI.GetComponentsInChildren<Button>().FirstOrDefault(b=>b.isActiveAndEnabled&&b.interactable&&(label==null||b.name==label)&&(ancestor==null||Ancestor(b.transform,ancestor)));
+                if(!target)break;
+                bool above=HotelUI.ScreenBounds((RectTransform)target.transform).center.y>viewport.yMax;
+                yield return MouseGesture(new Vector2(x,above?high:low),new Vector2(x,above?low:high),.12f);
             }
+            if(!button&&label=="Skip walk"&&app.Model.Hotel(0).town.destination=="")yield break;
             if(!button){Check("click "+(label??ancestor),false,"No visible raycastable control after real pointer-drag scrolling");yield break;}
             yield return MouseGesture(HotelUI.ScreenBounds((RectTransform)button.transform).center,HotelUI.ScreenBounds((RectTransform)button.transform).center,.07f);
         }
@@ -365,13 +410,13 @@ namespace Purrington.Presentation
         }
         IEnumerator Screenshot(string context)
         {
-            yield return new WaitForEndOfFrame();string path=Path.Combine(output,caseName+"-"+context+".png");ScreenCapture.CaptureScreenshot(path);yield return Frames(2);
+            yield return new WaitForEndOfFrame();string path=Path.Combine(output,caseName+"-"+context+".png");var capture=Environment.GetCommandLineArgs().Contains("-purrington-offscreen-capture")?CaptureOffscreen():ScreenCapture.CaptureScreenshotAsTexture();File.WriteAllBytes(path,capture.EncodeToPNG());if(Environment.GetCommandLineArgs().Contains("-purrington-offscreen-capture"))Check("nonblank render: "+context,capture.GetPixels32().Any(pixel=>pixel.r>16||pixel.g>16||pixel.b>16));Destroy(capture);yield return Frames(2);
             if(current["screenshots"]==null)current["screenshots"]=new JArray();((JArray)current["screenshots"]).Add(path);
         }
         void Check(string name,bool passed,string detail=""){checks?.Add(new JObject{{"name",name},{"passed",passed},{"detail",detail}});if(!passed)failures++;if(checks!=null)Write("running");}
         void OnLog(string message,string trace,LogType type){if(type!=LogType.Exception&&type!=LogType.Error)return;if(errors.Count<40)errors.Add(new JObject{{"message",message},{"trace",trace}});}
-        void Write(string status){File.WriteAllText(Path.Combine(output,"input-acceptance.json"),new JObject{{"status",status},{"cases",cases},{"failedChecks",failures},{"runtimeErrors",errors},{"inputMethod","queued MouseState and TouchState through InputSystemUIInputModule"},{"layoutSetup","Viewport, simulated safe insets and text scale configured before each case; opt-in care fixtures reset bonds to 20 and clear cooldown before gesture assertions"}}.ToString(Formatting.Indented));}
-        void Finish(string status){if(finished)return;finished=true;Write(status);Application.logMessageReceived-=OnLog;if(mouse!=null)InputSystem.RemoveDevice(mouse);if(touch!=null)InputSystem.RemoveDevice(touch);if(backgroundBehaviorChanged)InputSystem.settings.backgroundBehavior=priorBackgroundBehavior;if(app)app.ExitWithoutSaving();else Application.Quit();}
+        void Write(string status){File.WriteAllText(Path.Combine(output,"input-acceptance.json"),new JObject{{"status",status},{"cases",cases},{"failedChecks",failures},{"runtimeErrors",errors},{"inputMethod",Environment.GetCommandLineArgs().Contains("-purrington-art-matrix")?"programmatic art fixtures; input acceptance recorded separately":"queued MouseState and TouchState through InputSystemUIInputModule"},{"layoutSetup","Viewport, simulated safe insets and text scale configured before each case; opt-in care fixtures reset bonds to 20 and clear cooldown before gesture assertions"}}.ToString(Formatting.Indented));}
+        void Finish(string status){if(finished)return;finished=true;Write(status);Application.logMessageReceived-=OnLog;if(mouse!=null)InputSystem.RemoveDevice(mouse);if(touch!=null)InputSystem.RemoveDevice(touch);foreach(var device in disabledPointers)if(device!=null&&InputSystem.devices.Contains(device))InputSystem.EnableDevice(device);disabledPointers.Clear();if(backgroundBehaviorChanged)InputSystem.settings.backgroundBehavior=priorBackgroundBehavior;if(runInBackgroundChanged)Application.runInBackground=priorRunInBackground;if(app)app.ExitWithoutSaving();else Application.Quit();}
         void Update(){if(!finished&&deadline>0&&Time.realtimeSinceStartup>deadline)Finish("timeout");}
     }
 }
