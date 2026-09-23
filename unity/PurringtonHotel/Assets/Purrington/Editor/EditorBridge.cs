@@ -81,7 +81,7 @@ namespace Purrington.Editor
             {
                 case "ping":
                     var start = UnityEditor.SceneManagement.EditorSceneManager.playModeStartScene;
-                    Reply(r, "ok", "Unity " + Application.unityVersion + (EditorApplication.isPlaying ? " (playing)" : "") + (EditorApplication.isCompiling ? " (compiling)" : "") + " | open scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().path + " | world preview: " + (GameObject.Find("Purrington preview (not saved)") ? "shown" : "off") + " | roots: " + string.Join(", ", UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects().Select(g => g.name)) + " | Play starts from: " + (start ? AssetDatabase.GetAssetPath(start) : "the open scene"));
+                    Reply(r, "ok", "Unity " + Application.unityVersion + (EditorApplication.isPlaying ? " (playing)" : "") + (EditorApplication.isCompiling ? " (compiling)" : "") + " | open scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().path + " | world preview: " + (GameObject.Find("Purrington preview (not saved)") ? "shown" : "off") + " (mode " + SessionState.GetInt("Purrington.WorldPreview.Mode", 0) + ")" + " | roots: " + string.Join(", ", UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects().Select(g => g.name)) + " | Play starts from: " + (start ? AssetDatabase.GetAssetPath(start) : "the open scene"));
                     return;
                 case "stop":
                     if (EditorApplication.isPlaying) { EditorApplication.isPlaying = false; r.stage = "exiting"; Save(r); } else Reply(r, "ok", "Not playing.");

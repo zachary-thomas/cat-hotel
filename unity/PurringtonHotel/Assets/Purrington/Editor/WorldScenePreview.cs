@@ -48,10 +48,14 @@ namespace Purrington.Editor
             if (EditorApplication.isPlayingOrWillChangePlaymode || !UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
             UnityEditor.SceneManagement.EditorSceneManager.OpenScene(MeadowScene);
             EditorApplication.ExecuteMenuItem("Window/General/Scene");
+            if (Mode == 0) Mode = 1;
+            Build(Mode);
         }
 
         static int Mode { get => SessionState.GetInt(ModeKey, 0); set => SessionState.SetInt(ModeKey, value); }
-        static void Restore() { if (Mode != 0 && !EditorApplication.isPlayingOrWillChangePlaymode) EditorApplication.delayCall += () => Build(Mode); }
+        // A one-shot update hook rather than delayCall: a delayCall queued during a script reload is sometimes never run.
+        static void Restore() { if (Mode != 0 && !EditorApplication.isPlayingOrWillChangePlaymode) { EditorApplication.update -= RestoreOnce; EditorApplication.update += RestoreOnce; } }
+        static void RestoreOnce() { EditorApplication.update -= RestoreOnce; if (Mode != 0 && !EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isCompiling) Build(Mode); }
 
         [MenuItem(HotelMenu, priority = 20)] static void PreviewHotel() => Build(Mode = 1);
         [MenuItem(StreetMenu, priority = 21)] static void PreviewStreet() => Build(Mode = 2);
@@ -80,7 +84,7 @@ namespace Purrington.Editor
                 foreach (var t in root.GetComponentsInChildren<Transform>(true)) t.gameObject.hideFlags = HideFlags.DontSave;
                 Frame(world, mode);
             }
-            catch (System.Exception ex) { Debug.LogException(ex); Clear(); Mode = 0; }
+            catch (System.Exception ex) { Debug.LogError("Purrington preview failed: " + ex); Clear(); Mode = 0; }
         }
 
         // The world tints ambient light and swaps the grading profile; remember both so Clear can put them back.
