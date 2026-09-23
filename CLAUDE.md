@@ -32,6 +32,8 @@ With the Unity Editor open, `Test` and `Windows` run inside it automatically, so
 ```powershell
 .\tools\unity-bridge.ps1 test [-Filter ClassName]          # EditMode tests in the open Editor
 .\tools\unity-bridge.ps1 capture -Tab Life [-Minute 1380]   # Play, screenshot the Game view -> builds/unity/editor-captures
+.\tools\unity-bridge.ps1 capture -Filter pop               # same, with an income pop shown just before the shot
+.\tools\unity-bridge.ps1 meadow                            # open the Meadow scene with the hotel shown in the Scene view
 .\tools\unity-bridge.ps1 refresh | build | play | stop | ping
 ```
 
