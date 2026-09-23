@@ -146,7 +146,7 @@ Known textual hotspots (resolve by keeping both sides; none are semantic conflic
 
 ### Task 4: Phase gates (orchestrator runs these; Unity QA agent captures)
 
-- [ ] **Gate 1 (after 01 + 02):** domain PASS; EditMode PASS; an existing save migrates. Test this by copying a real profile save into `tmp/qa-profile`, launching the preview with `-purrington-profile tmp/qa-profile`, and checking that the hotel looks identical to before and that the lawn matches.
+- [x] **Gate 1 (after 01 + 02):** a copied real version 2 Unity profile loaded and saved as version 3 in an isolated Windows player smoke run. All 16 rooms, 126 objects and 12 plot IDs retained their original fields; Meadow and its matching lawn were inspected in portrait and landscape. [Migration evidence](../../art/qa-shots/hotel-growth/gate1-migration-evidence.md). Domain and isolated EditMode gates passed in the reviewed tasks.
 - [x] **Gate 2 (after 03):** capture Meadow with a lobby, a hallway between two bedrooms, a window seat in the hallway and an outdoor pavilion, in portrait and landscape. Draw a room with queued touch input in a phone-sized isolated Unity player; the Device Simulator editor window itself was not used.
 - [x] **Gate 3 (after 05):** care portrait/landscape, a 36-case wear grid, and three dressed guests roaming were captured; three saved outfits reloaded. The two non-Miso grid sizes are labeled scale probes because authored roster rigs share one native size.
 - [ ] **Gate 4 (after 04):** capture a two-floor hotel with stairs, the rooftop garden and the basement spa. Confirm a guest walks upstairs to a floor-1 bedroom (watch mode).
