@@ -28,4 +28,34 @@ static class ArtSuites
 		double rate=model.Rate();int capacity=model.GuestCapacity();model.State.elapsed=960;
 		Check(model.Clock.phase==DayPhase.Night&&model.Rate()==rate&&model.GuestCapacity()==capacity,"clock: income and capacity ignore time of day");
 	}
+
+	public static void RunPalette(Action<bool,string> Check)
+	{
+		var rows=SurfacePalette.Rows;
+		Check(rows.Select(r=>r.source.ToLowerInvariant()).Distinct().Count()==rows.Length,"palette: one row per source");
+		Check(!rows.Any(r=>rows.Any(o=>o.source.Equals(r.target,StringComparison.OrdinalIgnoreCase))),"palette: no chained remaps");
+		double Median(System.Collections.Generic.IEnumerable<double> xs){var a=xs.OrderBy(x=>x).ToArray();return a.Length%2==1?a[a.Length/2]:(a[a.Length/2-1]+a[a.Length/2])/2;}
+		Check(Median(rows.Select(r=>SurfacePalette.Chroma(r.target)))>=.25,"palette: median chroma is at least 0.25");
+		Check(Median(rows.Select(r=>SurfacePalette.Value(r.target)))>=.85,"palette: median HSV value is at least 0.85 (high-key)");
+		var lum=rows.Select(r=>SurfacePalette.RelativeLuminance(r.target)).ToArray();
+		Check(lum.Max()-lum.Min()>=.40,"palette: light/dark spread keeps shapes readable");
+		foreach(var r in rows.Where(r=>r.authored&&SurfacePalette.Chroma(r.source)>=.12))
+		{
+			double d=Math.Abs(SurfacePalette.Hue(r.source)-SurfacePalette.Hue(r.target));d=Math.Min(d,360-d);
+			Check(d<=25,"palette: "+r.source+" keeps its hue family");
+		}
+		Check(SurfacePalette.TryMap("60A830",out var lawn)&&lawn=="8CC84B","palette: lookup ignores case");
+		Check(!SurfacePalette.TryMap("123456",out _),"palette: unknown colors pass through");
+		Check(SurfacePalette.IsGlass("90bfc0")&&SurfacePalette.IsGlass("b5ddcf")&&!SurfacePalette.IsGlass("fff8e9"),"palette: glass roles");
+		foreach(var (fg,bg) in new[]{(SurfacePalette.Ink,SurfacePalette.Card),(SurfacePalette.Ink,SurfacePalette.Sage),(SurfacePalette.InkSoft,SurfacePalette.Card),(SurfacePalette.InkSoft,SurfacePalette.Sage),(SurfacePalette.LeafText,SurfacePalette.Sage),("FFFFFF",SurfacePalette.Leaf)})
+			Check(SurfacePalette.Contrast(fg,bg)>=4.5,"palette: UI contrast "+fg+" on "+bg);
+		for(int i=0;i<200;i++){int v=SurfacePalette.Variant(i*.37f,i%3*.5f,-i*.91f);Check(v>=0&&v<=2&&v==SurfacePalette.Variant(i*.37f,i%3*.5f,-i*.91f),"palette: variant is stable and in range");}
+		Check(Enumerable.Range(0,60).Select(i=>SurfacePalette.Variant(i,0,i*2)).Distinct().Count()==3,"palette: all three tone variants occur");
+		foreach(var r in rows)
+		{
+			Check(SurfacePalette.Tone(r.target,0)==r.target.ToUpperInvariant(),"palette: variant 0 is the base");
+			Check(SurfacePalette.Value(SurfacePalette.Tone(r.target,1))>=SurfacePalette.Value(r.target)-.001&&SurfacePalette.Value(SurfacePalette.Tone(r.target,2))<=SurfacePalette.Value(r.target)+.001,"palette: light and dark tones for "+r.target);
+			foreach(int v in new[]{1,2}){double d=Math.Abs(SurfacePalette.Hue(r.target)-SurfacePalette.Hue(SurfacePalette.Tone(r.target,v)));d=Math.Min(d,360-d);Check(SurfacePalette.Chroma(r.target)<.13||d<=12,"palette: tone "+v+" keeps the hue of "+r.target);}
+		}
+	}
 }
