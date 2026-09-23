@@ -1515,7 +1515,7 @@ namespace Purrington.Presentation
 
         static Color Hex(string text){ColorUtility.TryParseHtmlString("#"+text,out var c);return c;}
 
-        static Sprite RoundedSprite()
+        internal static Sprite RoundedSprite()
 
         {
 

@@ -1,13 +1,16 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 namespace Purrington.Presentation {
  // Voxel particle effects in world space: hearts while a cat is petted, coin sparkles as guests earn, blossom petals by day
- // and fireflies at night. Every particle is a small cube or voxel mesh so effects match the world's look.
+ // and fireflies at night, dust motes by day, autumn leaves at Forest Lodge, and "+N" income pops. Every particle is a small cube or voxel mesh so effects match the world's look.
  // With reduced motion on, nothing is emitted and the ambient emitters stay quiet.
  public sealed class VoxelFx {
   public readonly Transform Root;
-  readonly ParticleSystem hearts,coins,petalsPink,petalsWhite,fireflies;
+  readonly ParticleSystem hearts,coins,petalsPink,petalsWhite,fireflies,dust,leavesAmber,leavesRed;
+  readonly List<TextMeshProUGUI> pops=new List<TextMeshProUGUI>();int popNext;
+  public Camera View;
   float heartClock;
   public VoxelFx(GodotGeometry geometry,Transform parent){
    Root=new GameObject("Voxel effects").transform;Root.SetParent(parent,false);
@@ -17,6 +20,11 @@ namespace Purrington.Presentation {
    petalsPink=Make("Blossom petals",cube,geometry.Material("F2A7B5"),true,m=>{m.startLifetime=9;m.startSpeed=.05f;m.startSize=new ParticleSystem.MinMaxCurve(.07f,.1f);m.gravityModifier=.012f;m.startRotation3D=true;},false);
    petalsWhite=Make("White petals",cube,geometry.Material("F4F1E8"),true,m=>{m.startLifetime=9;m.startSpeed=.05f;m.startSize=new ParticleSystem.MinMaxCurve(.06f,.09f);m.gravityModifier=.012f;m.startRotation3D=true;},false);
    fireflies=Make("Fireflies",cube,geometry.GlowTwin(geometry.Material(Purrington.Domain.SurfacePalette.LanternGlow)),true,m=>{m.startLifetime=new ParticleSystem.MinMaxCurve(3,5);m.startSpeed=.08f;m.startSize=new ParticleSystem.MinMaxCurve(.05f,.08f);},false);
+   dust=Make("Dust motes",cube,geometry.GlowTwin(geometry.Material("FFF1D0")),true,m=>{m.startLifetime=new ParticleSystem.MinMaxCurve(5,8);m.startSpeed=.02f;m.startSize=new ParticleSystem.MinMaxCurve(.025f,.045f);m.startRotation3D=true;m.maxParticles=60;},false);
+   leavesAmber=Make("Autumn leaves",cube,geometry.Material("D9824A"),true,m=>{m.startLifetime=8;m.startSpeed=.05f;m.startSize=new ParticleSystem.MinMaxCurve(.09f,.13f);m.gravityModifier=.02f;m.startRotation3D=true;},false);
+   leavesRed=Make("Red leaves",cube,geometry.Material("B85A3C"),true,m=>{m.startLifetime=8;m.startSpeed=.05f;m.startSize=new ParticleSystem.MinMaxCurve(.08f,.12f);m.gravityModifier=.02f;m.startRotation3D=true;},false);
+   foreach(var leaves in new[]{leavesAmber,leavesRed}){var shape=leaves.shape;shape.shapeType=ParticleSystemShapeType.Box;shape.scale=new Vector3(26,.5f,26);var drift=leaves.velocityOverLifetime;drift.enabled=true;drift.space=ParticleSystemSimulationSpace.World;drift.x=new ParticleSystem.MinMaxCurve(.2f,.45f);drift.y=new ParticleSystem.MinMaxCurve(-.4f,-.25f);drift.z=new ParticleSystem.MinMaxCurve(-.15f,.15f);var sway=leaves.noise;sway.enabled=true;sway.strength=.4f;sway.frequency=.3f;var spin=leaves.rotationOverLifetime;spin.enabled=true;spin.separateAxes=true;spin.x=spin.y=spin.z=new ParticleSystem.MinMaxCurve(-3,3);}
+   {var shape=dust.shape;shape.shapeType=ParticleSystemShapeType.Box;shape.scale=new Vector3(14,2.4f,14);var noise=dust.noise;noise.enabled=true;noise.strength=.12f;noise.frequency=.25f;noise.scrollSpeed=.1f;var fade=dust.sizeOverLifetime;fade.enabled=true;fade.size=new ParticleSystem.MinMaxCurve(1,new AnimationCurve(new Keyframe(0,0),new Keyframe(.3f,1),new Keyframe(.7f,1),new Keyframe(1,0)));}
    foreach(var petals in new[]{petalsPink,petalsWhite}){var shape=petals.shape;shape.shapeType=ParticleSystemShapeType.Box;shape.scale=new Vector3(26,.5f,26);var drift=petals.velocityOverLifetime;drift.enabled=true;drift.space=ParticleSystemSimulationSpace.World;drift.x=new ParticleSystem.MinMaxCurve(.15f,.35f);drift.y=new ParticleSystem.MinMaxCurve(-.22f,-.14f);drift.z=new ParticleSystem.MinMaxCurve(-.1f,.1f);var spin=petals.rotationOverLifetime;spin.enabled=true;spin.separateAxes=true;spin.x=spin.y=spin.z=new ParticleSystem.MinMaxCurve(-2,2);}
    {var shape=fireflies.shape;shape.shapeType=ParticleSystemShapeType.Box;shape.scale=new Vector3(22,1.6f,22);var noise=fireflies.noise;noise.enabled=true;noise.strength=.35f;noise.frequency=.4f;noise.scrollSpeed=.2f;var fade=fireflies.sizeOverLifetime;fade.enabled=true;fade.size=new ParticleSystem.MinMaxCurve(1,new AnimationCurve(new Keyframe(0,0),new Keyframe(.2f,1),new Keyframe(.8f,1),new Keyframe(1,0)));}
    {var shape=coins.shape;shape.shapeType=ParticleSystemShapeType.Cone;shape.angle=28;shape.radius=.08f;shape.rotation=new Vector3(-90,0,0);var spin=coins.rotationOverLifetime;spin.enabled=true;spin.separateAxes=true;spin.y=new ParticleSystem.MinMaxCurve(-6,6);}
@@ -32,17 +40,43 @@ namespace Purrington.Presentation {
   }
   public Transform Attach(Transform parent){Root.SetParent(parent,false);return Root;}
   public bool Motion=true;
-  public int Live=>hearts.particleCount+coins.particleCount+petalsPink.particleCount+petalsWhite.particleCount+fireflies.particleCount;
+  public int Live=>hearts.particleCount+coins.particleCount+petalsPink.particleCount+petalsWhite.particleCount+fireflies.particleCount+dust.particleCount+leavesAmber.particleCount+leavesRed.particleCount;
   // While a cat is being petted, a heart floats up every half second from above its head.
   public void Affection(Vector3 head,float dt){if(!Motion)return;heartClock-=dt;if(heartClock>0)return;heartClock=.55f;hearts.transform.position=head;hearts.Emit(1);}
   public void Hearts(Vector3 at,int count=4){if(!Motion)return;hearts.transform.position=at;hearts.Emit(count);}
   public void Coins(Vector3 at,int count=8){if(!Motion)return;coins.transform.position=at;coins.Emit(count);}
   // center is the ground point in the middle of the view; glow is the evening/night lamp level from WorldLighting.
-  public void Ambient(Vector3 center,float glow,bool outdoors){
+  // autumn swaps the blossom petals for falling leaves (Forest Lodge).
+  public void Ambient(Vector3 center,float glow,bool outdoors,bool autumn=false){
    bool on=Motion&&outdoors;float day=Mathf.Clamp01(1-glow*2.5f),night=Mathf.Clamp01((glow-.45f)*2.5f);
-   foreach(var petals in new[]{petalsPink,petalsWhite}){petals.transform.position=center+Vector3.up*6.5f;var e=petals.emission;e.rateOverTime=on?day*(petals==petalsPink?2.4f:1.2f):0;}
+   foreach(var petals in new[]{petalsPink,petalsWhite}){petals.transform.position=center+Vector3.up*6.5f;var e=petals.emission;e.rateOverTime=on&&!autumn?day*(petals==petalsPink?2.4f:1.2f):0;}
+   foreach(var leaves in new[]{leavesAmber,leavesRed}){leaves.transform.position=center+Vector3.up*6.5f;var e=leaves.emission;e.rateOverTime=on&&autumn?(.4f+day*.6f)*(leaves==leavesAmber?2.2f:1.4f):0;}
+   dust.transform.position=center+Vector3.up*1.4f;var d=dust.emission;d.rateOverTime=on?day*5:0;
    fireflies.transform.position=center+Vector3.up*1.1f;var f=fireflies.emission;f.rateOverTime=on?night*5:0;
   }
+  // A "+N" coin chip that pops up with a bounce above a world point, floats and fades, styled like the HUD's cream chips.
+  // It is screen-space UI (crisp, never hidden behind walls, the same size at every zoom); four chips are reused round-robin.
+  public static int PopCount;
+  Canvas popCanvas;static Sprite popRound;
+  public void Pop(Vector3 at,string text){
+   if(!Motion)return;PopCount++;
+   if(!popCanvas){var go=new GameObject("Income pops",typeof(RectTransform),typeof(Canvas),typeof(UnityEngine.UI.CanvasScaler));go.transform.SetParent(Root,false);popCanvas=go.GetComponent<Canvas>();popCanvas.renderMode=RenderMode.ScreenSpaceOverlay;popCanvas.sortingOrder=12;}
+   // Match the HUD's scale so the chip reads at the same size as the wallet.
+   var hud=Object.FindFirstObjectByType<HotelUI>();popCanvas.GetComponent<UnityEngine.UI.CanvasScaler>().scaleFactor=hud&&hud.TryGetComponent<UnityEngine.UI.CanvasScaler>(out var s)?s.scaleFactor:Mathf.Max(1,Screen.height/900f);
+   if(pops.Count<4){
+    if(!popRound)popRound=HotelUI.RoundedSprite();
+    var chip=new GameObject("Income pop",typeof(RectTransform),typeof(CanvasGroup)).GetComponent<RectTransform>();chip.SetParent(popCanvas.transform,false);chip.sizeDelta=new Vector2(70,26);
+    var bg=chip.gameObject.AddComponent<UnityEngine.UI.Image>();bg.sprite=popRound;bg.type=UnityEngine.UI.Image.Type.Sliced;bg.color=ConceptTheme.Cream;bg.raycastTarget=false;
+    var coin=UiCoin.Create(chip,popRound,17);coin.anchorMin=coin.anchorMax=new Vector2(0,.5f);coin.anchoredPosition=new Vector2(15,0);
+    var go=new GameObject("Amount",typeof(RectTransform));go.transform.SetParent(chip,false);var label=go.AddComponent<TextMeshProUGUI>();label.font=Resources.Load<TMP_FontAsset>("Fonts/Fredoka SDF");label.fontSize=15;label.fontStyle=FontStyles.Bold;label.alignment=TextAlignmentOptions.MidlineLeft;label.color=ConceptTheme.Ui.Ink;label.raycastTarget=false;label.textWrappingMode=TextWrappingModes.NoWrap;
+    var lr=label.rectTransform;lr.anchorMin=new Vector2(0,0);lr.anchorMax=new Vector2(1,1);lr.offsetMin=new Vector2(28,0);lr.offsetMax=new Vector2(-8,0);
+    pops.Add(label);
+   }
+   var pop=pops[popNext++%pops.Count];var rect=(RectTransform)pop.transform.parent;var fade=rect.GetComponent<CanvasGroup>();
+   pop.text=text;pop.ForceMeshUpdate();rect.sizeDelta=new Vector2(37+pop.preferredWidth,26);rect.gameObject.SetActive(true);
+   Tween.Run(pop,1.9f,k=>{if(!pop)return;var screen=View?View.WorldToScreenPoint(at+Vector3.up*(Tween.OutCubic(k)*.9f)):Vector3.zero;rect.position=new Vector3(screen.x,screen.y,0);rect.localScale=Vector3.one*Mathf.LerpUnclamped(.3f,1,Tween.OutBack(Mathf.Clamp01(k*3.5f)));fade.alpha=1-Mathf.Clamp01((k-.6f)/.4f);},()=>{if(rect)rect.gameObject.SetActive(false);});
+  }
+  public int ActivePops{get{int n=0;foreach(var p in pops)if(p&&p.transform.parent.gameObject.activeSelf)n++;return n;}}
   static Mesh Cube(){var g=GameObject.CreatePrimitive(PrimitiveType.Cube);var mesh=g.GetComponent<MeshFilter>().sharedMesh;Object.DestroyImmediate(g);return mesh;}
   // A flat 5x4 voxel heart, one unit wide, facing +z.
   static Mesh heart;

@@ -42,6 +42,28 @@ namespace Purrington.Tests {
    }
   }
 
+  [Test] public void ForestSwapsPetalsForLeavesAndDustDriftsOnlyByDay(){
+   using(var geometry=new GodotGeometry()){
+    var fx=new VoxelFx(geometry,root.transform);
+    float Rate(string name)=>fx.Root.Find(name).GetComponent<ParticleSystem>().emission.rateOverTime.constant;
+    fx.Ambient(Vector3.zero,0,true);Assert.AreEqual(0,Rate("Autumn leaves"));Assert.That(Rate("Dust motes"),Is.GreaterThan(0));
+    fx.Ambient(Vector3.zero,0,true,true);Assert.AreEqual(0,Rate("Blossom petals"));Assert.That(Rate("Autumn leaves"),Is.GreaterThan(0));
+    fx.Ambient(Vector3.zero,1,true);Assert.AreEqual(0,Rate("Dust motes"),"no dust motes at night");
+    fx.Motion=false;fx.Ambient(Vector3.zero,0,true,true);Assert.AreEqual(0,Rate("Autumn leaves"));Assert.AreEqual(0,Rate("Dust motes"));
+   }
+  }
+
+  [Test] public void IncomePopsShowTheEarnedAmountAndRespectReducedMotion(){
+   using(var geometry=new GodotGeometry()){
+    var fx=new VoxelFx(geometry,root.transform);
+    fx.Motion=false;fx.Pop(Vector3.zero,"+5");Assert.IsNull(fx.Root.Find("Income pops"),"reduced motion shows no pops");
+    fx.Motion=true;for(int i=0;i<6;i++)fx.Pop(Vector3.up,"+"+(10+i));
+    var labels=fx.Root.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).Where(l=>l.transform.parent.name=="Income pop").ToArray();
+    Assert.AreEqual(4,labels.Length,"pop labels are pooled");Assert.That(labels.Select(l=>l.text),Does.Contain("+15"));
+    Assert.AreEqual(0,fx.ActivePops,"outside Play mode a pop finishes at once");
+   }
+  }
+
   [Test] public void TweensSnapToTheirEndStateOutsidePlayModeOrWithReducedMotion(){
    var t=new GameObject("tweened").transform;t.SetParent(root.transform);t.localScale=Vector3.one*2;
    Tween.Settle(t);Assert.That(t.localScale,Is.EqualTo(Vector3.one*2));

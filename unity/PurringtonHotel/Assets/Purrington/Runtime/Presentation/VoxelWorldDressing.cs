@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Purrington.Presentation {
  // Phase C detail kit, driven by the shell's wall runs so it follows any hotel footprint:
  // vines along the tops of outer walls, flower beds along their base, lanterns beside entrances,
- // and wall-mounted bookshelves and glowing sconces on inside partitions. Nothing here stands on the floor
+ // framed pictures on the room side of outer walls, and wall-mounted bookshelves and glowing sconces on inside partitions. Nothing here stands on the floor
  // inside a room, so furniture placement, paths and cats are never blocked.
  public sealed partial class VoxelWorld {
   static readonly string[] DressBlooms={"F2A7B5","F7CC62","C9B6E4","F4F1E8","E6B7C1"};
@@ -26,6 +26,14 @@ namespace Purrington.Presentation {
      for(float y=0;y<drop;y+=.15f,leaf++)Box(at,root+axis*((Hash(seed,i*7+leaf)-.5f)*.14f)+Vector3.up*(GroundY+height-.02f-y),Vector3.one*(.22f-y*.1f),Shade("6e9b62",(Hash(seed,i*11+leaf)-.5f)*.1f));
      if(Hash(seed,i+57)>.45f)Box(at,root+outward*.08f+Vector3.up*(GroundY+height-.1f-drop*.55f),Vector3.one*.11f,DressBlooms[(int)(Hash(seed,i+91)*DressBlooms.Length)%DressBlooms.Length]);
     }
+   }
+   if(exterior&&primary&&height>2&&run.kind=="wall"&&length>=1.5f&&Hash(seed,3)<.55f){
+    // A small framed picture hangs on the room side of an outer wall: a sunny landscape or a cat portrait.
+    var inward=-outward;var mid=axis*(length/2)+inward*.13f+Vector3.up*1.55f;Vector3 Flat(float w,float h,float d)=>v?new Vector3(d,h,w):new Vector3(w,h,d);
+    Box(at,mid,Flat(.56f,.46f,.04f),"B3824C");
+    bool portrait=Hash(seed,4)<.5f;Box(at,mid+inward*.025f,Flat(.44f,.34f,.02f),portrait?"F4E3C0":"9FB7C9");
+    if(portrait){string fur=BookColors[(int)(Hash(seed,5)*BookColors.Length)%BookColors.Length];Box(at,mid+inward*.04f+Vector3.down*.03f,Flat(.2f,.16f,.02f),fur);foreach(float e in new[]{-.07f,.07f})Box(at,mid+inward*.04f+axis*e+Vector3.up*.08f,Flat(.06f,.06f,.02f),fur);foreach(float e in new[]{-.045f,.045f})Box(at,mid+inward*.05f+axis*e,Flat(.03f,.03f,.01f),"3B2F2A");}
+    else{Box(at,mid+inward*.04f+Vector3.down*.11f,Flat(.44f,.12f,.02f),"8FA35E");Box(at,mid+inward*.04f+axis*.12f+Vector3.up*.08f,Flat(.08f,.08f,.02f),"F7CC62");Box(at,mid+inward*.045f+axis*-.08f+Vector3.down*.04f,Flat(.1f,.1f,.02f),"738448");}
    }
    if(exterior&&height>2&&run.kind=="door"&&level==0){
     // A pair of glowing wall lanterns frames each entrance.

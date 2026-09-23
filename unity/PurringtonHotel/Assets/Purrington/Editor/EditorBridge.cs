@@ -109,7 +109,7 @@ namespace Purrington.Editor
                     r.stage = ""; Begin(r); return;
                 case "exiting":
                     if (EditorApplication.isPlaying) return;
-                    Reply(r, "ok", r.action == "capture" ? "Captured." : "Stopped.", x => x.file = r.filter);
+                    Reply(r, "ok", r.action == "capture" ? "Captured. " + r.tab : "Stopped.", x => x.file = r.filter);
                     return;
                 case "compiling":
                     // Give a refresh a moment to start compiling before deciding it had nothing to do.
@@ -133,9 +133,13 @@ namespace Purrington.Editor
                 case "posing":
                     // Let panels finish sliding in and lighting settle before the shot.
                     if (elapsed < .8) return;
+                    // capture -Filter pop shows an income pop half a second before the shot, once the panels have settled.
+                    if (r.filter == "pop") { UnityEngine.Object.FindFirstObjectByType<HotelApp>()?.World?.PopIncome(42); r.filter = "popped"; r.since = EditorApplication.timeSinceStartup + .3; Save(r); return; }
                     var file = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../builds/unity/editor-captures", DateTime.Now.ToString("yyyyMMdd-HHmmss") + (string.IsNullOrEmpty(r.tab) ? "" : "-" + r.tab) + ".png"));
                     Directory.CreateDirectory(Path.GetDirectoryName(file));
                     ScreenCapture.CaptureScreenshot(file);
+                    var capturedApp = UnityEngine.Object.FindFirstObjectByType<HotelApp>();
+                    r.tab = "(income pops so far: " + VoxelFx.PopCount + ", coins " + (capturedApp != null ? System.Math.Floor(capturedApp.Model.State.coins).ToString("N0") : "?") + ")";
                     r.filter = file; r.stage = "saving"; r.since = EditorApplication.timeSinceStartup; Save(r);
                     return;
                 case "saving":
