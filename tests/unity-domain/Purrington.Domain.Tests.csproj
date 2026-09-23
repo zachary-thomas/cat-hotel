@@ -10,6 +10,7 @@
     <Compile Include="ConstructionSuites.cs" />
     <Compile Include="WardrobeSuites.cs" />
     <Compile Include="ShellSuites.cs" />
+    <Compile Include="ArtSuites.cs" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>
