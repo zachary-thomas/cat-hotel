@@ -69,23 +69,29 @@ namespace Purrington.Presentation
             float nameHeight = speaker.GetPreferredValues(name, width - 2 * padding - 20 * ui, 0).y;
             float bodyHeight = body.GetPreferredValues(text, width - 2 * padding, 0).y;
             Vector2 size = new Vector2(width, padding * 2 + nameHeight + bodyHeight + 3 * ui);
-            float lift = motion ? (1 - Mathf.Clamp01(elapsed / .16f)) * 5 * ui : 0;
             candidates.Clear();
-            candidates.Add(anchor + new Vector2(-width / 2, 16 * ui - lift));
-            candidates.Add(anchor + new Vector2(18 * ui, 12 * ui - lift));
-            candidates.Add(anchor + new Vector2(-width - 18 * ui, 12 * ui - lift));
+            candidates.Add(anchor + new Vector2(-width / 2, 16 * ui));
+            candidates.Add(anchor + new Vector2(18 * ui, 12 * ui));
+            candidates.Add(anchor + new Vector2(-width - 18 * ui, 12 * ui));
             for (float y = anchor.y + 58 * ui; y + size.y <= area.yMax; y += 24 * ui)
                 candidates.Add(new Vector2(anchor.x - width / 2, y));
             candidates.Add(anchor - new Vector2(width / 2, size.y + 42 * ui));
             if (!TryPlace(size, area, candidates, protectedAreas, out var box)) { Hide(); return; }
-            panel.anchoredPosition = box.position;
+            // Each new line gets a small hop, so a reply feels like a new cat speaking.
+            float entrance = motion ? Mathf.Clamp01(elapsed / .28f) : 1;
+            float settle = 1 - Mathf.Pow(1 - entrance, 3);
+            float hop = motion ? Mathf.Sin(entrance * Mathf.PI) * (1 - entrance) * 3 * ui : 0;
+            var displayPosition = box.position + Vector2.up * (-8 * ui * (1 - settle) + hop);
+            panel.anchoredPosition = displayPosition;
             panel.sizeDelta = size;
             body.rectTransform.anchoredPosition = new Vector2(padding, padding);
             body.rectTransform.sizeDelta = new Vector2(width - padding * 2, bodyHeight);
             speaker.rectTransform.anchoredPosition = new Vector2(padding, padding + bodyHeight + 3 * ui);
             speaker.rectTransform.sizeDelta = new Vector2(width - padding * 2 - 20 * ui, nameHeight);
-            shape.Configure(anchor - box.position, gesture == "happy", ui);
-            fade.alpha = motion ? Mathf.Min(Mathf.Clamp01(elapsed / .14f), Mathf.Clamp01((duration - elapsed) / .22f)) : 1;
+            float heartPulse = motion ? .7f + .3f * settle + .13f * Mathf.Sin(entrance * Mathf.PI) : 1;
+            shape.Configure(anchor - displayPosition, gesture == "happy", ui, false, heartPulse);
+            fade.alpha = motion ? Mathf.Min(Mathf.SmoothStep(0, 1, Mathf.Clamp01(elapsed / .17f)),
+                Mathf.Clamp01((duration - elapsed) / .22f)) : 1;
             panel.gameObject.SetActive(true);
         }
 
@@ -111,31 +117,57 @@ namespace Purrington.Presentation
         }
     }
 
-    /// <summary>Resolution-independent rounded panel, outlined tail, and happy heart.</summary>
+    /// <summary>Shared rounded chat panel, white rim, pointed tail, and happy heart.</summary>
     public sealed class CatSpeechShape : MaskableGraphic
     {
-        Vector2 anchor; bool happy; float scale = 1;
-        public void Configure(Vector2 value, bool heart, float ui) { anchor = value; happy = heart; scale = ui; SetVerticesDirty(); }
+        Vector2 anchor; bool happy, status; float scale = 1, heartPulse = 1;
+        public void Configure(Vector2 value, bool heart, float ui, bool roomStatus = false, float pulse = 1)
+        { anchor = value; happy = heart; scale = ui; status = roomStatus; heartPulse = pulse; SetVerticesDirty(); }
         protected override void OnPopulateMesh(VertexHelper mesh)
         {
             mesh.Clear();
             var box = rectTransform.rect;
-            var cream = new Color32(255, 248, 232, 255);
-            var border = new Color32(190, 168, 132, 255);
-            Rounded(mesh, new Rect(box.position + new Vector2(0, -3 * scale), box.size), 17 * scale, new Color32(39, 51, 35, 42));
-            float x = Mathf.Clamp(anchor.x, 20 * scale, box.width - 20 * scale);
-            float edge = anchor.y < 0 ? 1 : box.height - 1;
-            Triangle(mesh, new Vector2(x - 8 * scale, edge), new Vector2(x + 8 * scale, edge), anchor, border);
-            Triangle(mesh, new Vector2(x - 5 * scale, edge), new Vector2(x + 5 * scale, edge), Vector2.Lerp(anchor, new Vector2(x, edge), .12f), cream);
-            Rounded(mesh, box, 17 * scale, border);
-            Rounded(mesh, new Rect(box.position + Vector2.one * 1.5f * scale, box.size - Vector2.one * 3 * scale), 15.5f * scale, cream);
+            var cream = status ? new Color32(255, 242, 215, 255) : new Color32(255, 248, 232, 255);
+            var border = status ? new Color32(189, 129, 80, 255) : new Color32(190, 168, 132, 255);
+            float radius = (status ? 11 : 17) * scale;
+            Rounded(mesh, new Rect(box.position + new Vector2(0, -3 * scale), box.size), radius,
+                new Color32(39, 51, 35, 42));
+            Tail(mesh, box, anchor, 8 * scale, border);
+            Tail(mesh, box, Vector2.Lerp(anchor, box.center, .08f), 6.5f * scale, Color.white);
+            Tail(mesh, box, Vector2.Lerp(anchor, box.center, .18f), 4.5f * scale, cream);
+            Rounded(mesh, box, radius, border);
+            Rounded(mesh, Inset(box, 1 * scale), radius - 1 * scale, Color.white);
+            Rounded(mesh, Inset(box, 4 * scale), radius - 4 * scale, cream);
             if (happy)
             {
                 var at = new Vector2(box.width - 20 * scale, box.height - 19 * scale);
                 var rose = new Color32(191, 108, 100, 255);
-                Rounded(mesh, new Rect(at + new Vector2(-7, -1) * scale, Vector2.one * 8 * scale), 4 * scale, rose);
-                Rounded(mesh, new Rect(at + new Vector2(-1, -1) * scale, Vector2.one * 8 * scale), 4 * scale, rose);
-                Triangle(mesh, at + new Vector2(-7, 2) * scale, at + new Vector2(7, 2) * scale, at + new Vector2(0, -8) * scale, rose);
+                float heartScale = scale * heartPulse;
+                Rounded(mesh, new Rect(at + new Vector2(-7, -1) * heartScale, Vector2.one * 8 * heartScale), 4 * heartScale, rose);
+                Rounded(mesh, new Rect(at + new Vector2(-1, -1) * heartScale, Vector2.one * 8 * heartScale), 4 * heartScale, rose);
+                Triangle(mesh, at + new Vector2(-7, 2) * heartScale, at + new Vector2(7, 2) * heartScale,
+                    at + new Vector2(0, -8) * heartScale, rose);
+            }
+        }
+        static Rect Inset(Rect box, float amount)
+        { return new Rect(box.position + Vector2.one * amount, box.size - Vector2.one * 2 * amount); }
+        static void Tail(VertexHelper mesh, Rect box, Vector2 anchor, float halfWidth, Color32 color)
+        {
+            if (anchor.x < 0 && anchor.y > 0 && anchor.y < box.height)
+            {
+                float y = Mathf.Clamp(anchor.y, 13, box.height - 13);
+                Triangle(mesh, new Vector2(1, y - halfWidth), new Vector2(1, y + halfWidth), anchor, color);
+            }
+            else if (anchor.x > box.width && anchor.y > 0 && anchor.y < box.height)
+            {
+                float y = Mathf.Clamp(anchor.y, 13, box.height - 13);
+                Triangle(mesh, new Vector2(box.width - 1, y - halfWidth), new Vector2(box.width - 1, y + halfWidth), anchor, color);
+            }
+            else
+            {
+                float x = Mathf.Clamp(anchor.x, 20, box.width - 20);
+                float edge = anchor.y < 0 ? 1 : box.height - 1;
+                Triangle(mesh, new Vector2(x - halfWidth, edge), new Vector2(x + halfWidth, edge), anchor, color);
             }
         }
         static void Triangle(VertexHelper mesh, Vector2 a, Vector2 b, Vector2 c, Color32 color)

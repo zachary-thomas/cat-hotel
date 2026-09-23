@@ -21,6 +21,7 @@ namespace Purrington.Presentation
         void LateUpdate()
         {
             if (model == null || !WorldCamera) return;
+            UpdateRoomStatusBadges();
             if (speechMap != currentMap || model.State.elapsed < speechClock)
             {
                 serviceSpeaker = serviceGuest = serviceVenue = null;

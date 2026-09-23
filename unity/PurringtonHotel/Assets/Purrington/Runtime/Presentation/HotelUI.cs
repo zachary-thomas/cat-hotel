@@ -45,7 +45,7 @@ namespace Purrington.Presentation
 
         Vector3 target;
 
-        bool hasTarget, settings, compactObjective=true, saveError;
+        bool hasTarget, settings, welcome, welcomeCameraHidden, compactObjective=true, saveError;
 
         Vector2 lastSize;
 
@@ -58,6 +58,15 @@ namespace Purrington.Presentation
         float textScale = 1, noticeUntil;
 
         Sprite rounded;
+
+        RectTransform welcomePlaque, welcomeRibbon, welcomeActions, welcomePlay, welcomePaw;
+        RectTransform[] welcomeGlints;
+        CanvasGroup welcomePlaqueFade, welcomeRibbonFade, welcomeActionsFade;
+        CanvasGroup[] welcomeGlintFades;
+        UnityEngine.UI.RawImage welcomePicture;
+        Rect welcomePictureUv;
+        Vector2 welcomePlaquePosition, welcomeRibbonPosition, welcomeActionsPosition;
+        float welcomeAnimationStart;
 
         UnityEngine.UI.ScrollRect activeScroll;
 
@@ -93,6 +102,9 @@ namespace Purrington.Presentation
 
             app = value;
 
+            var args=Environment.GetCommandLineArgs();
+            welcome=!args.Any(a=>a=="-purrington-smoke"||a=="-purrington-input-acceptance"||a=="-purrington-render-acceptance"||a=="-purrington-concept");
+
             body = Resources.Load<TMP_FontAsset>("Fonts/Nunito SDF");
 
             heading = Resources.Load<TMP_FontAsset>("Fonts/Fredoka SDF");
@@ -121,6 +133,8 @@ namespace Purrington.Presentation
 
         {
 
+            if(app == null || app.Model == null || app.World == null) return;
+
             if (lastSize != new Vector2(Screen.width,Screen.height) || lastSafe != EffectiveSafeArea) Rebuild();
             if (toast != null && !saveError && Time.unscaledTime > noticeUntil) toast.transform.parent.gameObject.SetActive(false);
 
@@ -131,15 +145,17 @@ namespace Purrington.Presentation
             if(!(Mouse.current?.leftButton.isPressed??false)&&!(Touchscreen.current?.primaryTouch.press.isPressed??false))lastPathCell=null;
 
             RefreshValues();
+            AnimateWelcome();
 
         }
 
-        void OnDestroy() { if (app != null && app.Model != null) app.Model.Changed -= RefreshValues; }
+        void OnDestroy() { if (welcomeCameraHidden && app != null && app.World != null && app.World.WorldCamera) app.World.WorldCamera.enabled=true; if (app != null && app.Model != null) app.Model.Changed -= RefreshValues; }
 
         void RefreshValues()
 
         {
 
+            if (app == null || app.Model == null) return;
             RefreshMarketStatus();
             if (wallet == null) return;
             double rate = app.Model.Rate();
@@ -153,6 +169,7 @@ namespace Purrington.Presentation
 
         {
 
+            welcome=false;
             bool returningFromTown=app.World.IsTownMode;
             if(returningFromTown){managerEditing=false;app.World.ExitTownMode();}
             if (careCat >= 0) { CloseWardrobe(); app.World.SetCareMode(careCat,false); }
@@ -183,6 +200,8 @@ namespace Purrington.Presentation
 
             if (settings) {settings=false; Rebuild(); return;}
 
+            if (welcome) return;
+
             Navigate("Hotel");
 
         }
@@ -193,6 +212,7 @@ namespace Purrington.Presentation
 
             if (IsPlacing || app.World.IsTownMode) return;
 
+            welcome=false;
             CloseWardrobe(); careCat=id; careTool="pet"; careDetails=false; settings=false;
 
             app.World.SetCareMode(id,true); Rebuild();
@@ -293,7 +313,7 @@ namespace Purrington.Presentation
 
             }
 
-            else app.World.SetPlacementPreview(placement,target,rotation,result.success);
+            else app.World.SetPlacementPreview(placement,target,rotation,result.success,movingObject);
 
             ShowNotice(result.success ? "Looks good! Confirm to place." : result.message,!result.success,false);
 
@@ -333,7 +353,7 @@ namespace Purrington.Presentation
 
         {
 
-            if (app == null) return;
+            if (app == null || app.Model == null || app.World == null) return;
 
             if(activeScroll!=null && scrollKey.Length>0)scrollPositions[scrollKey]=activeScroll.verticalNormalizedPosition;
 
@@ -345,6 +365,11 @@ namespace Purrington.Presentation
             if(lastSafe.width<=0 || lastSafe.height<=0)lastSafe=new Rect(0,0,Screen.width,Screen.height);
 
             textScale=app.Model.State.settings.textScale;
+
+            // Rebuild destroys the previous welcome hierarchy at the end of this frame.
+            welcomePicture=null;
+            welcomeGlints=null;
+            welcomeGlintFades=null;
 
             foreach(Transform child in transform) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
 
@@ -365,6 +390,25 @@ namespace Purrington.Presentation
             safe.anchorMax=new Vector2(lastSafe.xMax/Screen.width,lastSafe.yMax/Screen.height);
 
             safe.offsetMin=safe.offsetMax=Vector2.zero;
+
+            if(welcome)
+            {
+                if(app.World.WorldCamera && app.World.WorldCamera.enabled)
+                {
+                    app.World.WorldCamera.enabled=false;
+                    welcomeCameraHidden=true;
+                }
+                WelcomePanel();
+                app.World.SetInputBlocked(true);
+                AvailableWorldRect=lastSafe;
+                return;
+            }
+
+            if(welcomeCameraHidden && app.World.WorldCamera)
+            {
+                app.World.WorldCamera.enabled=true;
+                welcomeCameraHidden=false;
+            }
 
             Header();
 
@@ -457,6 +501,217 @@ namespace Purrington.Presentation
         }
         RectTransform FindActiveRect(string name)=>GetComponentsInChildren<RectTransform>().FirstOrDefault(r=>r.name==name&&r.gameObject.activeInHierarchy);
         public static Rect ScreenBounds(RectTransform rect){var corners=new Vector3[4];rect.GetWorldCorners(corners);return UnityEngine.Rect.MinMaxRect(corners[0].x,corners[0].y,corners[2].x,corners[2].y);}
+
+        void WelcomePanel()
+        {
+            dock=null;
+            sheet=null;
+            var backdrop=Rect("Welcome background",safe);
+            Stretch(backdrop);
+            backdrop.gameObject.AddComponent<UnityEngine.UI.Image>().color=Hex("E8DDC5");
+            var width=Mathf.Min(430f,lastSafe.width/Mathf.Max(.01f,canvas.scaleFactor));
+            var card=Rect("Welcome content",backdrop);
+            Pin(card,new Vector2(.5f,0),new Vector2(.5f,1),new Vector2(.5f,.5f),new Vector2(-width*.5f,0),new Vector2(width*.5f,0));
+            card.gameObject.AddComponent<UnityEngine.UI.Image>().color=Hex("FFF8E9");
+            var cardShadow=card.gameObject.AddComponent<UnityEngine.UI.Shadow>();
+            cardShadow.effectColor=new Color(.13f,.16f,.11f,.27f);
+            cardShadow.effectDistance=new Vector2(0,-5);
+
+            var art=Rect("Hotel exterior",card);
+            Stretch(art);
+            var picture=art.gameObject.AddComponent<UnityEngine.UI.RawImage>();
+            welcomePicture=picture;
+            var texture=Resources.Load<Texture2D>("Art/welcome-exterior")??Resources.Load<Texture2D>("Art/welcome-hotel");
+            picture.texture=texture;
+            picture.raycastTarget=false;
+            if(texture!=null)
+            {
+                float frameAspect=width/(lastSafe.height/Mathf.Max(.01f,canvas.scaleFactor));
+                float artAspect=(float)texture.width/texture.height;
+                if(frameAspect<artAspect)
+                {
+                    float visibleWidth=frameAspect/artAspect;
+                    picture.uvRect=new Rect((1f-visibleWidth)*.5f,0,visibleWidth,1);
+                }
+                else
+                {
+                    float visibleHeight=artAspect/frameAspect;
+                    picture.uvRect=new Rect(0,(1f-visibleHeight)*.5f,1,visibleHeight);
+                }
+            }
+            welcomePictureUv=picture.uvRect;
+
+            var plaque=Panel("Hotel name plaque",card,Hex("B3824C"));
+            Pin(plaque,new Vector2(.095f,.833f),new Vector2(.905f,.967f),new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
+            var plaqueShadow=plaque.gameObject.AddComponent<UnityEngine.UI.Shadow>();
+            plaqueShadow.effectColor=new Color(.23f,.17f,.10f,.29f);
+            plaqueShadow.effectDistance=new Vector2(0,-4);
+            var plaqueFace=Panel("Cream plaque face",plaque,Hex("FFF8E9"));
+            Stretch(plaqueFace,3,3,3,3);
+            var brand=Text(plaqueFace,"PURRINGTON\nHOTEL",textScale>1.25f?20:25,Ink,true);
+            brand.alignment=TextAlignmentOptions.Center;
+            brand.characterSpacing=1.3f;
+            brand.lineSpacing=-5f;
+            brand.overflowMode=TextOverflowModes.Truncate;
+            Stretch(brand.rectTransform,8,3,8,3);
+            var ribbon=Panel("Welcome tagline ribbon",card,Hex("FFF8E9"));
+            Pin(ribbon,new Vector2(.19f,.778f),new Vector2(.81f,.825f),new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
+            var tagline=Text(ribbon,"Cozy stays. Happy cats.",14,Ink,true);
+            tagline.alignment=TextAlignmentOptions.Center;
+            tagline.overflowMode=TextOverflowModes.Truncate;
+            Stretch(tagline.rectTransform,4,1,4,1);
+
+            var actions=Panel("Welcome actions",card,Hex("CAB286"));
+            Pin(actions,new Vector2(.026f,.022f),new Vector2(.974f,.275f),new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
+            var actionsShadow=actions.gameObject.AddComponent<UnityEngine.UI.Shadow>();
+            actionsShadow.effectColor=new Color(.20f,.17f,.12f,.23f);
+            actionsShadow.effectDistance=new Vector2(0,-4);
+            var face=Panel("Welcome action surface",actions,Hex("FFF9EF"));
+            Stretch(face,2,2,2,2);
+
+            var play=Button(face,"Open your hotel",()=>{welcome=false;settings=false;Rebuild();app.World.FitHotel();},Hex("258F78"),19);
+            Pin(play,new Vector2(.035f,.54f),new Vector2(.965f,.90f),new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
+            var playShadow=play.gameObject.AddComponent<UnityEngine.UI.Shadow>();
+            playShadow.effectColor=new Color(.10f,.27f,.21f,.35f);
+            playShadow.effectDistance=new Vector2(0,-3);
+            var playLabel=play.GetComponentInChildren<TextMeshProUGUI>();
+            playLabel.color=Color.white;
+            playLabel.overflowMode=TextOverflowModes.Truncate;
+            Stretch(playLabel.rectTransform,48,2,14,2);
+            var paw=WelcomePaw(play,Hex("FFE1A0"));
+
+            var settingsRim=Panel("Settings outline",face,Hex("CCBFA9"));
+            Pin(settingsRim,new Vector2(.20f,.20f),new Vector2(.80f,.52f),new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
+            var preferences=Button(settingsRim,"Settings",()=>{settings=true;Rebuild();},Hex("FFFDF8"),15);
+            Stretch(preferences,2,2,2,2);
+            preferences.GetComponentInChildren<TextMeshProUGUI>().overflowMode=TextOverflowModes.Truncate;
+            var note=Text(face,"Your hotel earns while you're away.",12,Ink);
+            note.alignment=TextAlignmentOptions.Center;
+            note.overflowMode=TextOverflowModes.Truncate;
+            Pin(note.rectTransform,new Vector2(.05f,.035f),new Vector2(.95f,.19f),new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
+
+            if(app.Model.State.settings.motion)
+            {
+                welcomePlaque=plaque;
+                welcomeRibbon=ribbon;
+                welcomeActions=actions;
+                welcomePlay=play;
+                welcomePaw=paw;
+                welcomePlaquePosition=plaque.anchoredPosition;
+                welcomeRibbonPosition=ribbon.anchoredPosition;
+                welcomeActionsPosition=actions.anchoredPosition;
+                welcomePlaqueFade=plaque.gameObject.AddComponent<CanvasGroup>();
+                welcomeRibbonFade=ribbon.gameObject.AddComponent<CanvasGroup>();
+                welcomeActionsFade=actions.gameObject.AddComponent<CanvasGroup>();
+                welcomePlaqueFade.alpha=0;
+                welcomeRibbonFade.alpha=0;
+                welcomeActionsFade.alpha=0;
+                welcomeGlints=new RectTransform[3];
+                welcomeGlintFades=new CanvasGroup[3];
+                welcomeGlints[0]=WelcomeGlint(card,new Vector2(.13f,.62f),out welcomeGlintFades[0]);
+                welcomeGlints[1]=WelcomeGlint(card,new Vector2(.86f,.69f),out welcomeGlintFades[1]);
+                welcomeGlints[2]=WelcomeGlint(card,new Vector2(.82f,.39f),out welcomeGlintFades[2]);
+                welcomeAnimationStart=Time.unscaledTime;
+            }
+
+            if(!settings)return;
+            SettingsPanel();
+        }
+
+        void AnimateWelcome()
+        {
+            if(!welcome || app.Model == null || !app.Model.State.settings.motion || welcomePlaque == null) return;
+
+            float elapsed=Time.unscaledTime-welcomeAnimationStart;
+            float Arrive(float delay,float duration)
+            {
+                float progress=Mathf.Clamp01((elapsed-delay)/duration);
+                return progress*progress*(3f-2f*progress);
+            }
+            float plaqueArrival=Arrive(0,.55f);
+            float ribbonArrival=Arrive(.13f,.52f);
+            float actionsArrival=Arrive(.25f,.58f);
+            welcomePlaqueFade.alpha=plaqueArrival;
+            welcomeRibbonFade.alpha=ribbonArrival;
+            welcomeActionsFade.alpha=actionsArrival;
+            welcomePlaque.anchoredPosition=welcomePlaquePosition+new Vector2(0,-12f*(1f-plaqueArrival)+1.3f*Mathf.Sin(elapsed*1.45f)*plaqueArrival);
+            welcomeRibbon.anchoredPosition=welcomeRibbonPosition+new Vector2(0,-8f*(1f-ribbonArrival)+.7f*Mathf.Sin(elapsed*1.45f+.7f)*ribbonArrival);
+            welcomeActions.anchoredPosition=welcomeActionsPosition+new Vector2(0,-16f*(1f-actionsArrival));
+
+            float breathe=Mathf.Sin(elapsed*2.5f);
+            welcomePlay.localScale=Vector3.one*(1f+.012f*breathe*actionsArrival);
+            welcomePaw.localRotation=Quaternion.Euler(0,0,7f*Mathf.Sin(elapsed*3.1f)*actionsArrival);
+
+            // Change only the sampled UVs so the illustration never grows outside its frame.
+            if(welcomePicture != null && welcomePicture.texture != null)
+            {
+                float zoom=.986f+.003f*Mathf.Sin(elapsed*.8f);
+                float width=welcomePictureUv.width*zoom;
+                float height=welcomePictureUv.height*zoom;
+                float driftX=.5f+.32f*Mathf.Sin(elapsed*.37f);
+                float driftY=.5f+.32f*Mathf.Sin(elapsed*.29f+.8f);
+                welcomePicture.uvRect=new Rect(
+                    welcomePictureUv.x+(welcomePictureUv.width-width)*driftX,
+                    welcomePictureUv.y+(welcomePictureUv.height-height)*driftY,
+                    width,height);
+            }
+
+            for(int i=0;i<welcomeGlints.Length;i++)
+            {
+                float phase=elapsed*1.9f+i*2.1f;
+                float shimmer=Mathf.Max(0,Mathf.Sin(phase));
+                welcomeGlintFades[i].alpha=plaqueArrival*(.12f+.6f*shimmer*shimmer);
+                welcomeGlints[i].anchoredPosition=new Vector2(0,2.5f*Mathf.Sin(elapsed*1.1f+i));
+                welcomeGlints[i].localRotation=Quaternion.Euler(0,0,9f*Mathf.Sin(elapsed*.8f+i));
+            }
+        }
+
+        RectTransform WelcomeGlint(RectTransform parent,Vector2 anchor,out CanvasGroup fade)
+        {
+            var glint=Rect("Welcome glint",parent);
+            Pin(glint,anchor,anchor,new Vector2(.5f,.5f),new Vector2(-10,-10),new Vector2(10,10));
+            fade=glint.gameObject.AddComponent<CanvasGroup>();
+            fade.alpha=0;
+            void Ray(string name,Vector2 size)
+            {
+                var ray=Rect(name,glint);
+                ray.anchorMin=ray.anchorMax=new Vector2(.5f,.5f);
+                ray.pivot=new Vector2(.5f,.5f);
+                ray.anchoredPosition=Vector2.zero;
+                ray.sizeDelta=size;
+                var glow=ray.gameObject.AddComponent<UnityEngine.UI.Image>();
+                glow.sprite=rounded;
+                glow.type=UnityEngine.UI.Image.Type.Sliced;
+                glow.color=Hex("FFF0BB");
+                glow.raycastTarget=false;
+            }
+            Ray("Vertical sparkle",new Vector2(3,18));
+            Ray("Horizontal sparkle",new Vector2(18,3));
+            return glint;
+        }
+
+        RectTransform WelcomePaw(RectTransform parent,Color color)
+        {
+            var paw=Rect("Paw emblem",parent);
+            Pin(paw,new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(17,-14),new Vector2(45,14));
+            void Pad(string name,float x,float y,float w,float h)
+            {
+                var part=Rect(name,paw);
+                part.anchorMin=part.anchorMax=Vector2.zero;
+                part.pivot=Vector2.zero;
+                part.anchoredPosition=new Vector2(x,y);
+                part.sizeDelta=new Vector2(w,h);
+                var mark=part.gameObject.AddComponent<UnityEngine.UI.Image>();
+                mark.sprite=rounded;
+                mark.color=color;
+                mark.raycastTarget=false;
+            }
+            Pad("Paw pad",7,2,15,13);
+            Pad("Left toe",1,16,6,8);
+            Pad("Middle toe",9,19,6,8);
+            Pad("Right toe",18,16,6,8);
+            return paw;
+        }
 
         void Header()
 
@@ -666,15 +921,15 @@ namespace Purrington.Presentation
 
             else
             {
-                fraction=CapPhoneSheetFraction(fraction);
-                Pin(sheet,Vector2.zero,new Vector2(1,fraction),Vector2.zero,new Vector2(10,96),new Vector2(-10,0));
+                fraction=welcome?.78f:CapPhoneSheetFraction(fraction);
+                Pin(sheet,Vector2.zero,new Vector2(1,fraction),Vector2.zero,new Vector2(10,welcome?10:96),new Vector2(-10,0));
             }
 
             var label=Text(sheet,title,18,Ink,true);
 
             Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(18,-58),new Vector2(-76,-8));
 
-            var close=Button(sheet,"Back",()=>{if(tab=="Town")Back();else Navigate("Hotel");},Gold,12);
+            var close=Button(sheet,"Back",()=>{if(tab=="Town")Back();else if(welcome){settings=false;Rebuild();}else Navigate("Hotel");},Gold,12);
 
             Pin(close,new Vector2(1,1),Vector2.one,Vector2.one,new Vector2(-66,-56),new Vector2(-10,-8));
 
@@ -761,7 +1016,8 @@ namespace Purrington.Presentation
 
                     if(room.cells==null)RoomExtras(content,id,room.width,room.depth);
 
-                    Info(content,"EDIT ROOM",(room.cells==null?room.width+" × "+room.depth:room.cells.Count.ToString())+" tiles · "+(app.Model.IsRoomReady(room)?"Ready for guests":"Needs reachable bed and reception")+"\n"+(room.cells==null?"Move or resize this room.":"Reshape this room with Walls.")+" Removing stores furniture and returns "+room.paid.ToString("N0")+" shell coins.");
+                    var roomStatus=app.Model.RoomStatus(room.id);
+                    Info(content,"EDIT ROOM",(room.cells==null?room.width+" × "+room.depth:room.cells.Count.ToString())+" tiles · "+roomStatus.status+"\n"+roomStatus.message+"\n"+(room.cells==null?"Move or resize this room.":"Reshape this room with Walls.")+" Removing stores furniture and returns "+room.paid.ToString("N0")+" shell coins.");
 
                     var actions=Row(content,56);
 
@@ -816,7 +1072,8 @@ namespace Purrington.Presentation
 
                     string id=room.id;number++;
 
-                    Card(content,"Room "+number+" · "+room.width+" × "+room.depth,app.Model.IsRoomReady(room)?"Ready for guests":"Unfinished · add bed and access","Edit",()=>EditRoom(id),Gold);
+                    var roomStatus=app.Model.RoomStatus(room.id);
+                    Card(content,"Room "+number+" · "+room.width+" × "+room.depth,roomStatus.status,"Edit",()=>EditRoom(id),Gold);
 
                 }
 
@@ -956,7 +1213,7 @@ namespace Purrington.Presentation
 
             var state=app.Model.State.settings;
 
-            Card(content,"Animated motion","Cat movement and little world details",state.motion?"On":"Off",()=>{app.Report(app.Model.SetSettings(state.textScale,!state.motion,state.music,state.sound));Rebuild();},Gold);
+            Card(content,"Animated motion","Welcome sparkles, cat movement, and little world details",state.motion?"On":"Off",()=>{app.Report(app.Model.SetSettings(state.textScale,!state.motion,state.music,state.sound));Rebuild();},Gold);
 
             Card(content,"Assisted care","Guided actions for easier cat care",state.assistedCare?"On":"Off",()=>{app.Report(app.Model.SetAssistedCare(!state.assistedCare));Rebuild();},Mint);
 

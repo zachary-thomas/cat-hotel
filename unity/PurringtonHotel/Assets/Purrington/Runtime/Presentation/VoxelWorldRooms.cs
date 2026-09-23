@@ -16,4 +16,3 @@ namespace Purrington.Presentation {public sealed partial class VoxelWorld {
  void Foliage(Transform p,Vector3 at,Vector3 dim,string c){for(int layer=0;layer<3;layer++){float b=layer==1?1:.72f;Box(p,at+Vector3.up*(layer-1)*dim.y*.27f,new Vector3(dim.x*b,dim.y*.42f,dim.z*b),Shade(c,layer*.035f));}for(int i=0;i<12;i++){var pos=new Vector3((i%4/3f-.5f)*dim.x*.88f,dim.y*(.19f+(i*3)%5*.07f),(i/4/2f-.5f)*dim.z*.91f);Box(p,at+pos,new Vector3(dim.x*.28f,dim.y*.3f,dim.z*.29f),Shade(c,i%3*.055f));}}
  void Paw(Transform p,float s,string c){Box(p,new Vector3(0,0,s*.19f),new Vector3(s*.62f,.016f,s*.49f),c);Box(p,new Vector3(0,0,s*.08f),new Vector3(s*.78f,.016f,s*.22f),c);for(int toe=0;toe<4;toe++)Box(p,new Vector3((toe-1.5f)*s*.28f,0,-s*(toe==1||toe==2?.26f:.1f)),new Vector3(s*.2f,.016f,s*.25f),c);}
 }}
-
