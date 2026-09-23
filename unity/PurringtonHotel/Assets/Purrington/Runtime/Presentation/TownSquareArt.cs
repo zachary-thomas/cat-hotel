@@ -18,24 +18,25 @@ namespace Purrington.Presentation {
    Root=MainStreetArt.Group(parent,"Town square event");
    var q=content.Point("square");float u=VoxelWorld.Unit;
    var board=MainStreetArt.Group(Root,"Market Day board");
-   board.localPosition=new Vector3((q.x+4.8f)*u,0,(q.z+.3f)*u);
+   board.localPosition=new Vector3((q.x-4)*u,0,(q.z-4.2f)*u);
    Box(geometry,board,"Notice frame",new Vector3(0,1.65f,0),new Vector3(2.8f,1.7f,.22f),"425C35");
-   BoardText=Sign(board,"Market Day",new Vector3(0,1.65f,-.16f),.14f);
+   // The board shows voxel lettering; its status text is kept for the panel and tests but not drawn as a floating label.
+   var boardLetters=geometry.Build(board,VoxelLetters.Recipe("Market Day letters","MARKET DAY",.07f,.06f,"F4EAD5"));boardLetters.localPosition=new Vector3(0,1.65f,.11f);boardLetters.localScale=new Vector3(1,1,-1);
+   BoardText=Sign(board,"Market Day",new Vector3(0,1.65f,-.16f),.14f);BoardText.GetComponent<MeshRenderer>().enabled=false;
    Market=MainStreetArt.Group(Root,"Market Day fixtures");
    shoppers=new GodotCatRig[2];chatter=new TextMesh[2];
    for(int i=0;i<2;i++){
-    int side=i==0?-1:1;float x=(q.x+side*6.3f)*u,z=(q.z-1)*u;
+    int side=i==0?-1:1;float x=(q.x+side*5f)*u,z=(q.z-.5f)*u;
     var kiosk=MainStreetArt.Group(Market,"Market kiosk "+(i+1));
     Box(geometry,kiosk,"Counter",new Vector3(x,.65f,z),new Vector3(2.1f,1,.95f),"B3824C");
     foreach(float post in new[]{-.9f,.9f})Box(geometry,kiosk,"Post",new Vector3(x+post,1.5f,z),new Vector3(.12f,2.7f,.12f),"D2AD77");
     Box(geometry,kiosk,"Awning",new Vector3(x,2.75f,z),new Vector3(2.5f,.25f,1.5f),i==0?"738448":"BF7958");
-    var name=MainStreetArt.Group(kiosk,i==0?"Treats sign":"Flowers sign");name.localPosition=new Vector3(x,2.36f,z-.55f);
-    Sign(name,i==0?"CAT TREATS":"FLOWERS",Vector3.zero,.115f);
+    var name=geometry.Build(kiosk,VoxelLetters.Recipe(i==0?"Treats sign":"Flowers sign",i==0?"TREATS":"FLOWERS",.075f,.05f,"F4EAD5"));name.localPosition=new Vector3(x,2.75f,z+.78f);name.localScale=new Vector3(1,1,-1);
     Box(geometry,kiosk,"String light",new Vector3(x,2.48f,z-.7f),new Vector3(2.25f,.08f,.08f),"D7AE55");
     for(int bulb=0;bulb<5;bulb++)Box(geometry,kiosk,"Lantern",new Vector3(x-.9f+bulb*.45f,2.37f,z-.72f),new Vector3(.13f,.18f,.13f),"F5DA83");
-    shoppers[i]=new GodotCatRig(geometry,Market,ManagerCatArt.Recipe(i==0?"cream":"ginger",i==0?"tuxedo":"tabby"),110+i);
+    shoppers[i]=new GodotCatRig(geometry,Market,ManagerCatArt.Recipe(geometry,i==0?"cream":"ginger",i==0?"tuxedo":"tabby"),110+i);
     shoppers[i].Root.localScale=Vector3.one*.72f;
-    shoppers[i].Root.localPosition=new Vector3((q.x+side*3.1f)*u,.18f,(q.z+1.9f)*u);
+    shoppers[i].Root.localPosition=new Vector3((q.x+side*2.4f)*u,.18f,(q.z+1.2f)*u);
     shoppers[i].Root.localRotation=Quaternion.Euler(0,i==0?65:-65,0);
     var speech=MainStreetArt.Group(shoppers[i].Root,"Market conversation");speech.localPosition=new Vector3(0,2.7f,0);
     chatter[i]=Sign(speech,i==0?"Lovely day!":"Hello, friend!",Vector3.zero,.12f);

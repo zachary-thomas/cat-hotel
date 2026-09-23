@@ -32,7 +32,7 @@ namespace Purrington.Presentation {
    if(!townMode||currentMap!=0||model.Hotel(0).town.shop!=id)return;
    if(storeInterior.IsVisible)return;
    storeInterior.SetManagerAppearance(model.State.managerCoat,model.State.managerMarkings);
-   townStreetFollowing=townFollowing;storeInterior.Enter(id);townFollowing=false;pressed=false;
+   townStreetFollowing=townFollowing;storeInterior.Enter(id);if(townArt!=null&&townArt.Storefronts.TryGetValue(id,out var front))front.gameObject.SetActive(false);townFollowing=false;pressed=false;
    townStreetFocus=focus;townStreetZoom=zoom;townStreetManual=manualCamera;townStreetBounds=lastFitBounds;
    FocusBounds(new Bounds(storeInterior.Focus,new Vector3(9.5f,3.6f,8.5f)));
    SyncManager(0);
@@ -46,7 +46,7 @@ namespace Purrington.Presentation {
   }
   void SuspendStoreInterior(){
    if(storeInterior==null||!storeInterior.IsVisible)return;
-   storeInterior.Exit();townFollowing=townStreetFollowing;pressed=false;focus=townStreetFocus;zoom=townStreetZoom;manualCamera=townStreetManual;lastFitBounds=townStreetBounds;UpdateCamera();SyncManager(0);
+   storeInterior.Exit();if(townArt!=null)foreach(var front in townArt.Storefronts.Values)front.gameObject.SetActive(true);townFollowing=townStreetFollowing;pressed=false;focus=townStreetFocus;zoom=townStreetZoom;manualCamera=townStreetManual;lastFitBounds=townStreetBounds;UpdateCamera();SyncManager(0);
   }
   public bool SelectStoreCashier(){return storeInterior!=null&&storeInterior.SelectCashier();}
   void RefreshTown(){
@@ -75,7 +75,7 @@ namespace Purrington.Presentation {
    var rect=VisibleWorldRect();zoom=Mathf.Max(4.8f,4.8f*Screen.height/Mathf.Max(1,rect.height));UpdateCamera();
   }
   public void FocusManagerAppearance(){if(storeInterior?.IsVisible==true)return;FocusManager();zoom*=.45f;UpdateCamera();}
-  public void FitTown(){if(!townMode||storeInterior?.IsVisible==true)return;townFollowing=false;FocusBounds(new Bounds(new Vector3(25*Unit,1.5f,17*Unit),new Vector3(23*Unit,5,30*Unit)));}
+  public void FitTown(){if(!townMode||storeInterior?.IsVisible==true)return;townFollowing=false;FocusBounds(new Bounds(new Vector3(-2*Unit,1.5f,20*Unit),new Vector3(68*Unit,6,26*Unit)));}
   public void PreviewManagerAppearance(string coat,string markings){previewCoat=coat;previewMarkings=markings;SyncManager(0);}
   public void ClearManagerPreview(){previewCoat=previewMarkings=null;SyncManager(0);}
   public bool SelectTownStore(string id){
@@ -94,7 +94,7 @@ namespace Purrington.Presentation {
    squareArt?.Update(model,delta,model.State.settings.motion);
    if(TownContent.Current==null)return;
    string coat=previewCoat??model.State.managerCoat,marking=previewMarkings??model.State.managerMarkings,look=coat+"/"+marking;
-   if(managerRig==null||managerLook!=look){DisposeNode(managerRig?.Root);managerRig=new GodotCatRig(geometry,renderRoot,ManagerCatArt.Recipe(coat,marking),91);managerRig.Root.localScale=Vector3.one*.83f;managerLook=look;managerOutfitSignature=null;}
+   if(managerRig==null||managerLook!=look){DisposeNode(managerRig?.Root);managerRig=new GodotCatRig(geometry,renderRoot,ManagerCatArt.Recipe(geometry,coat,marking),91);managerRig.Root.localScale=Vector3.one*.83f;managerLook=look;managerOutfitSignature=null;}
    string outfit=CatOutfitView.Signature(model.State.managerOutfit);
    if(managerOutfitSignature!=outfit){CatOutfitView.Apply(geometry,managerRig,model.State.managerOutfit);managerOutfitSignature=outfit;}
    storeInterior?.SetManagerOutfit(model.State.managerOutfit);

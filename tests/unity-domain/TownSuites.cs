@@ -21,15 +21,15 @@ static class TownSuites
   }
   check(TownRoute.Find(town,town.Point("hotel_gate"),"unknown").Count==0,"unknown destination rejected");
   check(TownRoute.Find(town,town.Point("hotel_gate"),"paw_mart_cashier").Count==0,"interior destination rejected");
-  var halfway=new LotPoint(20,17.74f);
+  var halfway=new LotPoint(11,12.75f);
   var resumed=TownRoute.Find(town,halfway,"clothing_door");
   check(resumed.Count>1&&resumed[0].Distance(halfway)<.001f&&resumed.Last().Distance(town.Point("clothing_door"))<.001f,"in-progress street route resumes");
-  check(resumed.Skip(1).All((point)=>point.Distance(town.Point("square"))<.001f||point.Distance(town.Point("clothing_door"))<.001f),"resumed route stays on the eastern pedestrian links");
+  check(resumed.Skip(1).All((point)=>point.Distance(town.Point("hotel_gate"))<.001f||point.Distance(town.Point("clothing_door"))<.001f),"resumed route stays on the frontage links");
   for(int i=1;i<resumed.Count;i++)check(town.HasStreetLink(resumed[i-1],resumed[i]),"resumed route uses authored link");
   var returning=TownRoute.Find(town,halfway,"hotel_gate");
-  check(returning.Count==3&&returning[1].Distance(town.Point("east_walk"))<.001f&&returning.Last().Distance(town.Point("hotel_gate"))<.001f,"in-progress route can return toward hotel");
-  check(TownRoute.Find(town,new LotPoint(20,17.745f),"square").Count==0,"nearby off-link start rejected");
-  check(TownRoute.Find(town,new LotPoint(0,14),"square").Count==0,"off-link start cannot create unauthored connector");
+  check(returning.Count==2&&returning.Last().Distance(town.Point("hotel_gate"))<.001f,"in-progress route can return toward hotel");
+  check(TownRoute.Find(town,new LotPoint(11,12.755f),"square").Count==0,"nearby off-link start rejected");
+  check(TownRoute.Find(town,new LotPoint(3,14),"square").Count==0,"off-link start cannot create unauthored connector");
   var original=JObject.Parse(File.ReadAllText("unity/PurringtonHotel/Assets/Resources/Content/MainStreet.json"));
   void Reject(Action<JObject> change,string reason)
   {
@@ -41,9 +41,13 @@ static class TownSuites
   Reject(j=>((JArray)j["links"]).Add(new JArray("square","missing")),"missing link endpoint rejected");
   Reject(j=>((JArray)j["links"]).Add(new JArray("square","paw_mart_cashier")),"interior pedestrian link rejected");
   Reject(j=>((JObject)((JArray)j["nodes"])[0])["x"]=1e99,"non-finite node position rejected");
-  Reject(j=>{((JArray)j["nodes"]).Add(new JObject{{"id","blocked"},{"x",28},{"z",0},{"area","street"}});((JArray)j["links"]).Add(new JArray("square","blocked"));},"link across shop footprint rejected");
+  Reject(j=>{((JArray)j["nodes"]).Add(new JObject{{"id","blocked"},{"x",28},{"z",6},{"area","street"}});((JArray)j["links"]).Add(new JArray("square","blocked"));},"link across shop footprint rejected");
   check(ReferenceEquals(TownContent.Current,town),"invalid content does not replace registry");
   var parity=ParityContent.LoadJson(File.ReadAllText("unity/PurringtonHotel/Assets/Resources/Content/GodotReference.json"));
+  // Shops must leave the hotel lot and every buyable expansion plot free so the hotel can still grow.
+  var meadow=parity.Maps[0];var lots=new System.Collections.Generic.List<LotRect>{new LotRect((float)meadow["base"][0],(float)meadow["base"][1],(float)meadow["base"][2],(float)meadow["base"][3])};
+  foreach(var plot in meadow["plots"])lots.Add(new LotRect((float)plot["rect"][0],(float)plot["rect"][1],(float)plot["rect"][2],(float)plot["rect"][3]));
+  foreach(var id in new[]{"paw_mart","clothing"}){var f=town.Shop(id).footprint;check(!lots.Any(l=>f.x<l.x+l.w&&l.x<f.x+f.w&&f.z<l.z+l.d&&l.z<f.z+f.d),id+" stays clear of the hotel lot and its plots");}
   var manager=new HotelModel(new MemoryStore(),parity);
   check(manager.LoadOrCreate().success,"town starter saves");
   check((string)JObject.FromObject(manager.State)["managerName"]=="Manager","default manager name saved");

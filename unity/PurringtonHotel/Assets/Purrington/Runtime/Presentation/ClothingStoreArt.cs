@@ -20,7 +20,7 @@ namespace Purrington.Presentation {
    string[] slots={"head","neck","back"};
    for(int i=0;i<3;i++){
     float z=-2.5f+i*1.2f;Box("Display plinth",3.5f,.18f,z,.85f,.35f,.85f,"D2AD77");
-    var rig=new GodotCatRig(geometry,root,ManagerCatArt.Recipe("cream","solid"),120+i);
+    var rig=new GodotCatRig(geometry,root,ManagerCatArt.Recipe(geometry,"cream","solid"),120+i);
     rig.Root.name=char.ToUpper(slots[i][0])+slots[i].Substring(1)+" display mannequin";
     rig.Root.localPosition=new Vector3(x+3.5f,.36f,z);rig.Root.localScale=Vector3.one*.55f;
     // Reuse catalogue geometry on the same bindings as the fitting cat.

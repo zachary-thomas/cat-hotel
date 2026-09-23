@@ -44,7 +44,7 @@ public sealed class ShoppingCartTests {
   Assert.That(Vector3.Distance(at,first.Root.localPosition),Is.GreaterThan(.1f));
  }
  [Test] public void ReducedMotionKeepsStaticPawPoseAndPurchaseDestination(){
-  var rig=new GodotCatRig(geometry,root.transform,ManagerCatArt.Recipe("honey","solid"),0);
+  var rig=new GodotCatRig(geometry,root.transform,ManagerCatArt.Recipe(geometry,"honey","solid"),0);
   rig.Advance(1,false,"push_cart",true);
   Assert.That(Quaternion.Angle(rig.Bindings["legs.1"].localRotation,Quaternion.identity),Is.GreaterThan(1));
   var view=new StoreInteriorView(geometry,root.transform);view.Enter("paw_mart");view.SelectCashier();view.Advance(30,false);

@@ -24,26 +24,30 @@ namespace Purrington.Tests {
     Assert.That(roofRenderer.sharedMaterial.color.a,Is.EqualTo(1));
    }
    foreach(var id in TownContent.Current.StreetIds){var p=TownContent.Current.Point(id);Assert.That(art.IsPaved(new Vector3(p.x,0,p.z)),Is.True,id);}
-   Assert.That(art.SquareBounds.Contains(new Vector3(28*VoxelWorld.Unit,0,18*VoxelWorld.Unit)),Is.True);
+   Assert.That(art.SquareBounds.Contains(new Vector3(0,0,25*VoxelWorld.Unit)),Is.True);
   }
   [Test] public void PavementResolvesMidLinkButRejectsGrass(){
-   Assert.That(MainStreetArt.StreetTarget(TownContent.Current,new LotPoint(28,14)),Is.Not.Null);
-   Assert.That(MainStreetArt.StreetTarget(TownContent.Current,new LotPoint(35,18)),Is.Null);
+   Assert.That(MainStreetArt.StreetTarget(TownContent.Current,new LotPoint(0,16)),Is.Not.Null);
+   Assert.That(MainStreetArt.StreetTarget(TownContent.Current,new LotPoint(10,28)),Is.Null);
   }
-  [Test] public void AllCoatsAndMarkingsKeepFaceAndWearBindingsOnAnimatedRig(){
-   foreach(var coat in ManagerCatArt.Coats)foreach(var marking in ManagerCatArt.Markings){
-    var rig=new GodotCatRig(geometry,root.transform,ManagerCatArt.Recipe(coat,marking),91);
-    rig.Advance(.1f,true,"walk",true);
-    foreach(var name in new[]{"head","body","eyes.0","eyes.1","ears.0","ears.1","mouth"})Assert.That(rig.Bindings[name].gameObject.activeInHierarchy,Is.True);
-    Assert.That(rig.Bindings["wear.head"].parent,Is.EqualTo(rig.Bindings["head"]));
-    Assert.That(rig.Bindings["wear.neck"].parent,Is.EqualTo(rig.Bindings["body"]));
-    Assert.That(rig.Bindings["wear.back"].parent,Is.EqualTo(rig.Bindings["body"]));
-    var eye=rig.Bindings["eyes.0"].GetComponentInChildren<Renderer>().sharedMaterial.color;
-    var fur=rig.Bindings["ears.0"].GetComponentInChildren<Renderer>().sharedMaterial.color;
-    Assert.That(Mathf.Abs(eye.grayscale-fur.grayscale),Is.GreaterThan(.15f),coat);
-    Assert.That(rig.Root.GetComponentsInChildren<Transform>().Count(t=>t.name.StartsWith("Marking")),marking=="solid"?Is.EqualTo(0):Is.GreaterThan(0));
-    Object.DestroyImmediate(rig.Root.gameObject);
+  [Test] public void ManagerSharesTheHotelCatRigForEveryCoatAndMarking(){
+   var guest=new GodotCatRig(geometry,root.transform,"cats","0",0);var guestBindings=guest.Bindings.Keys.OrderBy(k=>k).ToArray();
+   foreach(var coat in ManagerCatArt.Coats){
+    var shades=new System.Collections.Generic.HashSet<string>();
+    foreach(var marking in ManagerCatArt.Markings){
+     var rig=new GodotCatRig(geometry,root.transform,ManagerCatArt.Recipe(geometry,coat,marking),91);
+     rig.Advance(.1f,true,"walk",true);
+     Assert.That(rig.Bindings.Keys.OrderBy(k=>k).ToArray(),Is.EqualTo(guestBindings),"same voxel cat as the hotel guests");
+     foreach(var name in new[]{"head","body","eyes.0","eyes.1","ears.0","ears.1","mouth"})Assert.That(rig.Bindings[name].gameObject.activeInHierarchy,Is.True);
+     var eye=rig.Bindings["eyes.0"].GetComponentInChildren<Renderer>().sharedMaterial.color;
+     var fur=rig.Bindings["ears.0"].GetComponentInChildren<Renderer>().sharedMaterial.color;
+     Assert.That(Mathf.Abs(eye.grayscale-fur.grayscale),Is.GreaterThan(.15f),coat);
+     shades.Add(string.Join(",",rig.Root.GetComponentsInChildren<Renderer>(true).Select(r=>ColorUtility.ToHtmlStringRGB(r.sharedMaterial.color)).Distinct().OrderBy(c=>c)));
+     Object.DestroyImmediate(rig.Root.gameObject);
+    }
+    Assert.That(shades.Count,Is.EqualTo(ManagerCatArt.Markings.Length),coat+": each marking looks different");
    }
+   Object.DestroyImmediate(guest.Root.gameObject);
   }
  }
 }

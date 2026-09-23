@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Purrington.Presentation {
- // Interior stages live far from the authored street and are inactive until a door arrival.
+ // Interiors stand inside their own storefronts; entering hides the shop exterior and lowers the walls facing the camera, like the hotel cutaway.
  public sealed class StoreInteriorView {
   readonly Transform pawMartRoot,clothingRoot;
   readonly GodotCatRig pawOwner,clothingOwner;
@@ -27,7 +27,7 @@ namespace Purrington.Presentation {
    if(ActiveStoreId!="clothing")return;
    var wear=Purrington.Domain.Wardrobe.Find(wearId);if(wear==null)return;
    ClearClothingPreview();
-   previewRig=catId<0?new GodotCatRig(geometry,clothingRoot,ManagerCatArt.Recipe(coat,markings),91):new GodotCatRig(geometry,clothingRoot,"cats",catId.ToString(),catId);
+   previewRig=catId<0?new GodotCatRig(geometry,clothingRoot,ManagerCatArt.Recipe(geometry,coat,markings),91):new GodotCatRig(geometry,clothingRoot,"cats",catId.ToString(),catId);
    previewRig.Root.name="Fitting preview";previewRig.Root.localScale=Vector3.one*.83f;
    previewRig.Root.localPosition=new Vector3(240*VoxelWorld.Unit-2.8f,.26f,2.45f);
    var preview=new Dictionary<string,string>(outfit);preview[wear.slot]=wearId;
@@ -52,16 +52,18 @@ namespace Purrington.Presentation {
   public bool IsVisible=>ActiveStoreId.Length>0;
   public bool IsConversationOpen=>conversation;
   public int VisibleStoreCount=>(pawMartRoot.gameObject.activeSelf?1:0)+(clothingRoot.gameObject.activeSelf?1:0);
-  public Vector3 Focus=>new Vector3((ActiveStoreId=="paw_mart"?200:240)*VoxelWorld.Unit,1.2f,0);
+  public Vector3 Focus{get{var r=ActiveStoreId=="paw_mart"?pawMartRoot:clothingRoot;return r.localPosition+r.localRotation*new Vector3((ActiveStoreId=="paw_mart"?200:240)*VoxelWorld.Unit,1.2f,0);}}
+  readonly List<(Transform root,Transform full,Transform low,Vector3 normal)> walls=new List<(Transform,Transform,Transform,Vector3)>();
   public StoreInteriorView(GodotGeometry geometry,Transform parent) {
    this.geometry=geometry;this.parent=parent;pause=parent.gameObject.AddComponent<StoreInteriorPause>();
    pawMartRoot=MainStreetArt.Group(parent,"Paw Mart interior");pawMartRoot.gameObject.AddComponent<TownInterior>();
    clothingRoot=MainStreetArt.Group(parent,"Clothing interior");clothingRoot.gameObject.AddComponent<TownInterior>();
    BuildPawMart(pawMartRoot,200*VoxelWorld.Unit);
    BuildClothing(clothingRoot,240*VoxelWorld.Unit);
+   Place(pawMartRoot,"paw_mart",200*VoxelWorld.Unit);Place(clothingRoot,"clothing",240*VoxelWorld.Unit);
    carts[0]=new ShoppingCartRig(geometry,pawMartRoot,"Manager");
    for(int i=0;i<2;i++){
-    shoppers[i]=new GodotCatRig(geometry,pawMartRoot,ManagerCatArt.Recipe(i==0?"cream":"cocoa",i==0?"tabby":"tuxedo"),110+i);
+    shoppers[i]=new GodotCatRig(geometry,pawMartRoot,ManagerCatArt.Recipe(geometry,i==0?"cream":"cocoa",i==0?"tabby":"tuxedo"),110+i);
     shoppers[i].Root.name=i==0?"Olive shopper":"Bean shopper";shoppers[i].Root.localScale=Vector3.one*.83f;
     carts[i+1]=new ShoppingCartRig(geometry,pawMartRoot,shoppers[i].Root.name);carts[i+1].SetContents(i==0?"welcome_basket":"market_bundle");
    }
@@ -71,20 +73,20 @@ namespace Purrington.Presentation {
    pawOwner.Root.localRotation=Quaternion.Euler(0,180,0);
    clothingOwner=Owner(clothingRoot,"Clover","gray","patchwork",new Vector3(240*VoxelWorld.Unit+2,.85f,3.3f),"Boutique scarf","BF7958");
    clothingOwner.Root.localRotation=Quaternion.Euler(0,180,0);
-   manager=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe("honey","solid"),91);
+   manager=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe(geometry,"honey","solid"),91);
    managerRoot=manager.Root;managerRoot.name="Interior manager";managerRoot.localScale=Vector3.one*.83f;managerRoot.gameObject.SetActive(false);
    pawMartRoot.gameObject.SetActive(false);clothingRoot.gameObject.SetActive(false);
   }
   public void SetManagerAppearance(string coat,string markings){
    string look=coat+"/"+markings;if(managerLook==look)return;
-   var replacement=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe(coat,markings),91);
+   var replacement=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe(geometry,coat,markings),91);
    replacement.Root.name="Interior manager";replacement.Root.localScale=Vector3.one*.83f;
    replacement.Root.gameObject.SetActive(false);
    if(managerRoot!=null)ReleaseRig(managerRoot);
    manager=replacement;managerRoot=replacement.Root;managerLook=look;CatOutfitView.Apply(geometry,manager,managerOutfit);
   }
   GodotCatRig Owner(Transform parent,string name,string coat,string markings,Vector3 at,string outfit,string color){
-   var rig=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe(coat,markings),-1);
+   var rig=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe(geometry,coat,markings),-1);
    rig.Root.name=name+" cashier";rig.Root.localPosition=at;rig.Root.localScale=Vector3.one*.83f;
    Box(rig.Root,outfit,new Vector3(0,.69f,.34f),new Vector3(.55f,.32f,.12f),color);
    var hit=rig.Root.gameObject.AddComponent<BoxCollider>();hit.center=new Vector3(0,.65f,0);hit.size=new Vector3(1,1.4f,1);
@@ -95,10 +97,27 @@ namespace Purrington.Presentation {
   void Furnish(Transform parent,float x,string name,Vector3 at,Vector3 size,string color){Box(parent,name,at+new Vector3(x,0,0),size,color);}
   void Base(Transform parent,float x,string wall){
    Furnish(parent,x,"Floor",new Vector3(0,-.05f,0),new Vector3(9,.2f,8),"CAC4B2");
-   // The interior camera looks from authored +x/-z; keep only its near side cut away.
-   Furnish(parent,x,"Back wall",new Vector3(0,1.6f,4),new Vector3(9,3.2f,.3f),wall);
-   Furnish(parent,x,"Left wall",new Vector3(-4.5f,1.6f,0),new Vector3(.3f,3.2f,8),wall);
-   Furnish(parent,x,"Right wall",new Vector3(4.5f,.16f,0),new Vector3(.3f,.32f,8),wall);
+   // Every wall has a full and a knee-high version; FaceCamera shows the low one on the sides between the camera and the room.
+   Wall(parent,x,"Back wall",new Vector3(0,0,4),new Vector3(9,0,.3f),Vector3.forward,wall);
+   Wall(parent,x,"Front wall",new Vector3(0,0,-4),new Vector3(9,0,.3f),Vector3.back,wall);
+   Wall(parent,x,"Left wall",new Vector3(-4.5f,0,0),new Vector3(.3f,0,8),Vector3.left,wall);
+   Wall(parent,x,"Right wall",new Vector3(4.5f,0,0),new Vector3(.3f,0,8),Vector3.right,wall);
+  }
+  void Wall(Transform parent,float x,string name,Vector3 at,Vector3 size,Vector3 normal,string color){
+   var full=MainStreetArt.Group(parent,name);var low=MainStreetArt.Group(parent,name+" (cut)");
+   Furnish(full,x,name,at+Vector3.up*1.6f,new Vector3(size.x,3.2f,size.z),color);
+   Furnish(low,x,name,at+Vector3.up*.16f,new Vector3(size.x,.32f,size.z),color);
+   walls.Add((parent,full,low,normal));
+  }
+  static void Place(Transform root,string id,float origin){
+   var shop=Purrington.Domain.TownContent.Current?.Shop(id);if(shop==null)return;var f=shop.footprint;
+   // Shop doors face the road (north), so the room turns around its center to put its entrance side at the door.
+   root.localRotation=Quaternion.Euler(0,180,0);
+   root.localPosition=new Vector3((f.x+f.w/2)*VoxelWorld.Unit+origin,0,(f.z+f.d/2)*VoxelWorld.Unit);
+  }
+  // cameraForward is in the parent (render root) space; walls whose outward side faces the camera drop to knee height.
+  public void FaceCamera(Vector3 cameraForward){
+   foreach(var w in walls){bool near=Vector3.Dot(w.root.localRotation*w.normal,cameraForward)<0;w.full.gameObject.SetActive(!near);w.low.gameObject.SetActive(near);}
   }
   void BuildPawMart(Transform root,float x){
    Base(root,x,"EFE2C9");
@@ -114,7 +133,7 @@ namespace Purrington.Presentation {
    pawMartRoot.gameObject.SetActive(storeId=="paw_mart");clothingRoot.gameObject.SetActive(storeId=="clothing");
    float x=(storeId=="paw_mart"?200:240)*VoxelWorld.Unit;
    entry=new Vector3(x,.18f,-3);aisle=new Vector3(x+.8f,.18f,-.6f);counter=new Vector3(x+2,.18f,.35f);
-   managerRoot.localPosition=entry;managerRoot.localRotation=Quaternion.identity;managerRoot.gameObject.SetActive(true);AdvanceShoppers(0,false);
+   managerRoot.SetParent(storeId=="paw_mart"?pawMartRoot:clothingRoot,false);managerRoot.localPosition=entry;managerRoot.localRotation=Quaternion.identity;managerRoot.gameObject.SetActive(true);AdvanceShoppers(0,false);
   }
   public void Exit(){ClearClothingPreview();conversation=walking=IsShopping=false;ActiveStoreId="";pawMartRoot.gameObject.SetActive(false);clothingRoot.gameObject.SetActive(false);managerRoot.gameObject.SetActive(false);}
   public bool SelectCashier(){if(!IsVisible||walking||conversation||IsShopping)return false;walking=true;waypoint=0;return true;}

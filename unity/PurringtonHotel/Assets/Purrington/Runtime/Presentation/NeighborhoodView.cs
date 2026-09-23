@@ -30,7 +30,8 @@ namespace Purrington.Presentation
    Root.SetParent(parent,false);
    var recipe=(JObject)geometry.Map(map)["neighborhood"].DeepClone();
    if(map==0)foreach(var child in recipe["children"].Where(c=>(string)c["name"]=="NeighborHome4"||(string)c["name"]=="NeighborHome5").ToArray())child.Remove();
-   geometry.Build(Root,recipe);
+   if(map==0)geometry.PartFilter=w=>MainStreetArt.KeepScenery(parent.InverseTransformPoint(w));
+   try{geometry.Build(Root,recipe);}finally{geometry.PartFilter=null;}
    int[] routeIndices=map==0?new[]{0,1,1,2,3,4,4,5,1,4}:new[]{0,1,2,3,4,5};
    var routeUses=new Dictionary<int,int>();
    for(int i=0;i<routeIndices.Length;i++)
