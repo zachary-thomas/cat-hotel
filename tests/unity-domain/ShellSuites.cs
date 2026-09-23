@@ -351,8 +351,17 @@ static class ShellSuites
 		var orphan=HotelModel.Copy(m.State);orphan.hotels[0].rooms.RemoveAll(r=>r.id==first.id);Check(!HotelModel.Valid(orphan),"stairs: orphan upper floor rejected on reload");
 		Check(m.Execute("paint_floor",PaintOn(1,x+3,z+1,1,1)).success,"stairs: expanded upper floor");
 		Check(!m.Quote("remove_room",new JObject{{"id",first.id}}).success,"stairs: last stair cannot strand paid upper floor");
-		Check(m.Execute("draw_room",RoomOn(0,x+5,z+1,2,3,0,"stairs")).success,"stairs: alternative upper stair");
-		Check(m.Execute("remove_room",new JObject{{"id",first.id}}).success&&HotelModel.Floor(m.Hotel(),1).cells.Count>6,"stairs: alternative route allows removal and retains paid floor");
+		Check(!m.Quote("draw_room",RoomOn(0,x+5,z+1,2,3,0,"stairs")).success,"stairs: disconnected upper landing cannot be opened");
+		Check(m.Execute("paint_floor",PaintOn(1,x+4,z+1,1,1)).success,"stairs: bridge between landing sites");
+		Check(m.Execute("draw_room",RoomOn(0,x+5,z+1,2,3,0,"stairs")).success,"stairs: connected alternative upper stair");
+		string bridgeEdge="v:"+(x+5)+","+(z+1);
+		Check(!m.Quote("set_edge",new JObject{{"floor",1},{"kind","wall"},{"edges",new JArray(bridgeEdge)}}).success,"stairs: divider cannot split the continuous upper floor");
+		HotelModel.Floor(m.Hotel(),1).edges[bridgeEdge]=new EdgeState{kind="wall"};
+		Check(!m.Quote("remove_room",new JObject{{"id",first.id}}).success,"stairs: wall-isolated landing cannot lose its only stair");
+		HotelModel.Floor(m.Hotel(),1).edges.Remove(bridgeEdge);
+		Check(m.Execute("set_edge",new JObject{{"floor",1},{"kind","door"},{"edges",new JArray(bridgeEdge)}}).success,"stairs: door joins the landing islands");
+		Check(m.Execute("remove_room",new JObject{{"id",first.id}}).success&&HotelModel.Floor(m.Hotel(),1).cells.Count>6,"stairs: connected alternative route allows removal and retains paid floor");
+		var isolatedSave=HotelModel.Copy(m.State);HotelModel.Floor(isolatedSave.hotels[0],1).edges[bridgeEdge]=new EdgeState{kind="wall"};Check(!HotelModel.Valid(isolatedSave),"stairs: disconnected retained island rejected on reload");
 		var lone=new HotelModel(new MemoryStore(),content);lone.LoadOrCreate();lone.State.coins=100000;lone.Hotel().rooms.Clear();lone.Hotel().floors.Clear();lone.Hotel().objects.Clear();lone.Hotel().paths.Clear();lone.Hotel().level=7;
 		Check(FindClear(lone,6,5,out int lx,out int lz),"stairs: clear land for safe removal");
 		Check(lone.Execute("paint_floor",Paint(lx,lz,6,5)).success,"stairs: second ground shell");
@@ -363,6 +372,12 @@ static class ShellSuites
 		var lower=lone.Hotel().rooms.Last();before=lone.State.coins;
 		orphan=HotelModel.Copy(lone.State);orphan.hotels[0].rooms.RemoveAll(r=>r.id==lower.id);Check(!HotelModel.Valid(orphan),"stairs: orphan basement floor rejected on reload");
 		Check(lone.Execute("remove_room",new JObject{{"id",lower.id}}).success&&HotelModel.Floor(lone.Hotel(),-1)==null&&Math.Abs(lone.State.coins-before-188)<.01,"stairs: empty basement floor removed and refunded");
+		Check(lone.Execute("draw_room",RoomOn(-1,lx+1,lz+1,2,3,0,"stairs")).success,"stairs: first basement route");
+		var firstLower=lone.Hotel().rooms.Last();
+		Check(lone.Execute("draw_room",RoomOn(-1,lx+3,lz+1,2,3,0,"stairs")).success,"stairs: second basement route");
+		string basementDoor="v:"+(lx+3)+","+(lz+2);
+		Check(lone.Execute("set_edge",new JObject{{"floor",-1},{"kind","door"},{"edges",new JArray(basementDoor)}}).success,"stairs: shared basement passage stays open");
+		Check(lone.Execute("remove_room",new JObject{{"id",firstLower.id}}).success&&HotelModel.Floor(lone.Hotel(),-1).cells.Count==12,"stairs: connected basement alternative retains paid floor");
 		Check(HotelModel.Valid(m.State)&&HotelModel.Valid(lone.State),"stairs: edited hotels remain loadable");
 		Console.WriteLine("Shell stair safety suite passed");
 	}
