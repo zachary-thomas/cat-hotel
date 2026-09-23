@@ -36,7 +36,7 @@ public sealed class RoomStatusInfo {public bool ready;public string status,messa
 public sealed class VenueSlot {public string key,action;public float x,z,facing;public int floor;public LotPoint Point=>new LotPoint(x,z,floor);}
 public sealed class VenueSnapshot {public string id,item,name,room,role,status;public bool open;public int service,capacity;public float x,z;public int floor;public LotPoint Point=>new LotPoint(x,z,floor);public string[] tags;public List<VenueSlot> slots=new List<VenueSlot>();public VenueSlot staffSlot;public float frontX,frontZ,centerX,centerZ;}
 public enum ActorKind { Guest, Staff, DayVisitor }
-public sealed class ActorSnapshot {public ActorKind kind;public int visitorIndex=-1;public float speechElapsed,speechDuration=3.1f;public string id,name,role,action="rest",venueId="",speech="",gesture="",intent="";public int catId;public string phase,slot,sourceRoom;public bool checkedIn,drink;public float remaining;public int completed;public float x,z,facing,activityElapsed,activityDuration;public long activityToken;}
+public sealed class ActorSnapshot {public ActorKind kind;public int visitorIndex=-1;public float speechElapsed,speechDuration=3.1f;public string id,name,role,action="rest",venueId="",speech="",gesture="",intent="";public int catId;public string phase,slot,sourceRoom;public bool checkedIn,drink;public float remaining;public int completed;public int floor;public float x,z,facing,activityElapsed,activityDuration;public long activityToken;}
 }
 
 

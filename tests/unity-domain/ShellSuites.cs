@@ -342,6 +342,44 @@ static class ShellSuites
 		var reopened=new HotelModel(new MemoryStore{state=HotelModel.Copy(m.State)},content);Check(reopened.LoadOrCreate().success&&HotelModel.Floor(reopened.Hotel(),1)?.cells.Count==stairCells&&HotelModel.Floor(reopened.Hotel(),-1)?.cells.Count==6,"floors: stairs and landings survive a save reload");
 		Console.WriteLine("Shell floors suite passed");
 	}
+	public static void RunFloorLife(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;
+		var h=m.Hotel();h.rooms.Clear();h.floors.Clear();h.objects.Clear();h.paths.Clear();h.level=3;
+		var arr=m.Map()["arrival"];int x=(int)Math.Floor((float)arr[0])-7,z=(int)Math.Floor((float)arr[1])-6;
+		Check(m.Execute("paint_floor",Paint(x,z,8,7)).success,"floor life: lobby around the arrival point");
+		Check(m.Execute("draw_room",RoomOn(0,x+1,z+1,2,3,0,"stairs")).success,"floor life: stairs");
+		Check(m.Execute("paint_floor",PaintOn(1,x+3,z,5,6)).success,"floor life: upstairs hall");
+		Check(m.Execute("draw_room",m.RoomDraft(x+4,z,x+7,z+2,"regular",1)).success,"floor life: upstairs bedroom");var room=m.Hotel().rooms.Last();
+		var reception=Catalog.All.First(i=>i.role=="reception");var bed=Catalog.All.First(i=>i.role=="bed"&&i.bond==0&&i.width<=2&&i.depth<=2);
+		var desk=m.Execute("place_object",Furnish(reception.id,0,x+4,z+4));Check(desk.success,"floor life: reception in the lobby ("+desk.message+")");
+		var placed=m.PlaceObject(bed.id,x+4.5f,z+.5f,0,1);Check(placed.success,"floor life: bed upstairs ("+placed.message+")");
+		Check(m.Hotel().objects.Last().floor==1&&m.Hotel().objects.Last().room==room.id,"floor life: the bed belongs to the upstairs bedroom");
+		var bedId=m.Hotel().objects.Last().id;Check(m.MoveObject(bedId,x+4.5f,z+.5f).success&&m.Hotel().objects.Last().floor==1,"floor life: moving furniture keeps its floor");
+		var status=m.RoomStatus(room.id);Check(status.ready,"floor life: upstairs bedroom is ready ("+status.status+")");
+		Check(m.GuestCapacity()==2,"floor life: upstairs bedroom adds two guests ("+m.GuestCapacity()+")");
+		bool climbed=false,slept=false;var previousPositions=new Dictionary<string,LotPoint>();for(int t=0;t<4500&&!slept;t++)
+		{
+			m.Tick(.2f);
+			climbed|=m.Actors.Any(a=>a.kind==ActorKind.Guest&&a.floor==1);
+			slept=m.Actors.Any(a=>a.kind==ActorKind.Guest&&a.floor==1&&a.venueId==bedId&&a.action=="sleep");
+			foreach(var a in m.Actors)
+			{
+				Check(m.MovementSegmentClear(new LotPoint(a.x,a.z,a.floor),new LotPoint(a.x,a.z,a.floor),false),"floor life: actor remains on walkable floor "+a.id);
+				Check(a.venueId!=bedId||a.action!="sleep"||a.floor==1,"floor life: same x/z downstairs does not count as arriving at the upstairs bed");
+				if(previousPositions.TryGetValue(a.id,out var prior)&&prior.floor!=a.floor)Check(prior.x>=x+.65f&&prior.x<x+3.35f&&prior.z>=z+.65f&&prior.z<z+4.35f&&a.x>=x+.65f&&a.x<x+3.35f&&a.z>=z+.65f&&a.z<z+4.35f,"floor life: actors change level only inside the stairs");
+				previousPositions[a.id]=new LotPoint(a.x,a.z,a.floor);
+			}
+		}
+		Check(climbed,"floor life: a guest walks upstairs");
+		Check(slept,"floor life: a guest reaches the upstairs bed and sleeps");
+		var upperDesk=m.Execute("place_object",Furnish(reception.id,1,x+4,z+4));Check(upperDesk.success,"floor life: reception at the same x/z upstairs ("+upperDesk.message+")");
+		m.Tick(1);var counters=m.Venues().Where(v=>v.role=="reception"&&v.open&&v.staffSlot!=null).ToArray();
+		Check(counters.Length==2&&counters.Select(v=>v.floor).OrderBy(f=>f).SequenceEqual(new[]{0,1}),"floor life: two receptions remain open at the same x/z on separate floors");
+		Check(m.Actors.Count(a=>a.kind==ActorKind.Staff&&counters.Any(v=>v.id==a.venueId&&v.floor==a.floor))==2,"floor life: each reception has staff on its own floor");
+		Check(m.Actors.Any(a=>a.kind==ActorKind.Guest&&a.floor==1),"floor life: layout change preserves a guest upstairs");
+		Console.WriteLine("Shell floor life suite passed");
+	}
 	public static void RunMigratedDenseNavigation(Action<bool,string> Check,ParityContent content,HotelState denseSeed)
 	{
 		var seed=HotelModel.Copy(denseSeed);seed.version=2;
