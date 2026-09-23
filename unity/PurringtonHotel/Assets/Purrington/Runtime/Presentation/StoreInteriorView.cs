@@ -48,7 +48,7 @@ namespace Purrington.Presentation {
   public bool IsShopping {get;private set;}
   public event Action<string> CashierSelected;
   public string ActiveStoreId {get;private set;}="";
-  public string OwnerName=>ActiveStoreId=="paw_mart"?"Miso":ActiveStoreId=="clothing"?"Clover":"";
+  public string OwnerName=>ActiveStoreId=="paw_mart"?"Rosie":ActiveStoreId=="clothing"?"Wren":"";
   public bool IsVisible=>ActiveStoreId.Length>0;
   public bool IsConversationOpen=>conversation;
   public int VisibleStoreCount=>(pawMartRoot.gameObject.activeSelf?1:0)+(clothingRoot.gameObject.activeSelf?1:0);
@@ -69,9 +69,9 @@ namespace Purrington.Presentation {
    }
    Furnish(pawMartRoot,200*VoxelWorld.Unit,"Cashier step",new Vector3(-4.4f,.325f,-1.1f),new Vector3(1,.65f,.85f),"B3824C");
    Furnish(clothingRoot,240*VoxelWorld.Unit,"Cashier step",new Vector3(3.9f,.325f,-.4f),new Vector3(1,.65f,.85f),"B3824C");
-   pawOwner=Owner(pawMartRoot,"Miso","ginger","tuxedo",new Vector3(200*VoxelWorld.Unit-4.4f,.85f,-1.1f),"Grocery apron","738448");
+   pawOwner=Owner(pawMartRoot,"Rosie","ginger","tuxedo",new Vector3(200*VoxelWorld.Unit-4.4f,.85f,-1.1f),"Grocery apron","738448");
    pawOwner.Root.localRotation=Quaternion.Euler(0,180,0);
-   clothingOwner=Owner(clothingRoot,"Clover","gray","patchwork",new Vector3(240*VoxelWorld.Unit+3.9f,.85f,-.4f),"Boutique scarf","BF7958");
+   clothingOwner=Owner(clothingRoot,"Wren","gray","patchwork",new Vector3(240*VoxelWorld.Unit+3.9f,.85f,-.4f),"Boutique scarf","BF7958");
    clothingOwner.Root.localRotation=Quaternion.Euler(0,180,0);
    manager=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe(geometry,"honey","solid"),91);
    managerRoot=manager.Root;managerRoot.name="Interior manager";managerRoot.localScale=Vector3.one*.83f;managerRoot.gameObject.SetActive(false);

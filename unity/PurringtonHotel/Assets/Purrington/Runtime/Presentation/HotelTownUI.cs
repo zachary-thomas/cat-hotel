@@ -93,7 +93,7 @@ namespace Purrington.Presentation {
     Info(content,"INSIDE THE SHOP","Walk to the cashier to talk, see quests, or browse.");return;
    }
    if(storeChoice.Length>0){
-    if(storeChoice=="Talk")Info(content,"Talk",interior.ActiveStoreId=="paw_mart"?"Miso: Welcome in! These specials are optional treats for your hotel.":"Clover: Accept First Look for a free ribbon, then equip it on your manager.");
+    if(storeChoice=="Talk")Info(content,"Talk",interior.ActiveStoreId=="paw_mart"?"Rosie: Welcome in! These specials are optional treats for your hotel.":"Wren: Accept First Look for a free ribbon, then equip it on your manager.");
     else if(storeChoice=="Quest"){
      foreach(var quest in TownContent.Current.Quests.Where(q=>(string)q["store"]==interior.ActiveStoreId)){
       string id=(string)quest["id"];bool accepted=app.Model.TownQuestAccepted(id),done=app.Model.TownQuestCompleted(id);

@@ -52,6 +52,8 @@ namespace Purrington.Presentation
              foreach(var g in root.GetComponentsInChildren<UnityEngine.UI.Graphic>(true)){var c=g.color;Check(tokens.Any(t=>Mathf.Abs(t.r-c.r)<.01f&&Mathf.Abs(t.g-c.g)<.01f&&Mathf.Abs(t.b-c.b)<.01f),chrome+" uses an off-token color on "+g.name);}}
             app.UI.Navigate("Build");yield return Capture(output,"build-430x932");
             app.UI.OpenCare(0);yield return Capture(output,"care-430x932");app.UI.Back();
+            // The first 390x844 captures can land before the hidden window presents, so every tab is also captured here.
+            app.UI.Navigate("Cats");yield return Capture(output,"cats-430x932");app.UI.Navigate("Life");yield return Capture(output,"life-430x932");app.UI.Navigate("Map");yield return Capture(output,"map-430x932");app.UI.Navigate("Hotel");
             app.UI.Navigate("Hotel");
             var setting=app.Model.State.settings;
             app.Model.SetSettings(1.5f,setting.motion,false,false);

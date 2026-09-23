@@ -42,10 +42,10 @@ namespace Purrington.Presentation {
    }
    Decorate(q);
   }
-  // Plaza dressing stays on the rim: bunting between the lamps, trees in planters at each end and flower beds by the sidewalk.
+  // Plaza dressing stays on the rim: bunting between the far lamps, trees in planters at each end and flower beds by the sidewalk.
   void Decorate(LotPoint q){
    var decor=Group(Root,"Square decorations");
-   foreach(float lz in new[]{q.z-4.4f,q.z+4.4f}){
+   foreach(float lz in new[]{q.z+4.4f}){
     float x0=(q.x-7.4f)*U,x1=(q.x+7.4f)*U,z=lz*U;
     Box(decor,"Bunting string",new Vector3((x0+x1)/2,3.05f,z),new Vector3(x1-x0,.04f,.04f),"F4F1E8");
     int i=0;for(float x=x0+.5f;x<x1-.3f;x+=.55f,i++){float sag=.25f*(1-Mathf.Pow(2*(x-x0)/(x1-x0)-1,2));Box(decor,"Bunting flag",new Vector3(x,2.88f-sag,z),new Vector3(.3f,.3f,.05f),Blooms[i%Blooms.Length]);Box(decor,"Bunting flag tip",new Vector3(x,2.68f-sag,z),new Vector3(.14f,.12f,.05f),Blooms[i%Blooms.Length]);}
@@ -57,8 +57,8 @@ namespace Purrington.Presentation {
     Box(tree,"Canopy",new Vector3(tx,2.5f,tz),new Vector3(1.6f,.9f,1.6f),"738448");Box(tree,"Canopy",new Vector3(tx,3.15f,tz),new Vector3(1.1f,.6f,1.1f),"8FA35E");
     for(int k=0;k<4;k++)Box(tree,"Blossom",new Vector3(tx+(k%2==0?-.5f:.5f),2.95f,tz+(k<2?-.5f:.5f)),new Vector3(.2f,.2f,.2f),k%2==0?"F2A7B5":"F4F1E8");
    }
-   // Flower beds along the sidewalk edge, clear of the crosswalk path and the Market Day board.
-   foreach(var bed in new[]{(a:1.6f,b:6.8f),(a:-7.4f,b:-5.6f),(a:-2.4f,b:-1.6f)}){
+   // Flower beds along the sidewalk edge either side of the market arch and the crosswalk path.
+   foreach(var bed in new[]{(a:1.8f,b:6.8f),(a:-6.8f,b:-1.8f)}){
     float mid=(q.x+(bed.a+bed.b)/2)*U,w=(bed.b-bed.a)*U,z=(q.z-4.6f)*U;
     Box(decor,"Flower bed edging",new Vector3(mid,.24f,z),new Vector3(w,.18f,.7f),"BBB6A5");Box(decor,"Flower bed soil",new Vector3(mid,.3f,z),new Vector3(w-.15f,.08f,.5f),"8A6B4F");
     int i=0;for(float x=mid-w/2+.2f;x<mid+w/2-.1f;x+=.34f,i++){Box(decor,"Flower stem",new Vector3(x,.44f,z+(i%2==0?-.1f:.1f)),new Vector3(.06f,.2f,.06f),"738448");Box(decor,"Flower bloom",new Vector3(x,.58f,z+(i%2==0?-.1f:.1f)),new Vector3(.17f,.13f,.17f),Blooms[(i+2)%Blooms.Length]);}
@@ -66,7 +66,7 @@ namespace Purrington.Presentation {
    foreach(int side in new[]{-1,1})PawMartArt.Plant((n,x,y,z,w,h,d,c)=>Box(decor,n,new Vector3(x,y+.13f,z),new Vector3(w,h,d),c),(q.x+side*3.6f)*U,(q.z+4.3f)*U);
   }
   // Street signs share one letter size so the shops and the hotel read at the same, cat-appropriate scale.
-  const float SignPixel=.065f;
+  public const float SignPixel=.065f;
   static readonly string[] Blooms={"F2A7B5","F7CC62","C9B6E4","F4F1E8","E6B7C1"};
   void Store(string id,string title,bool boutique){
    var store=content.Shop(id);var f=store.footprint;var plan=ShopPlan.For(id);var root=Group(Root,id);Storefronts[id]=root;

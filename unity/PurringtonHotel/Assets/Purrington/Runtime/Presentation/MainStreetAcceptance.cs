@@ -34,20 +34,20 @@ namespace Purrington.Presentation {
     yield return Click("Rename");yield return Click("Save look");Check("rename persisted",app.Model.State.managerName=="Maple");
     yield return Click("Paw Mart");yield return Click("Skip walk");yield return Frames(4);
     Check("Paw Mart entered",app.World.StoreInterior.ActiveStoreId=="paw_mart");yield return new WaitForSecondsRealtime(5.2f);yield return Screenshot("paw-mart-entry");
-    yield return Click("Meet Miso");yield return new WaitForSecondsRealtime(3.4f);Check("cashier arrival opens conversation",app.World.StoreInterior.IsConversationOpen);CheckLayout(safe);yield return Screenshot("paw-mart-cashier");
-    yield return Click("Talk");yield return Screenshot("paw-mart-talk");yield return Click("Back to Miso");
-    yield return Click("Quest");if(!app.Model.TownQuestAccepted("welcome_picnic"))yield return Click("Accept quest");yield return Click("Back to Miso");
+    yield return Click("Meet Rosie");yield return new WaitForSecondsRealtime(3.4f);Check("cashier arrival opens conversation",app.World.StoreInterior.IsConversationOpen);CheckLayout(safe);yield return Screenshot("paw-mart-cashier");
+    yield return Click("Talk");yield return Screenshot("paw-mart-talk");yield return Click("Back to Rosie");
+    yield return Click("Quest");if(!app.Model.TownQuestAccepted("welcome_picnic"))yield return Click("Accept quest");yield return Click("Back to Rosie");
     yield return Click("Buy");
     if(!app.Model.TownInventory.Contains("welcome_basket")){yield return BlockedClick("Buy Welcome Basket");yield return Click("Buy Welcome Basket");yield return Screenshot("cart-push");yield return new WaitForSecondsRealtime(6);yield return Screenshot("cart-park");}
     if(!app.Model.TownInventory.Contains("market_bundle")){yield return BlockedClick("Buy Market Day bundle");yield return Click("Buy Market Day bundle");}
-    yield return Click("Back to Miso");yield return Click("Quest");if(!app.Model.TownQuestCompleted("welcome_picnic")){yield return BlockedClick("Complete quest");yield return Click("Complete quest");}yield return Click("Back to Miso");yield return Click("Leave");
+    yield return Click("Back to Rosie");yield return Click("Quest");if(!app.Model.TownQuestCompleted("welcome_picnic")){yield return BlockedClick("Complete quest");yield return Click("Complete quest");}yield return Click("Back to Rosie");yield return Click("Leave");
     Check("Leave returns outdoors",app.World.ActiveStoreInteriorCount==0);
     yield return Click("Clothing");yield return Click("Skip walk");yield return Frames(4);Check("boutique entered",app.World.StoreInterior.ActiveStoreId=="clothing");yield return new WaitForSecondsRealtime(5.2f);yield return Screenshot("boutique-entry");
-    yield return Click("Meet Clover");yield return new WaitForSecondsRealtime(3.4f);CheckLayout(safe);yield return Screenshot("boutique-cashier");
-    yield return Click("Quest");if(!app.Model.TownQuestAccepted("first_look")){yield return BlockedClick("Accept quest");yield return Click("Accept quest");}if(!app.Model.TownQuestCompleted("first_look"))yield return Click("Equip store ribbon");Check("First Look complete",app.Model.TownQuestCompleted("first_look"));yield return Click("Back to Clover");
+    yield return Click("Meet Wren");yield return new WaitForSecondsRealtime(3.4f);CheckLayout(safe);yield return Screenshot("boutique-cashier");
+    yield return Click("Quest");if(!app.Model.TownQuestAccepted("first_look")){yield return BlockedClick("Accept quest");yield return Click("Accept quest");}if(!app.Model.TownQuestCompleted("first_look"))yield return Click("Equip store ribbon");Check("First Look complete",app.Model.TownQuestCompleted("first_look"));yield return Click("Back to Wren");
     yield return Click("Buy");yield return Click("head");yield return Click("Try on");yield return Frames(3);Check("boutique try-on active",app.World.StoreInterior.IsTryingOn);yield return Screenshot("boutique-try-on");
     if(!app.Model.OwnsWear("sun_hat")){yield return BlockedClick("Buy");yield return Click("Buy");}yield return Click("Wear");Check("manager wears purchased hat",app.Model.State.managerOutfit.TryGetValue("head",out var hat)&&hat=="sun_hat");
-    yield return Click("Back to Clover");yield return Click("Leave");yield return Click("Square");yield return Click("Skip walk");yield return Click("Fit street");yield return Screenshot("market-quiet");
+    yield return Click("Back to Wren");yield return Click("Leave");yield return Click("Square");yield return Click("Skip walk");yield return Click("Fit street");yield return Screenshot("market-quiet");
     if(app.Model.TownInventory.Contains("market_bundle")){yield return BlockedClick("Start Market Day");yield return Click("Start Market Day");}Check("market running",app.Model.MarketDayRemaining>0);yield return Screenshot("market-running");
     var timings=new List<float>();for(int i=0;i<60;i++){yield return null;timings.Add(Time.unscaledDeltaTime*1000);}
     current["marketAverageFrameMs"]=timings.Average();current["marketWorstFrameMs"]=timings.Max();

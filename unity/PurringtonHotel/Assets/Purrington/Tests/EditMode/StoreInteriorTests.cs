@@ -22,12 +22,12 @@ public sealed class StoreInteriorTests {
    view.Enter("paw_mart");
    Assert.AreEqual("paw_mart",view.ActiveStoreId);
    Assert.AreEqual(1,view.VisibleStoreCount);
-   Assert.AreEqual("Miso",view.OwnerName);
+   Assert.AreEqual("Rosie",view.OwnerName);
    Assert.AreEqual(1,root.GetComponentsInChildren<TownInterior>().Length);
    view.Enter("clothing");
    Assert.AreEqual("clothing",view.ActiveStoreId);
    Assert.AreEqual(1,view.VisibleStoreCount);
-   Assert.AreEqual("Clover",view.OwnerName);
+   Assert.AreEqual("Wren",view.OwnerName);
    Assert.AreEqual(1,root.GetComponentsInChildren<TownInterior>().Length);
    view.Exit();
    Assert.IsFalse(view.IsVisible);

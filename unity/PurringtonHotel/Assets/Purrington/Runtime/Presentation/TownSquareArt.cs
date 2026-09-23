@@ -17,11 +17,15 @@ namespace Purrington.Presentation {
   public TownSquareArt(GodotGeometry geometry,Transform parent,TownContent content,HotelModel model){
    Root=MainStreetArt.Group(parent,"Town square event");
    var q=content.Point("square");float u=VoxelWorld.Unit;
-   var board=MainStreetArt.Group(Root,"Market Day board");
-   board.localPosition=new Vector3((q.x-4)*u,0,(q.z-4.2f)*u);
-   Box(geometry,board,"Notice frame",new Vector3(0,1.65f,0),new Vector3(2.8f,1.7f,.22f),"425C35");
-   // The board shows voxel lettering; its status text is kept for the panel and tests but not drawn as a floating label.
-   var boardLetters=geometry.Build(board,VoxelLetters.Recipe("Market Day letters","MARKET DAY",.07f,.06f,"F4EAD5"));boardLetters.localPosition=new Vector3(0,1.65f,.11f);boardLetters.localScale=new Vector3(1,1,-1);
+   // A small arch centered over the path from the crosswalk, in the same style and letter size as the hotel's sign.
+   var board=MainStreetArt.Group(Root,"Market arch");
+   board.localPosition=new Vector3(q.x*u,0,(q.z-4.7f)*u);
+   const string title="MARKET";float width=VoxelLetters.Width(title,MainStreetArt.SignPixel)+.4f;
+   foreach(float side in new[]{-1f,1f})Box(geometry,board,"Arch post",new Vector3(side*(width/2+.08f),1.35f,0),new Vector3(.14f,2.7f,.14f),"B3824C");
+   Box(geometry,board,"Signboard",new Vector3(0,2.42f,0),new Vector3(width,.62f,.1f),"425C35");
+   Box(geometry,board,"Signboard trim",new Vector3(0,2.78f,0),new Vector3(width+.34f,.08f,.18f),"B3824C");
+   var boardLetters=geometry.Build(board,VoxelLetters.Recipe("Market letters",title,MainStreetArt.SignPixel,.05f,"F4EAD5"));boardLetters.localPosition=new Vector3(0,2.42f,.05f);boardLetters.localScale=new Vector3(1,1,-1);
+   // The status text is kept for the panel and tests but not drawn as a floating label.
    BoardText=Sign(board,"Market Day",new Vector3(0,1.65f,-.16f),.14f);BoardText.GetComponent<MeshRenderer>().enabled=false;
    Market=MainStreetArt.Group(Root,"Market Day fixtures");
    shoppers=new GodotCatRig[2];chatter=new TextMesh[2];
@@ -31,7 +35,7 @@ namespace Purrington.Presentation {
     Box(geometry,kiosk,"Counter",new Vector3(x,.65f,z),new Vector3(2.1f,1,.95f),"B3824C");
     foreach(float post in new[]{-.9f,.9f})Box(geometry,kiosk,"Post",new Vector3(x+post,1.5f,z),new Vector3(.12f,2.7f,.12f),"D2AD77");
     Box(geometry,kiosk,"Awning",new Vector3(x,2.75f,z),new Vector3(2.5f,.25f,1.5f),i==0?"738448":"BF7958");
-    var name=geometry.Build(kiosk,VoxelLetters.Recipe(i==0?"Treats sign":"Flowers sign",i==0?"TREATS":"FLOWERS",.075f,.05f,"F4EAD5"));name.localPosition=new Vector3(x,2.75f,z+.78f);name.localScale=new Vector3(1,1,-1);
+    var name=geometry.Build(kiosk,VoxelLetters.Recipe(i==0?"Treats sign":"Flowers sign",i==0?"TREATS":"FLOWERS",.055f,.05f,"F4EAD5"));name.localPosition=new Vector3(x,2.75f,z+.78f);name.localScale=new Vector3(1,1,-1);
     Box(geometry,kiosk,"String light",new Vector3(x,2.48f,z-.7f),new Vector3(2.25f,.08f,.08f),"D7AE55");
     for(int bulb=0;bulb<5;bulb++)Box(geometry,kiosk,"Lantern",new Vector3(x-.9f+bulb*.45f,2.37f,z-.72f),new Vector3(.13f,.18f,.13f),"F5DA83");
     shoppers[i]=new GodotCatRig(geometry,Market,ManagerCatArt.Recipe(geometry,i==0?"cream":"ginger",i==0?"tuxedo":"tabby"),110+i);

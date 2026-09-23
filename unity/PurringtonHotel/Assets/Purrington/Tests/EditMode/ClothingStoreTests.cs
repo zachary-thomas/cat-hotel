@@ -11,7 +11,7 @@ public sealed class ClothingStoreTests {
   using(var geometry=new GodotGeometry()){
    var root=new GameObject("boutique test");try{
     var view=new StoreInteriorView(geometry,root.transform);view.Enter("clothing");
-    Assert.AreEqual("Clover",view.OwnerName);
+    Assert.AreEqual("Wren",view.OwnerName);
     var names=root.GetComponentsInChildren<Transform>().Select(t=>t.name).ToArray();
     foreach(var name in new[]{"Head display mannequin","Neck display mannequin","Back display mannequin","Mirror","Try on platform","Checkout counter"})Assert.Contains(name,names);
     Assert.IsTrue(view.ShoppingCarts.All(c=>!c.Root.gameObject.activeInHierarchy));
