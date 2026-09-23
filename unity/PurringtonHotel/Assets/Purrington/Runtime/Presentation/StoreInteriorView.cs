@@ -29,7 +29,7 @@ namespace Purrington.Presentation {
    ClearClothingPreview();
    previewRig=catId<0?new GodotCatRig(geometry,clothingRoot,ManagerCatArt.Recipe(geometry,coat,markings),91):new GodotCatRig(geometry,clothingRoot,"cats",catId.ToString(),catId);
    previewRig.Root.name="Fitting preview";previewRig.Root.localScale=Vector3.one*.83f;
-   previewRig.Root.localPosition=new Vector3(240*VoxelWorld.Unit-2.8f,.26f,2.45f);
+   previewRig.Root.localPosition=new Vector3(240*VoxelWorld.Unit-3.5f,.26f,3f);
    var preview=new Dictionary<string,string>(outfit);preview[wear.slot]=wearId;
    CatOutfitView.Apply(geometry,previewRig,preview);
   }
@@ -67,11 +67,11 @@ namespace Purrington.Presentation {
     shoppers[i].Root.name=i==0?"Olive shopper":"Bean shopper";shoppers[i].Root.localScale=Vector3.one*.83f;
     carts[i+1]=new ShoppingCartRig(geometry,pawMartRoot,shoppers[i].Root.name);carts[i+1].SetContents(i==0?"welcome_basket":"market_bundle");
    }
-   Furnish(pawMartRoot,200*VoxelWorld.Unit,"Cashier step",new Vector3(2.8f,.325f,3.3f),new Vector3(1,.65f,.85f),"B3824C");
-   Furnish(clothingRoot,240*VoxelWorld.Unit,"Cashier step",new Vector3(2,.325f,3.3f),new Vector3(1,.65f,.85f),"B3824C");
-   pawOwner=Owner(pawMartRoot,"Miso","ginger","tuxedo",new Vector3(200*VoxelWorld.Unit+2.8f,.85f,3.3f),"Grocery apron","738448");
+   Furnish(pawMartRoot,200*VoxelWorld.Unit,"Cashier step",new Vector3(-4.4f,.325f,-1.1f),new Vector3(1,.65f,.85f),"B3824C");
+   Furnish(clothingRoot,240*VoxelWorld.Unit,"Cashier step",new Vector3(3.9f,.325f,-.4f),new Vector3(1,.65f,.85f),"B3824C");
+   pawOwner=Owner(pawMartRoot,"Miso","ginger","tuxedo",new Vector3(200*VoxelWorld.Unit-4.4f,.85f,-1.1f),"Grocery apron","738448");
    pawOwner.Root.localRotation=Quaternion.Euler(0,180,0);
-   clothingOwner=Owner(clothingRoot,"Clover","gray","patchwork",new Vector3(240*VoxelWorld.Unit+2,.85f,3.3f),"Boutique scarf","BF7958");
+   clothingOwner=Owner(clothingRoot,"Clover","gray","patchwork",new Vector3(240*VoxelWorld.Unit+3.9f,.85f,-.4f),"Boutique scarf","BF7958");
    clothingOwner.Root.localRotation=Quaternion.Euler(0,180,0);
    manager=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe(geometry,"honey","solid"),91);
    managerRoot=manager.Root;managerRoot.name="Interior manager";managerRoot.localScale=Vector3.one*.83f;managerRoot.gameObject.SetActive(false);
@@ -95,13 +95,15 @@ namespace Purrington.Presentation {
   }
   void Box(Transform parent,string name,Vector3 at,Vector3 size,string color){geometry.Build(parent,ManagerCatArt.Node(name,at,size,color));}
   void Furnish(Transform parent,float x,string name,Vector3 at,Vector3 size,string color){Box(parent,name,at+new Vector3(x,0,0),size,color);}
-  void Base(Transform parent,float x,string wall){
-   Furnish(parent,x,"Floor",new Vector3(0,-.05f,0),new Vector3(9,.2f,8),"CAC4B2");
-   // Every wall has a full and a knee-high version; FaceCamera shows the low one on the sides between the camera and the room.
-   Wall(parent,x,"Back wall",new Vector3(0,0,4),new Vector3(9,0,.3f),Vector3.forward,wall);
-   Wall(parent,x,"Front wall",new Vector3(0,0,-4),new Vector3(9,0,.3f),Vector3.back,wall);
-   Wall(parent,x,"Left wall",new Vector3(-4.5f,0,0),new Vector3(.3f,0,8),Vector3.left,wall);
-   Wall(parent,x,"Right wall",new Vector3(4.5f,0,0),new Vector3(.3f,0,8),Vector3.right,wall);
+  void Base(Transform parent,float x,ShopPlan plan,string wall){
+   foreach(var room in plan.Rooms){var r=room.rect;var floor=MainStreetArt.Group(parent,room.name);Furnish(floor,x,room.name+" floor",new Vector3(r.center.x,-.05f,r.center.y),new Vector3(r.width,.2f,r.height),room.floor);}
+   // Outer walls have a full and a knee-high version; FaceCamera shows the low one on the sides between the camera and the room.
+   // Partitions between rooms stay half height with a trim cap so every room reads as its own space without hiding the next.
+   foreach(var w in plan.Walls()){
+    if(w.exterior){Wall(parent,x,"Outer wall",w.at,w.size,w.normal,wall);continue;}
+    Furnish(parent,x,"Partition",w.at+Vector3.up*.65f,new Vector3(w.size.x,1.3f,w.size.z),wall);
+    Furnish(parent,x,"Partition cap",w.at+Vector3.up*1.34f,new Vector3(w.size.x+.06f,.08f,w.size.z+.06f),"B3824C");
+   }
   }
   void Wall(Transform parent,float x,string name,Vector3 at,Vector3 size,Vector3 normal,string color){
    var full=MainStreetArt.Group(parent,name);var low=MainStreetArt.Group(parent,name+" (cut)");
@@ -120,11 +122,11 @@ namespace Purrington.Presentation {
    foreach(var w in walls){bool near=Vector3.Dot(w.root.localRotation*w.normal,cameraForward)<0;w.full.gameObject.SetActive(!near);w.low.gameObject.SetActive(near);}
   }
   void BuildPawMart(Transform root,float x){
-   Base(root,x,"EFE2C9");
+   Base(root,x,ShopPlan.PawMart,"EFE2C9");
    PawMartArt.Build(geometry,root,x);
   }
   void BuildClothing(Transform root,float x){
-   Base(root,x,"F4E4D8");
+   Base(root,x,ShopPlan.Clothing,"F4E4D8");
    ClothingStoreArt.Build(geometry,root,x);
   }
   public void Enter(string storeId){
@@ -132,7 +134,8 @@ namespace Purrington.Presentation {
    ClearClothingPreview();ActiveStoreId=storeId;conversation=walking=IsShopping=false;waypoint=0;managerDistance=checkoutTime=0;carts[0].Root.gameObject.SetActive(false);
    pawMartRoot.gameObject.SetActive(storeId=="paw_mart");clothingRoot.gameObject.SetActive(storeId=="clothing");
    float x=(storeId=="paw_mart"?200:240)*VoxelWorld.Unit;
-   entry=new Vector3(x,.18f,-3);aisle=new Vector3(x+.8f,.18f,-.6f);counter=new Vector3(x+2,.18f,.35f);
+   var plan=ShopPlan.For(storeId);entry=new Vector3(x+plan.DoorX,.18f,plan.Bounds.yMin+.8f);
+   if(storeId=="paw_mart"){aisle=new Vector3(x-3.2f,.18f,-3.5f);counter=new Vector3(x-4.4f,.18f,-2.95f);}else{aisle=new Vector3(x+2.6f,.18f,-3.1f);counter=new Vector3(x+3.9f,.18f,-2.45f);}
    managerRoot.SetParent(storeId=="paw_mart"?pawMartRoot:clothingRoot,false);managerRoot.localPosition=entry;managerRoot.localRotation=Quaternion.identity;managerRoot.gameObject.SetActive(true);AdvanceShoppers(0,false);
   }
   public void Exit(){ClearClothingPreview();conversation=walking=IsShopping=false;ActiveStoreId="";pawMartRoot.gameObject.SetActive(false);clothingRoot.gameObject.SetActive(false);managerRoot.gameObject.SetActive(false);}
@@ -168,7 +171,8 @@ namespace Purrington.Presentation {
   }
   void AdvanceShopping(float seconds,bool motion){
    float x=200*VoxelWorld.Unit;
-   var route=new[]{new Vector3(x+3,.18f,.35f),new Vector3(x+3,.18f,-.8f),new Vector3(x+1.7f,.18f,-.8f),counter};
+   // Down the front aisle, through the doorway into the fresh market, past the produce and back to the till.
+   var route=new[]{new Vector3(x+.9f,.18f,-3.9f),new Vector3(x+.9f,.18f,-1.2f),new Vector3(x+3.6f,.18f,-1.2f),new Vector3(x+4.2f,.18f,.2f),new Vector3(x+3.6f,.18f,-1.2f),new Vector3(x+.9f,.18f,-1.2f),new Vector3(x+.9f,.18f,-3.9f),counter};
    float remaining=Mathf.Max(0,seconds)*1.2f;
    while(remaining>0&&IsShopping){
     var target=route[shoppingWaypoint];var delta=target-managerRoot.localPosition;float distance=delta.magnitude;
@@ -184,8 +188,9 @@ namespace Purrington.Presentation {
   void AdvanceShoppers(float seconds,bool motion){
    if(ActiveStoreId!="paw_mart")return;
    float x=200*VoxelWorld.Unit;
-   var route=new[]{new Vector3(x-1.7f,.18f,-1.8f),new Vector3(x+.1f,.18f,-1.8f),new Vector3(x+.1f,.18f,1.5f),new Vector3(x-1.7f,.18f,1.5f)};
-   const float perimeter=10.2f;
+   // Shoppers loop the central gondola in the grocery hall.
+   var route=new[]{new Vector3(x-1.5f,.18f,-3.2f),new Vector3(x+.5f,.18f,-3.2f),new Vector3(x+.5f,.18f,.95f),new Vector3(x-1.5f,.18f,.95f)};
+   const float perimeter=12.3f;
    for(int i=0;i<2;i++){
     shopperDistance[i]+=Mathf.Max(0,seconds)*.55f;float along=Mathf.Repeat(shopperDistance[i]+i*perimeter/2,perimeter);
     for(int segment=0;segment<4;segment++){

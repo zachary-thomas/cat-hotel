@@ -15,8 +15,16 @@ namespace Purrington.Tests {
    foreach(var id in new[]{"paw_mart","clothing"}){
     var node=art.Storefronts[id];var f=TownContent.Current.Shop(id).footprint;
     var shell=node.Find("Opaque shell");Assert.That(shell,Is.Not.Null);
-    Assert.That(shell.localScale.x,Is.EqualTo(f.w*VoxelWorld.Unit).Within(.001));
-    Assert.That(shell.localScale.z,Is.EqualTo(f.d*VoxelWorld.Unit).Within(.001));
+    // The shell is the union of the plan's rooms and fills the authored footprint exactly.
+    var renderers=shell.GetComponentsInChildren<Renderer>();Assert.That(renderers.Length,Is.EqualTo(ShopPlan.For(id).Rooms.Length));
+    var b=renderers[0].bounds;foreach(var r in renderers)b.Encapsulate(r.bounds);
+    Assert.That(b.size.x,Is.EqualTo(f.w*VoxelWorld.Unit).Within(.01));Assert.That(b.size.z,Is.EqualTo(f.d*VoxelWorld.Unit).Within(.01));
+    Assert.That(b.center.x,Is.EqualTo((f.x+f.w/2)*VoxelWorld.Unit).Within(.01));Assert.That(b.center.z,Is.EqualTo((f.z+f.d/2)*VoxelWorld.Unit).Within(.01));
+    // The door lines up with the street door node, and the shop sits back from the sidewalk behind its front garden.
+    var door=node.Find("Door");var doorNode=TownContent.Current.Point(TownContent.Current.Shop(id).door);
+    Assert.That(door.localPosition.x/VoxelWorld.Unit,Is.EqualTo(doorNode.x).Within(.05));
+    Assert.That(f.z+f.d,Is.LessThan(MainStreetArt.HotelSidewalkZ-2),id+" is set back from the sidewalk");
+    Assert.That(art.Root.Find(id+" front garden"),Is.Not.Null);
     Assert.That(node.GetComponentsInChildren<TownStoreHit>().Length,Is.GreaterThanOrEqualTo(2));
     var roof=node.Find("Opaque roof");Assert.That(roof,Is.Not.Null,id+" roof root");
     var roofRenderer=roof.GetComponentInChildren<Renderer>();

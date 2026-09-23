@@ -44,7 +44,12 @@ namespace Purrington.Domain
                 byte[] bytes=Encoding.UTF8.GetBytes(next.ToString(CultureInfo.InvariantCulture)+"\n"+Hash(payload)+"\n"+payload);
                 using(var stream=new FileStream(temporary,FileMode.Create,FileAccess.Write,FileShare.None)){stream.Write(bytes,0,bytes.Length);stream.Flush(true);}
                 // Only replace the older slot; latest committed slot is untouched throughout.
-                if(File.Exists(slot))File.Replace(temporary,slot,null);else File.Move(temporary,slot);
+                // Windows can hold a just-written file briefly (antivirus, indexer); retry the swap before reporting a failed save.
+                for(int attempt=0;;attempt++)
+                {
+                    try{if(File.Exists(slot))File.Replace(temporary,slot,null);else File.Move(temporary,slot);break;}
+                    catch(Exception e) when((e is IOException||e is UnauthorizedAccessException)&&attempt<4){System.Threading.Thread.Sleep(25*(attempt+1));}
+                }
                 CleanupTemps();sequence=next;return true;
             }
             catch(Exception e) when(e is IOException||e is UnauthorizedAccessException||e is ArgumentException||e is InvalidOperationException||e is OverflowException){return false;}

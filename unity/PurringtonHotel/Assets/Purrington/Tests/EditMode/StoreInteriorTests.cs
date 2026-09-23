@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using Purrington.Domain;
 using Purrington.Presentation;
@@ -51,6 +52,19 @@ public sealed class StoreInteriorTests {
    Assert.IsFalse(view.IsVisible);
   } finally {Object.DestroyImmediate(root);}
  }
+ [TestCase("paw_mart")]
+ [TestCase("clothing")]
+ public void PlanHasSeveralRoomsJoinedByDoorwaysAndOneStreetDoor(string id){
+  var plan=ShopPlan.For(id);Assert.That(plan.Rooms.Length,Is.GreaterThanOrEqualTo(3));
+  var walls=plan.Walls();
+  Assert.That(walls.Count(w=>!w.exterior),Is.GreaterThanOrEqualTo(plan.Rooms.Length),"partitions separate the rooms");
+  // Every doorway splits its partition: the wall pieces on that line leave a gap around the doorway.
+  foreach(var d in plan.Doorways)Assert.IsFalse(walls.Any(w=>!w.exterior&&Mathf.Abs(w.at.x-d.x)<w.size.x/2-.01f&&Mathf.Abs(w.at.z-d.y)<w.size.z/2-.01f),"doorway at "+d+" is open");
+  Assert.IsFalse(walls.Any(w=>w.exterior&&Mathf.Abs(w.at.z-plan.Bounds.yMin)<.01f&&Mathf.Abs(w.at.x-plan.DoorX)<w.size.x/2),"street door is open");
+  var f=TownContent.Current.Shop(id).footprint;
+  Assert.That(plan.Size.x,Is.EqualTo(f.w*VoxelWorld.Unit).Within(.01));Assert.That(plan.Size.y,Is.EqualTo(f.d*VoxelWorld.Unit).Within(.01));
+  Assert.That(plan.Bounds.center.magnitude,Is.LessThan(.01f),"plans are centered so the shell and the interior share a center");
+ }
  [Test] public void UnknownStoreIsRejected() {
   var root=new GameObject("test interiors");
   try {var view=new StoreInteriorView(geometry,root.transform);Assert.Throws<System.ArgumentException>(()=>view.Enter("closed"));}
@@ -87,7 +101,8 @@ public sealed class StoreInteriorTests {
    Assert.That(screen.y,Is.InRange(.1f,.9f));
    // A portrait sheet leaves only the upper half for the shop: fit every floor corner.
    var viewport=new Rect(0,Screen.height*.5f,Screen.width,Screen.height*.5f);world.SetWorldRect(viewport);
-   foreach(float x in new[]{-4.5f,4.5f})foreach(float z in new[]{-4f,4f}){
+   var half=ShopPlan.For(id).Size/2;
+   foreach(float x in new[]{-half.x,half.x})foreach(float z in new[]{-half.y,half.y}){
     var point=camera.WorldToScreenPoint(new Vector3(stage.x+x,0,-(stage.z+z)));
     Assert.IsTrue(viewport.Contains(point),"Shop floor is cropped at "+point);
    }

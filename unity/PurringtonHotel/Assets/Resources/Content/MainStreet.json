@@ -13,16 +13,16 @@
     {"id":"hotel_gate","x":0,"z":12.75,"area":"street"},
     {"id":"crosswalk","x":0,"z":19.1,"area":"street"},
     {"id":"square","x":0,"z":25,"area":"street"},
-    {"id":"paw_mart_door","x":28,"z":12.75,"area":"street"},
-    {"id":"clothing_door","x":-28,"z":12.75,"area":"street"},
+    {"id":"paw_mart_door","x":29,"z":12.75,"area":"street"},
+    {"id":"clothing_door","x":-29,"z":12.75,"area":"street"},
     {"id":"paw_mart_cashier","x":0,"z":3,"area":"paw_mart"},
     {"id":"clothing_cashier","x":0,"z":3,"area":"clothing"}
   ],
   "links": [["hotel_gate","crosswalk"],["crosswalk","square"],
             ["hotel_gate","paw_mart_door"],["hotel_gate","clothing_door"]],
   "stores": [
-    {"id":"paw_mart","door":"paw_mart_door","cashier":"paw_mart_cashier","footprint":{"x":23.775,"z":4.45,"w":8.45,"d":7.55}},
-    {"id":"clothing","door":"clothing_door","cashier":"clothing_cashier","footprint":{"x":-32.225,"z":4.45,"w":8.45,"d":7.55}}
+    {"id":"paw_mart","door":"paw_mart_door","cashier":"paw_mart_cashier","footprint":{"x":21.3636,"z":0.6909,"w":11.1818,"d":8.9091}},
+    {"id":"clothing","door":"clothing_door","cashier":"clothing_cashier","footprint":{"x":-32.3182,"z":1.1455,"w":9.8182,"d":8.4545}}
   ],
   "offers": [{"id":"welcome_basket","name":"Welcome Basket","price":30,"store":"paw_mart"},{"id":"market_bundle","name":"Market Day bundle","price":80,"store":"paw_mart"}],
   "quests": [{"id":"welcome_picnic","name":"Welcome Picnic","store":"paw_mart","requiresSpecial":"welcome_basket","cat":5,"knownCoins":40},{"id":"first_look","name":"First Look","store":"clothing","grantWear":"store_ribbon","requiresWear":"store_ribbon"}],

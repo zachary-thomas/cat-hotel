@@ -34,7 +34,7 @@ namespace Purrington.Presentation {
    storeInterior.SetManagerAppearance(model.State.managerCoat,model.State.managerMarkings);
    townStreetFollowing=townFollowing;storeInterior.Enter(id);if(townArt!=null&&townArt.Storefronts.TryGetValue(id,out var front))front.gameObject.SetActive(false);townFollowing=false;pressed=false;
    townStreetFocus=focus;townStreetZoom=zoom;townStreetManual=manualCamera;townStreetBounds=lastFitBounds;
-   FocusBounds(new Bounds(storeInterior.Focus,new Vector3(9.5f,3.6f,8.5f)));
+   var plan=ShopPlan.For(id).Size;FocusBounds(new Bounds(storeInterior.Focus,new Vector3(plan.x+.2f,3.6f,plan.y+.2f)));
    SyncManager(0);
    StoreEntered?.Invoke(id);
   }

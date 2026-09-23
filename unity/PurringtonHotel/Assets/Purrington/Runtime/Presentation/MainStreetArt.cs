@@ -11,6 +11,8 @@ namespace Purrington.Presentation {
   readonly GodotGeometry geometry; readonly TownContent content;
   const float U=VoxelWorld.Unit;
   public const float SidewalkMinX=-35,SidewalkMaxX=35,SidewalkMinZ=18.3f,SidewalkMaxZ=20;
+  // Street edge of the hotel-side sidewalk (lot units); shop gardens end here.
+  public const float HotelSidewalkZ=12.025f;
   // Lot-unit areas Main Street owns (plaza across the road, both shop lots); neighbor houses and lawn trees inside them are not built.
   // Shop lots sit beyond the hotel's buyable east and west plots (x ±12..20) so the hotel can still grow.
   static readonly Rect[] Cleared={Rect.MinMaxRect(-13,18,17,34),Rect.MinMaxRect(21,-1,35,12.6f),Rect.MinMaxRect(-35,-1,-21,12.6f)};
@@ -38,27 +40,112 @@ namespace Purrington.Presentation {
     foreach(float lz in new[]{q.z-4.4f,q.z+4.4f}){var lamp=Group(Root,"Square lamp");float lx=(q.x+side*7.4f)*U;Box(lamp,"Post",new Vector3(lx,1.65f,lz*U),new Vector3(.18f,3.1f,.18f),"425C35");Box(lamp,"Lantern",new Vector3(lx,3.2f,lz*U),new Vector3(.48f,.6f,.48f),"D7AE55");}
     float px=(q.x+side*2.6f)*U,pz=(q.z+4.3f)*U;Box(Root,"Stone planter",new Vector3(px,.45f,pz),new Vector3(.9f,.7f,.9f),"BF7958");Box(Root,"Foliage",new Vector3(px,.9f,pz),new Vector3(1.1f,.5f,1.1f),"738448");
    }
+   Decorate(q);
+  }
+  // Plaza dressing stays on the rim: bunting between the lamps, trees in planters at each end and flower beds by the sidewalk.
+  void Decorate(LotPoint q){
+   var decor=Group(Root,"Square decorations");
+   foreach(float lz in new[]{q.z-4.4f,q.z+4.4f}){
+    float x0=(q.x-7.4f)*U,x1=(q.x+7.4f)*U,z=lz*U;
+    Box(decor,"Bunting string",new Vector3((x0+x1)/2,3.05f,z),new Vector3(x1-x0,.04f,.04f),"F4F1E8");
+    int i=0;for(float x=x0+.5f;x<x1-.3f;x+=.55f,i++){float sag=.25f*(1-Mathf.Pow(2*(x-x0)/(x1-x0)-1,2));Box(decor,"Bunting flag",new Vector3(x,2.88f-sag,z),new Vector3(.3f,.3f,.05f),Blooms[i%Blooms.Length]);Box(decor,"Bunting flag tip",new Vector3(x,2.68f-sag,z),new Vector3(.14f,.12f,.05f),Blooms[i%Blooms.Length]);}
+   }
+   foreach(int side in new[]{-1,1}){
+    float tx=(q.x+side*7.3f)*U,tz=(q.z+.2f)*U;var tree=Group(decor,"Planter tree");
+    Box(tree,"Round planter",new Vector3(tx,.4f,tz),new Vector3(1.3f,.6f,1.3f),"E4DCCB");Box(tree,"Planter soil",new Vector3(tx,.72f,tz),new Vector3(1.1f,.08f,1.1f),"8A6B4F");
+    Box(tree,"Trunk",new Vector3(tx,1.5f,tz),new Vector3(.28f,1.6f,.28f),"8A6B4F");
+    Box(tree,"Canopy",new Vector3(tx,2.5f,tz),new Vector3(1.6f,.9f,1.6f),"738448");Box(tree,"Canopy",new Vector3(tx,3.15f,tz),new Vector3(1.1f,.6f,1.1f),"8FA35E");
+    for(int k=0;k<4;k++)Box(tree,"Blossom",new Vector3(tx+(k%2==0?-.5f:.5f),2.95f,tz+(k<2?-.5f:.5f)),new Vector3(.2f,.2f,.2f),k%2==0?"F2A7B5":"F4F1E8");
+   }
+   // Flower beds along the sidewalk edge, clear of the crosswalk path and the Market Day board.
+   foreach(var bed in new[]{(a:1.6f,b:6.8f),(a:-7.4f,b:-5.6f),(a:-2.4f,b:-1.6f)}){
+    float mid=(q.x+(bed.a+bed.b)/2)*U,w=(bed.b-bed.a)*U,z=(q.z-4.6f)*U;
+    Box(decor,"Flower bed edging",new Vector3(mid,.24f,z),new Vector3(w,.18f,.7f),"BBB6A5");Box(decor,"Flower bed soil",new Vector3(mid,.3f,z),new Vector3(w-.15f,.08f,.5f),"8A6B4F");
+    int i=0;for(float x=mid-w/2+.2f;x<mid+w/2-.1f;x+=.34f,i++){Box(decor,"Flower stem",new Vector3(x,.44f,z+(i%2==0?-.1f:.1f)),new Vector3(.06f,.2f,.06f),"738448");Box(decor,"Flower bloom",new Vector3(x,.58f,z+(i%2==0?-.1f:.1f)),new Vector3(.17f,.13f,.17f),Blooms[(i+2)%Blooms.Length]);}
+   }
+   foreach(int side in new[]{-1,1})PawMartArt.Plant((n,x,y,z,w,h,d,c)=>Box(decor,n,new Vector3(x,y+.13f,z),new Vector3(w,h,d),c),(q.x+side*3.6f)*U,(q.z+4.3f)*U);
   }
   // Street signs share one letter size so the shops and the hotel read at the same, cat-appropriate scale.
   const float SignPixel=.065f;
+  static readonly string[] Blooms={"F2A7B5","F7CC62","C9B6E4","F4F1E8","E6B7C1"};
   void Store(string id,string title,bool boutique){
-   var store=content.Shop(id);var f=store.footprint;var root=Group(Root,id);Storefronts[id]=root;
-   // The shell is exactly the interior room, so entering cuts this same building away like the hotel's dollhouse view.
-   float x=(f.x+f.w/2)*U,z=(f.z+f.d/2)*U,front=(f.z+f.d)*U;
-   var shell=Box(root,"Opaque shell",new Vector3(x,1.9f,z),new Vector3(f.w*U,3.6f,f.d*U),"EFE2C9");Hit(shell,id);
-   Box(root,"Opaque roof",new Vector3(x,3.95f,z),new Vector3(f.w*U,.55f,f.d*U),boutique?"BF7958":"425C35");
-   Box(root,"Timber cornice",new Vector3(x,3.55f,front+.08f),new Vector3(f.w*U,.2f,.3f),"B3824C");
-   var door=Box(root,"Door",new Vector3(x,1.1f,front+.12f),new Vector3(1.2f,2.1f,.23f),"425C35");Hit(door,id);
-   Box(root,"Door handle",new Vector3(x+.38f,1.1f,front+.27f),new Vector3(.09f,.3f,.07f),"D7AE55");
+   var store=content.Shop(id);var f=store.footprint;var plan=ShopPlan.For(id);var root=Group(Root,id);Storefronts[id]=root;
+   float cx=(f.x+f.w/2)*U,cz=(f.z+f.d/2)*U,T=ShopPlan.Thickness;
+   // Plan space turns half a circle onto the street, exactly as StoreInteriorView.Place does, so the shell hugs the rooms.
+   Vector3 W(float lx,float y,float lz)=>new Vector3(cx-lx,y,cz-lz);
+   var shell=Group(root,"Opaque shell");var roof=Group(root,"Opaque roof");
+   string roofColor=boutique?"BF7958":"425C35",wingRoof=boutique?"D98FA3":"5F7040";
+   foreach(var room in plan.Rooms){
+    var r=room.rect;bool main=r.yMin<=plan.Bounds.yMin+.01f;
+    Hit(Box(shell,room.name+" shell",W(r.center.x,.1f+room.height/2,r.center.y),new Vector3(r.width+T,room.height,r.height+T),main?"EFE2C9":boutique?"F4E4D8":"E8DDC4"),id);
+    Box(roof,room.name+" roof",W(r.center.x,.37f+room.height,r.center.y),new Vector3(r.width+T+.2f,.55f,r.height+T+.2f),main?roofColor:wingRoof);
+    float front=cz-r.yMin+T/2,left=cx-r.xMax,right=cx-r.xMin;
+    Box(root,"Timber cornice",new Vector3((left+right)/2,room.height-.05f,front+.08f),new Vector3(right-left+T,.2f,.3f),"B3824C");
+    // Set-back wings show one window with a flower box toward the street.
+    if(!main&&r.yMin<0)Window(root,(left+right)/2,front,boutique,room.height);
+   }
+   float x=cx-plan.DoorX,front0=cz-plan.Bounds.yMin+T/2;
+   var door=Box(root,"Door",new Vector3(x,1.1f,front0+.12f),new Vector3(1.2f,2.1f,.23f),"425C35");Hit(door,id);
+   Box(root,"Door handle",new Vector3(x+.38f,1.1f,front0+.27f),new Vector3(.09f,.3f,.07f),"D7AE55");
+   Box(root,"Door step",new Vector3(x,.14f,front0+.4f),new Vector3(1.6f,.12f,.6f),"D9CFBC");
    float boardWidth=VoxelLetters.Width(title,SignPixel)+.4f;
-   Box(root,"Signboard",new Vector3(x,3.05f,front+.14f),new Vector3(boardWidth,.62f,.1f),"244335");
-   var letters=geometry.Build(root,VoxelLetters.Recipe("Store sign "+title,title,SignPixel,.05f,"F4EAD5"));letters.localPosition=new Vector3(x,3.05f,front+.19f);letters.localScale=new Vector3(1,1,-1);
-   foreach(float offset in new[]{-2.85f,2.85f}){
-    Box(root,"Window frame",new Vector3(x+offset,1.45f,front+.12f),new Vector3(2,1.5f,.24f),"B3824C");
-    Box(root,"Opaque display",new Vector3(x+offset,1.45f,front+.27f),new Vector3(1.7f,1.22f,.08f),"DCE5C5");
-    Box(root,"Awning",new Vector3(x+offset,2.4f,front+.35f),new Vector3(2.3f,.2f,.9f),boutique?"BF7958":"738448");
-    if(boutique){Box(root,"Display mannequin",new Vector3(x+offset,1.35f,front+.36f),new Vector3(.4f,.65f,.12f),"D6A182");Box(root,"Display head",new Vector3(x+offset,1.8f,front+.36f),new Vector3(.28f,.28f,.12f),"D7AE55");}
-    else foreach(float item in new[]{-.45f,0,.45f})Box(root,"Produce display",new Vector3(x+offset+item,1.25f,front+.36f),new Vector3(.34f,.3f,.12f),item==0?"D7AE55":"BF7958");
+   Box(root,"Signboard",new Vector3(x,3.05f,front0+.14f),new Vector3(boardWidth,.62f,.1f),"244335");
+   var letters=geometry.Build(root,VoxelLetters.Recipe("Store sign "+title,title,SignPixel,.05f,"F4EAD5"));letters.localPosition=new Vector3(x,3.05f,front0+.19f);letters.localScale=new Vector3(1,1,-1);
+   foreach(float offset in new[]{-2.1f,2.1f})Window(root,x+offset,front0,boutique,3.6f);
+   Yard(id,plan,cx,cz,boutique);
+  }
+  void Window(Transform root,float x,float front,bool boutique,float height){
+   Box(root,"Window frame",new Vector3(x,1.45f,front+.12f),new Vector3(1.8f,1.5f,.24f),"B3824C");
+   Box(root,"Opaque display",new Vector3(x,1.45f,front+.27f),new Vector3(1.5f,1.22f,.08f),"DCE5C5");
+   Box(root,"Window mullion",new Vector3(x,1.45f,front+.3f),new Vector3(.08f,1.22f,.04f),"B3824C");
+   // Striped awning: alternating bands along the width.
+   for(int i=0;i<5;i++)Box(root,"Awning stripe",new Vector3(x-.84f+i*.42f,Mathf.Min(2.4f,height-.9f),front+.5f),new Vector3(.42f,.18f,.9f),i%2==0?(boutique?"BF7958":"738448"):"F4F1E8");
+   Box(root,"Window box",new Vector3(x,.72f,front+.36f),new Vector3(1.7f,.26f,.34f),"B3824C");
+   for(int i=0;i<6;i++){float bx=x-.7f+i*.28f;Box(root,"Window box leaves",new Vector3(bx,.92f,front+.36f),new Vector3(.24f,.16f,.24f),"738448");Box(root,"Window box bloom",new Vector3(bx,1.04f,front+.36f),new Vector3(.14f,.12f,.14f),Blooms[i%Blooms.Length]);}
+  }
+  // Each shop sits back from the sidewalk behind a front garden: a stepping-stone path, flower beds, a picket fence and lamps.
+  // The yard is not part of the storefront, so it stays in view while the dollhouse interior is open.
+  void Yard(string id,ShopPlan plan,float cx,float cz,bool boutique){
+   var yard=Group(Root,id+" front garden");float T=ShopPlan.Thickness;
+   float front=cz-plan.Bounds.yMin+T/2,fence=HotelSidewalkZ*U-.25f,door=cx-plan.DoorX,left=cx-plan.Bounds.xMax-T/2,right=cx-plan.Bounds.xMin+T/2;
+   int step=0;for(float z=front+.75f;z<fence+.2f;z+=.55f,step++)Box(yard,"Stepping stone",new Vector3(door+(step%2==0?-.08f:.08f),.1f,z),new Vector3(1.1f,.08f,.42f),step%3==0?"D9CFBC":"E4DCCB");
+   // The main room's frontage between the side walls, split by the path.
+   var main=plan.Rooms[0].rect;float mainLeft=cx-main.xMax-T/2,mainRight=cx-main.xMin+T/2;
+   foreach(var bed in new[]{(a:mainLeft+.2f,b:door-1),(a:door+1,b:mainRight-.2f)}){
+    if(bed.b-bed.a<.6f)continue;float mid=(bed.a+bed.b)/2,z=front+.75f;
+    Box(yard,"Flower bed edging",new Vector3(mid,.12f,z),new Vector3(bed.b-bed.a+.1f,.16f,.8f),"BBB6A5");
+    Box(yard,"Flower bed soil",new Vector3(mid,.17f,z),new Vector3(bed.b-bed.a-.1f,.1f,.6f),"8A6B4F");
+    int i=0;for(float bx=bed.a+.2f;bx<bed.b-.1f;bx+=.36f,i++){float bz=z+(i%2==0?-.12f:.14f);Box(yard,"Flower stem",new Vector3(bx,.32f,bz),new Vector3(.06f,.24f,.06f),"738448");Box(yard,"Flower bloom",new Vector3(bx,.47f,bz),new Vector3(.18f,.14f,.18f),Blooms[i%Blooms.Length]);}
+   }
+   // White picket fence along the sidewalk with a gap for the path.
+   foreach(var run in new[]{(a:left,b:door-.8f),(a:door+.8f,b:right)}){
+    if(run.b-run.a<.3f)continue;
+    foreach(float y in new[]{.3f,.55f})Box(yard,"Fence rail",new Vector3((run.a+run.b)/2,y,fence),new Vector3(run.b-run.a,.07f,.05f),"F4F1E8");
+    for(float px=run.a+.1f;px<=run.b;px+=.32f)Box(yard,"Picket",new Vector3(px,.38f,fence),new Vector3(.12f,.6f,.07f),"F4F1E8");
+    foreach(float px in new[]{run.a,run.b})Box(yard,"Fence post",new Vector3(px,.42f,fence),new Vector3(.16f,.74f,.16f),"E4DCCB");
+   }
+   foreach(float side in new[]{-1.05f,1.05f}){var lamp=Group(yard,"Garden lamp");Box(lamp,"Post",new Vector3(door+side,1.05f,fence-.25f),new Vector3(.14f,1.9f,.14f),"425C35");Box(lamp,"Lantern",new Vector3(door+side,2.1f,fence-.25f),new Vector3(.36f,.46f,.36f),"D7AE55");}
+   // The notch beside the set-back wing becomes a patio: a café corner for Paw Mart, a garden nook for the boutique.
+   var wing=System.Array.Find(plan.Rooms,r=>r.rect.yMin>plan.Bounds.yMin+.01f&&r.rect.yMin<0).rect;
+   float px0=cx-wing.xMax-T/2,px1=cx-wing.xMin+T/2,nz0=cz-wing.yMin+T/2,nz1=front;
+   // Clear of the main room's side wall.
+   if(px1>mainLeft&&px1<mainRight)px1=mainLeft;if(px0<mainRight&&px0>mainLeft)px0=mainRight;
+   float pcx=(px0+px1)/2,pcz=(nz0+nz1)/2,depth=(nz1-nz0-.2f)/5;
+   for(int i=0;i<5;i++)Box(yard,"Patio deck",new Vector3(pcx,.1f,nz0+.1f+(i+.5f)*depth),new Vector3(px1-px0-.1f,.08f,depth-.03f),i%2==0?"D2AD77":"C9A674");
+   if(!boutique){
+    var cafe=Group(yard,"Cafe corner");
+    Box(cafe,"Cafe table",new Vector3(pcx,.62f,pcz),new Vector3(.9f,.08f,.9f),"F4F1E8");Box(cafe,"Table stem",new Vector3(pcx,.36f,pcz),new Vector3(.12f,.5f,.12f),"425C35");
+    Box(cafe,"Umbrella pole",new Vector3(pcx,1.4f,pcz),new Vector3(.07f,2.2f,.07f),"B3824C");
+    Box(cafe,"Umbrella canopy",new Vector3(pcx,2.45f,pcz),new Vector3(1.9f,.12f,1.9f),"BF7958");Box(cafe,"Umbrella canopy",new Vector3(pcx,2.57f,pcz),new Vector3(1.3f,.12f,1.3f),"F4F1E8");Box(cafe,"Umbrella canopy",new Vector3(pcx,2.69f,pcz),new Vector3(.6f,.12f,.6f),"BF7958");
+    foreach(float side in new[]{-.85f,.85f}){Box(cafe,"Cafe stool",new Vector3(pcx+side,.42f,pcz),new Vector3(.45f,.08f,.45f),"738448");Box(cafe,"Stool leg",new Vector3(pcx+side,.22f,pcz),new Vector3(.1f,.36f,.1f),"425C35");}
+    Box(cafe,"Teacup",new Vector3(pcx+.2f,.72f,pcz),new Vector3(.14f,.12f,.14f),"9FB7C9");
+    for(int i=0;i<2;i++){float bx=px0+.5f+i*.75f,bz=nz1-.4f;Box(cafe,"Produce crate",new Vector3(bx,.3f,bz),new Vector3(.65f,.4f,.5f),"B3824C");for(int k=0;k<3;k++)Box(cafe,"Crate fruit",new Vector3(bx-.2f+k*.2f,.55f,bz),new Vector3(.17f,.15f,.17f),i==0?"BF7958":"D7AE55");}
+   }else{
+    var nook=Group(yard,"Garden nook");
+    Box(nook,"Garden bench seat",new Vector3(pcx,.5f,nz0+.95f),new Vector3(1.6f,.12f,.5f),"F4F1E8");Box(nook,"Garden bench back",new Vector3(pcx,.85f,nz0+.73f),new Vector3(1.6f,.55f,.1f),"F4F1E8");
+    foreach(float side in new[]{-.65f,.65f})Box(nook,"Bench leg",new Vector3(pcx+side,.26f,nz0+.95f),new Vector3(.12f,.36f,.4f),"BBB6A5");
+    foreach(float side in new[]{-1f,1f}){float tx=pcx+side*1.2f,tz=nz1-.5f;Box(nook,"Topiary pot",new Vector3(tx,.3f,tz),new Vector3(.45f,.45f,.45f),"BF7958");Box(nook,"Topiary",new Vector3(tx,.8f,tz),new Vector3(.55f,.55f,.55f),"738448");Box(nook,"Topiary",new Vector3(tx,1.2f,tz),new Vector3(.35f,.3f,.35f),"8FA35E");}
+    Box(nook,"Bird bath",new Vector3(pcx,.35f,nz1-.55f),new Vector3(.2f,.5f,.2f),"E4DCCB");Box(nook,"Bird bath bowl",new Vector3(pcx,.64f,nz1-.55f),new Vector3(.6f,.1f,.6f),"9FB7C9");
    }
   }
   // The hotel's signature is a small timber arch over its gate path, high enough for cats to walk beneath.
