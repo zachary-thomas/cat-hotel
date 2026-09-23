@@ -27,6 +27,7 @@ namespace Purrington.Presentation
     {
 
         static readonly Color Ink = ConceptTheme.Ink, Cream = ConceptTheme.Cream, Mint = ConceptTheme.Sage, Coral = ConceptTheme.Clay, Gold = ConceptTheme.Honey, Lilac = Hex("E6DFCE");
+        static readonly Color CardTone=ConceptTheme.Ui.Card,InkSoft=ConceptTheme.Ui.InkSoft,LeafText=ConceptTheme.Ui.LeafText,Coin=ConceptTheme.Ui.Coin;
 
         HotelApp app;
 
@@ -141,8 +142,8 @@ namespace Purrington.Presentation
 
             if (wallet == null) return;
             double rate = app.Model.Rate();
-            wallet.text = "<b>" + Math.Floor(app.Model.State.coins).ToString("N0") + "</b>";
-            if (walletRate != null) walletRate.text = "<color=#17612F>+" + Math.Round(rate).ToString("N0") + " / min</color>";
+            wallet.text = Math.Floor(app.Model.State.coins).ToString("N0");
+            if (walletRate != null) walletRate.text = "+" + Math.Round(rate).ToString("N0") + " / min";
             else wallet.text += " · +" + Math.Round(rate).ToString("N0") + " / min";
 
         }
@@ -459,10 +460,10 @@ namespace Purrington.Presentation
 
         {
 
-            // Slim cream status strip + gold wallet chip (not a tall full-width banner).
+            // Slim cream card strip: paw-coin wallet chip, day clock chip, hotel name and gear (not a tall full-width banner).
             float headerH=careCat>=0?56f:52f;
 
-            var panel=Panel("Hotel status",safe,Cream);
+            var panel=Panel("Hotel status",safe,CardTone);
 
             Pin(panel,new Vector2(0,1),Vector2.one,new Vector2(.5f,1),new Vector2(10,-8-headerH),new Vector2(-10,-8));
 
@@ -470,24 +471,37 @@ namespace Purrington.Presentation
 
             float chipW=textScale>1?176f:158f;
 
-            var chip=Panel("Wallet chip",panel,Gold);
+            var chip=Panel("Wallet chip",panel,CardTone);
 
-            Pin(chip,new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(8,-18),new Vector2(8+chipW,18));
+            Pin(chip,new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(8,-22),new Vector2(8+chipW,22));
+            var coin=UiCoin.Create(chip,rounded,26);coin.anchorMin=coin.anchorMax=coin.pivot=new Vector2(0,.5f);coin.anchoredPosition=new Vector2(4,0);
 
-            wallet=Text(chip,"",12,Ink,true);
-            walletRate=Text(panel,"",11,new Color(0.09f,0.38f,0.19f));
-            Pin(walletRate.rectTransform,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(14,34),new Vector2(-86,52));
+            wallet=Text(chip,"",13,Ink,true);
+            var ratePill=Panel("Rate pill",chip,Mint);Pin(ratePill,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(32,3),new Vector2(-6,19));walletRate=Text(ratePill,"",10,LeafText,true);Stretch(walletRate.rectTransform,6,1,6,1);
 
-            Stretch(wallet.rectTransform,10,2,8,2);
+            Stretch(wallet.rectTransform,34,2,8,20);
 
-            var title=Text(panel,careCat>=0?"CAT TIME":"PURRINGTON",13,Ink,true);
+            float clockW=0f;
+            if(careCat<0){bool compactClock=((RectTransform)safe).rect.width<380||textScale>1.25f;clockW=compactClock?68f:116f;var clockPanel=Panel("Clock chip",panel,CardTone);Pin(clockPanel,new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(14+chipW,-16),new Vector2(14+chipW+clockW,16));var sunImg=Panel("Sun",clockPanel,Coin).GetComponent<UnityEngine.UI.Image>();var moonImg=Panel("Moon",clockPanel,InkSoft).GetComponent<UnityEngine.UI.Image>();foreach(var g in new[]{sunImg,moonImg}){var r=g.rectTransform;r.anchorMin=r.anchorMax=r.pivot=new Vector2(0,.5f);r.sizeDelta=new Vector2(16,16);r.anchoredPosition=new Vector2(8,0);g.raycastTarget=false;}var clockText=Text(clockPanel,"",11,Ink,true);Stretch(clockText.rectTransform,28,2,6,2);clockPanel.gameObject.AddComponent<HotelClockChip>().Bind(app.Model,clockText,sunImg,moonImg,compactClock);}
 
-            Pin(title.rectTransform,new Vector2(0,.5f),new Vector2(1,.5f),new Vector2(0,.5f),new Vector2(16+chipW,-14),new Vector2(careCat>=0?-96:-88,14));
+            var title=Text(panel,careCat>=0?"CAT TIME":(string)app.Model.Map()["name"],14,Ink,true);title.enableAutoSizing=true;title.fontSizeMin=10*textScale;title.fontSizeMax=14*textScale;
 
-            var gear=Button(panel,careCat>=0?"Back":"Menu",careCat>=0?(Action)CloseCare:()=>{settings=!settings;Rebuild();},Mint,13);
+            Pin(title.rectTransform,new Vector2(0,.5f),new Vector2(1,.5f),new Vector2(0,.5f),new Vector2(20+chipW+clockW,-14),new Vector2(careCat>=0?-96:-58,14));
 
-            float targetHalf=Mathf.Max(22f,22f/canvas.scaleFactor);
-            Pin(gear,new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(textScale>1?-90:-74,-targetHalf),new Vector2(-8,targetHalf));
+            if(careCat>=0)
+            {
+                var back=Button(panel,"Back",CloseCare,CardTone,13);
+                float targetHalf=Mathf.Max(22f,22f/canvas.scaleFactor);
+                Pin(back,new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(textScale>1?-90:-74,-targetHalf),new Vector2(-8,targetHalf));
+            }
+            else
+            {
+                // Gear drawn from ink rects so the menu needs no icon font.
+                var gear=Button(panel,"",()=>{settings=!settings;Rebuild();},CardTone,13);gear.name="Menu";
+                Pin(gear,new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(-52,-22),new Vector2(-8,22));
+                for(int i=0;i<8;i++){float a=i*45f*Mathf.Deg2Rad;var tooth=Rect("Tooth",gear);tooth.anchorMin=tooth.anchorMax=tooth.pivot=new Vector2(.5f,.5f);tooth.sizeDelta=new Vector2(4,6);tooth.anchoredPosition=new Vector2(Mathf.Sin(a),Mathf.Cos(a))*11;tooth.localRotation=Quaternion.Euler(0,0,-i*45f);var t=tooth.gameObject.AddComponent<UnityEngine.UI.Image>();t.color=Ink;t.raycastTarget=false;}
+                foreach(var (size,color) in new[]{(16f,Ink),(7f,CardTone)}){var disc=Panel("Gear disc",gear,color);disc.anchorMin=disc.anchorMax=disc.pivot=new Vector2(.5f,.5f);disc.sizeDelta=new Vector2(size,size);disc.anchoredPosition=Vector2.zero;disc.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;}
+            }
 
         }
 
@@ -495,7 +509,7 @@ namespace Purrington.Presentation
 
         {
 
-            dock=Panel("Navigation",safe,Cream);
+            dock=Panel("Navigation",safe,CardTone);
 
             Pin(dock,Vector2.zero,new Vector2(1,0),new Vector2(.5f,0),new Vector2(10,10),new Vector2(-10,84));
 
@@ -513,7 +527,7 @@ namespace Purrington.Presentation
 
                 bool build=dest=="Build";
 
-                var btn=Button(row,dest,()=>Navigate(dest),tab==dest?Mint:(build?Gold:Cream),build?13:12);
+                var btn=Button(row,dest,()=>Navigate(dest),tab==dest?Mint:CardTone,build?13:12);
 
                 var size=btn.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();size.flexibleWidth=build?1.35f:1;size.minWidth=build?64:48;
 
@@ -547,7 +561,7 @@ namespace Purrington.Presentation
 
             {
 
-                Block(3,3,20,17,Ink);Block(3,18,6,6,Ink);Block(17,18,6,6,Ink);Block(7,12,3,3,Cream);Block(17,12,3,3,Cream);Block(12,6,3,3,Coral);
+                Block(3,3,20,17,Ink);Block(3,18,6,6,Ink);Block(17,18,6,6,Ink);Block(7,12,3,3,CardTone);Block(17,12,3,3,CardTone);Block(12,6,3,3,Coin);
 
             }
 
@@ -563,7 +577,7 @@ namespace Purrington.Presentation
 
             {
 
-                Block(4,2,18,17,Ink);Block(1,19,24,4,Ink);Block(10,2,6,10,Cream);Block(6,13,4,3,Gold);Block(16,13,4,3,Gold);
+                Block(4,2,18,17,Ink);Block(1,19,24,4,Ink);Block(10,2,6,10,CardTone);Block(6,13,4,3,Coin);Block(16,13,4,3,Coin);
 
             }
 
@@ -571,7 +585,7 @@ namespace Purrington.Presentation
 
             {
 
-                Block(7,3,12,8,Ink);Block(4,11,5,7,Ink);Block(10,17,6,7,Ink);Block(18,12,5,7,Ink);Block(11,7,4,3,Coral);
+                Block(7,3,12,8,Ink);Block(4,11,5,7,Ink);Block(10,17,6,7,Ink);Block(18,12,5,7,Ink);Block(11,7,4,3,Coin);
 
             }
 
@@ -579,7 +593,7 @@ namespace Purrington.Presentation
 
             {
 
-                Block(2,3,6,19,Ink);Block(10,1,6,19,Ink);Block(18,4,6,19,Ink);Block(11,10,4,4,Gold);
+                Block(2,3,6,19,Ink);Block(10,1,6,19,Ink);Block(18,4,6,19,Ink);Block(11,10,4,4,Coin);
 
             }
 
