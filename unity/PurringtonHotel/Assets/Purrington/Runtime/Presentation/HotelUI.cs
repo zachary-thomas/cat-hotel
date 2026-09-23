@@ -748,7 +748,7 @@ namespace Purrington.Presentation
 
             Pin(title.rectTransform,new Vector2(0,.5f),new Vector2(1,.5f),new Vector2(0,.5f),new Vector2(20+chipW+clockW,-14),new Vector2(careCat>=0?-96:-58,14));
             // Below ~80 units the name is only an ellipsis (360 px at 150%), so it steps aside for the wallet and clock.
-            float titleW=(wideLayout?408f:((RectTransform)safe).rect.width-20)-(careCat>=0?96:58)-(20+chipW+clockW);title.gameObject.SetActive(titleW>=80);
+            float titleW=(wideLayout?408f:((RectTransform)safe).rect.width-20)-(careCat>=0?96:58)-(20+chipW+clockW);title.gameObject.SetActive(titleW>=80&&!(tab=="Hotel"&&careCat<0&&!welcome));
 
             if(careCat>=0)
             {
@@ -808,6 +808,7 @@ namespace Purrington.Presentation
             var icon=Rect(destination+" icon",parent);
 
             Pin(icon,new Vector2(.5f,1),new Vector2(.5f,1),new Vector2(.5f,1),new Vector2(-13,-32),new Vector2(13,-6));
+            icon.localScale=Vector3.one*1.12f;
 
             void Block(float x,float y,float w,float h,Color color)
 
@@ -866,11 +867,21 @@ namespace Purrington.Presentation
             lastSheetName="";
             // Compact objective card is the default; expand for room/capacity details.
             bool floorChoices=app.Model.Hotel().floors.Count>1;
-            float h=(compactObjective?58:Mathf.Lerp(165,205,(textScale-1)*2))+(floorChoices?44:0);
+            float goalArea=64+12*textScale;
+            float h=(compactObjective?goalArea:Mathf.Lerp(165,205,(textScale-1)*2))+(floorChoices?44:0);
+            HomeTitle();
             var panel=Panel("Hotel overview",safe,Cream);
             Pin(panel,Vector2.zero,new Vector2(1,0),new Vector2(.5f,0),new Vector2(12,96),new Vector2(-12,96+h));
             if(wideLayout)Pin(panel,new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(-245,96),new Vector2(245,96+h));
             string mapName=(string)app.Model.Map()["name"];
+            if(compactObjective){
+                // The goal card: tap the card for hotel details, the chevron to act on the goal.
+                var details=panel.gameObject.AddComponent<UnityEngine.UI.Button>();details.targetGraphic=panel.GetComponent<UnityEngine.UI.Image>();details.onClick.AddListener(()=>{app.Audio?.PlayEffect("tap");compactObjective=false;Rebuild();});
+                GoalCard(panel,goalArea);
+                if(app.Model.State.currentHotel==0){bool shortLabel=!wideLayout&&(textScale>1.2f||((RectTransform)safe).rect.width<380);var exploreStreet=Button(safe,shortLabel?"Main Street":"Explore Main Street",app.TownUI.Explore,Mint,14);exploreStreet.name="Explore Main Street";Pin(exploreStreet,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(12,-126),new Vector2(184,-78));}
+                if(floorChoices){var floorChip=FloorChip(panel);Pin(floorChip,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,6),new Vector2(-10,46));}
+                return;
+            }
             string headline=compactObjective
                 ? mapName+" · Lv "+app.Model.Hotel().level+" · "+app.Model.GuestCapacity()+" guests"
                 : mapName+" - level "+app.Model.Hotel().level;

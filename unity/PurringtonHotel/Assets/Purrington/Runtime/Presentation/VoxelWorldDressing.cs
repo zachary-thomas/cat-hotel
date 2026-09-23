@@ -18,11 +18,11 @@ namespace Purrington.Presentation {
    uint seed=(uint)(run.x*73856093)^(uint)(run.z*19349663)^(uint)(level*83492791)^(v?0x9E3779B9u:0u);
    bool exterior=run.inward!=0;
    if(exterior&&height>2&&(run.kind=="wall"||run.kind=="window")){
-    // Vines drape over the wall cap and trail down both faces, so they read in the cutaway view as well as outside.
+    // Vines grow along the outer edge of the wall cap and trail down the outside face only, never into the rooms.
     int i=0;for(float t=.3f;t<length-.2f;t+=.5f,i++){
      if(Hash(seed,i)<.4f)continue;
-     Box(at,axis*t+Vector3.up*(GroundY+height+.1f),new Vector3(.3f,.14f,.3f),Shade("6e9b62",(Hash(seed,i+17)-.5f)*.1f));
-     float drop=.2f+Hash(seed,i+31)*.42f;var root=axis*t+outward*(Hash(seed,i+43)<.5f?.15f:-.15f);int leaf=0;
+     Box(at,axis*t+outward*.12f+Vector3.up*(GroundY+height+.08f),new Vector3(.2f,.12f,.2f),Shade("6e9b62",(Hash(seed,i+17)-.5f)*.1f));
+     float drop=.2f+Hash(seed,i+31)*.42f;var root=axis*t+outward*.15f;int leaf=0;
      for(float y=0;y<drop;y+=.15f,leaf++)Box(at,root+axis*((Hash(seed,i*7+leaf)-.5f)*.14f)+Vector3.up*(GroundY+height-.02f-y),Vector3.one*(.22f-y*.1f),Shade("6e9b62",(Hash(seed,i*11+leaf)-.5f)*.1f));
      if(Hash(seed,i+57)>.45f)Box(at,root+outward*.08f+Vector3.up*(GroundY+height-.1f-drop*.55f),Vector3.one*.11f,DressBlooms[(int)(Hash(seed,i+91)*DressBlooms.Length)%DressBlooms.Length]);
     }
