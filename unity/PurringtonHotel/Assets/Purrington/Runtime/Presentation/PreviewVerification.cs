@@ -66,7 +66,7 @@ namespace Purrington.Presentation
             yield return new WaitForSecondsRealtime(1);
             app.UI.Navigate("Hotel");yield return Capture(output,"11-hotel-desktop");
             // Main Street: the whole street, then each shop interior standing in place with the town still around it.
-            app.UI.ExploreMainStreet();yield return new WaitForSecondsRealtime(.6f);app.World.FitTown();yield return Capture(output,"town-fit-desktop");
+            app.UI.ExploreMainStreet();yield return new WaitForSecondsRealtime(.6f);app.World.FitTown();yield return Capture(output,"town-fit-desktop");foreach(var (minute,label) in new[]{(1050f,"golden"),(1170f,"dusk")}){app.World.Lighting.Pin(minute);yield return Capture(output,"town-"+label+"-desktop");}app.World.Lighting.Pin(null);
             foreach(var shop in new[]{"paw_mart","clothing"}){var sent=app.Model.SendManager(shop+"_door");var skipped=app.Model.SkipManagerTravel();Debug.Log("PURRINGTON_TOWN "+shop+": send="+sent.message+" skip="+skipped.message+" shop="+app.Model.Hotel(0).town.shop);app.World.ExitTownMode();app.World.EnterTownMode();yield return new WaitForSecondsRealtime(1.2f);Check(app.World.ActiveStoreInteriorCount==1,shop+" interior opens in place");yield return Capture(output,"town-"+shop+"-inside-desktop");app.World.ExitStoreInterior();}
             app.UI.Navigate("Hotel");yield return new WaitForSecondsRealtime(.4f);
             app.World.Lighting.Pin(750);yield return Capture(output,"living-noon-desktop");app.World.Lighting.Pin(1380);yield return Capture(output,"living-night-desktop");app.World.Lighting.Pin(null);

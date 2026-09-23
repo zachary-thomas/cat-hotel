@@ -101,6 +101,7 @@ namespace Purrington.Editor
             Debug.Log("PURRINGTON_SETUP_OK: voxel isometric Meadow, portrait mobile, fresh Unity saves.");
         }
 
+        [MenuItem("Purrington/Apply rendering settings")]
         public static void ConfigureRendering()
         {
             var desktop=ConfigurePipeline("PC",4096,140,4);
@@ -133,9 +134,9 @@ namespace Purrington.Editor
             T Get<T>() where T:VolumeComponent{if(!profile.TryGet<T>(out var c)){c=profile.Add<T>(true);AssetDatabase.AddObjectToAsset(c,profile);}c.active=true;EditorUtility.SetDirty(c);return c;}
             var colors=Get<ColorAdjustments>();colors.contrast.Override(6);colors.saturation.Override(20);colors.postExposure.Override(.1f);
             Get<Tonemapping>().mode.Override(TonemappingMode.Neutral);
-            var bloom=Get<Bloom>();bloom.threshold.Override(1f);bloom.intensity.Override(.4f);bloom.scatter.Override(.7f);bloom.tint.Override(new Color(1f,.89f,.69f));bloom.highQualityFiltering.Override(false);
-            var split=Get<SplitToning>();split.highlights.Override(new Color(1f,.85f,.63f));split.shadows.Override(new Color(.72f,.66f,.85f));split.balance.Override(20);
-            Get<LiftGammaGain>().lift.Override(new Vector4(1f,.99f,.96f,.04f));
+            var bloom=Get<Bloom>();bloom.threshold.Override(1f);bloom.intensity.Override(.4f);bloom.scatter.Override(.7f);bloom.tint.Override(new Color(1f,.96f,.9f));bloom.highQualityFiltering.Override(false);
+            var split=Get<SplitToning>();split.highlights.Override(new Color(.97f,.93f,.87f));split.shadows.Override(new Color(.68f,.74f,.86f));split.balance.Override(0);
+            Get<LiftGammaGain>().lift.Override(new Vector4(1f,1f,1f,.03f));
             var balance=Get<WhiteBalance>();balance.temperature.Override(0);balance.tint.Override(0);
             if(profile.TryGet<Vignette>(out var vignette)){profile.Remove<Vignette>();UnityEngine.Object.DestroyImmediate(vignette,true);}
             EditorUtility.SetDirty(profile);

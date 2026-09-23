@@ -21,8 +21,8 @@
   "links": [["hotel_gate","crosswalk"],["crosswalk","square"],
             ["hotel_gate","paw_mart_door"],["hotel_gate","clothing_door"]],
   "stores": [
-    {"id":"paw_mart","door":"paw_mart_door","cashier":"paw_mart_cashier","footprint":{"x":22,"z":0,"w":12,"d":12}},
-    {"id":"clothing","door":"clothing_door","cashier":"clothing_cashier","footprint":{"x":-34,"z":0,"w":12,"d":12}}
+    {"id":"paw_mart","door":"paw_mart_door","cashier":"paw_mart_cashier","footprint":{"x":23.775,"z":4.45,"w":8.45,"d":7.55}},
+    {"id":"clothing","door":"clothing_door","cashier":"clothing_cashier","footprint":{"x":-32.225,"z":4.45,"w":8.45,"d":7.55}}
   ],
   "offers": [{"id":"welcome_basket","name":"Welcome Basket","price":30,"store":"paw_mart"},{"id":"market_bundle","name":"Market Day bundle","price":80,"store":"paw_mart"}],
   "quests": [{"id":"welcome_picnic","name":"Welcome Picnic","store":"paw_mart","requiresSpecial":"welcome_basket","cat":5,"knownCoins":40},{"id":"first_look","name":"First Look","store":"clothing","grantWear":"store_ribbon","requiresWear":"store_ribbon"}],

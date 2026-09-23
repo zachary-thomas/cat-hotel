@@ -15,8 +15,8 @@ namespace Purrington.Domain
         // authored=true: a legacy Godot color whose hue family must survive. false: a presentation literal given a new role.
         public static readonly Row[] Rows =
         {
-            new Row("60a830","8CC84B",true), new Row("186030","4FA64A",true), new Row("a86030","D39A5A",true),
-            new Row("f0d8c0","EAC08A",true), new Row("ede8d9","E4DCCB",true), new Row("fff8e9","FFF4DF",true),
+            new Row("60a830","8CC84B",true), new Row("186030","4FA64A",true), new Row("a86030","C9A07A",true),
+            new Row("f0d8c0","E8D3B2",true), new Row("ede8d9","E4DCCB",true), new Row("fff8e9","FFF4DF",true),
             new Row("f0a830","F7CC62",true), new Row("ffd16f","F7CC62",true), new Row("ffab97","F08C7C",true),
             new Row("60d6a6","8ED9AE",true), new Row("dfd2f5","C3B2EE",true), new Row("f078a8","F5AEB4",true),
             new Row("a8d8f0","A9DDF6",true), new Row("dba5b0","F2A7B2",true), new Row("d7a4ba","E7A9C6",true),
@@ -81,7 +81,9 @@ namespace Purrington.Domain
             Rgb(hex6, out var r, out var g, out var b);
             double v = Math.Max(r, Math.Max(g, b)), c = v - Math.Min(r, Math.Min(g, b)), s = v <= 0 ? 0 : c / v;
             if (v < .35 || s < .08) return Hex(r, g, b);
-            double s2 = Math.Min(.62, Math.Max(s, s * 1.3 + .04)), v2 = v + (1 - v) * .3;
+            // Oranges and tans (timber, floors, sand) keep their saturation so the world doesn't drift orange; other hues get the pastel boost.
+            double hue = Hue(hex6); bool warm = hue >= 15 && hue <= 55;
+            double s2 = warm ? s : Math.Min(.62, Math.Max(s, s * 1.3 + .04)), v2 = v + (1 - v) * (warm ? .18 : .3);
             double h = Hue(hex6) / 60, c2 = v2 * s2, x = c2 * (1 - Math.Abs(h % 2 - 1)), m = v2 - c2;
             double r2, g2, b2;
             if (h < 1) { r2 = c2; g2 = x; b2 = 0; } else if (h < 2) { r2 = x; g2 = c2; b2 = 0; } else if (h < 3) { r2 = 0; g2 = c2; b2 = x; }

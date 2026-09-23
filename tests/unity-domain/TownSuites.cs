@@ -52,6 +52,12 @@ static class TownSuites
   check(manager.LoadOrCreate().success,"town starter saves");
   check((string)JObject.FromObject(manager.State)["managerName"]=="Manager","default manager name saved");
   check(manager.State.managerCoat=="honey"&&manager.State.managerMarkings=="solid","default manager appearance");
+  // Saves from an older street layout must load: stale street spots and destinations send the manager back to the gate.
+  var stale=HotelModel.Copy(manager.State);var st=stale.hotels[0].town;st.phase="street";st.x=28;st.z=18;st.destination="east_walk";st.shop="";
+  check(!HotelModel.Valid(stale),"stale street position is rejected before repair");
+  HotelModel.RepairTown(stale);check(HotelModel.Valid(stale)&&new LotPoint(st.x,st.z).Distance(town.Point("hotel_gate"))<.001f&&st.destination=="","stale street position repairs to the hotel gate");
+  var inShop=HotelModel.Copy(manager.State);var ss=inShop.hotels[0].town;ss.phase="street";ss.x=28;ss.z=9;ss.shop="paw_mart";ss.destination="";
+  HotelModel.RepairTown(inShop);check(HotelModel.Valid(inShop)&&new LotPoint(ss.x,ss.z).Distance(town.Point("paw_mart_door"))<.001f&&ss.shop=="paw_mart","manager inside a moved shop stands at its new door");
   check(manager.State.hotels[0].town!=null&&manager.State.hotels[0].town.phase=="hotel"&&manager.VisitorEntrance.Distance(new LotPoint(manager.State.hotels[0].town.x,manager.State.hotels[0].town.z))<.001f,"fresh manager starts at hotel entrance");
   var badOutfit=JObject.FromObject(manager.State);badOutfit["managerOutfit"]=new JObject{{"hat","unowned-id"}};
   check(!manager.RestoreJson(badOutfit.ToString()),"reject unvalidated manager outfit in save");

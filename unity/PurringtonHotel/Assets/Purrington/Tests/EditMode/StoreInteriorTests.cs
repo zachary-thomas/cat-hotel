@@ -88,7 +88,7 @@ public sealed class StoreInteriorTests {
    // A portrait sheet leaves only the upper half for the shop: fit every floor corner.
    var viewport=new Rect(0,Screen.height*.5f,Screen.width,Screen.height*.5f);world.SetWorldRect(viewport);
    foreach(float x in new[]{-4.5f,4.5f})foreach(float z in new[]{-4f,4f}){
-    var point=camera.WorldToScreenPoint(new Vector3(stage.x+x,0,-z));
+    var point=camera.WorldToScreenPoint(new Vector3(stage.x+x,0,-(stage.z+z)));
     Assert.IsTrue(viewport.Contains(point),"Shop floor is cropped at "+point);
    }
   } finally {Object.DestroyImmediate(host);}

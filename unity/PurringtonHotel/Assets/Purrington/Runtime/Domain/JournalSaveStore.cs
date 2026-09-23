@@ -25,7 +25,7 @@ namespace Purrington.Domain
                 {
                     string[] parts=File.ReadAllText(path+"."+slot+".save").Split(new[]{'\n'},3);
                     if(parts.Length!=3||!long.TryParse(parts[0],NumberStyles.Integer,CultureInfo.InvariantCulture,out long seq)||seq<=0||seq<=newest||parts[1]!=Hash(parts[2]))continue;
-                    var candidate=codec.Deserialize(parts[2]);if(!HotelModel.Valid(candidate))continue;
+                    var candidate=codec.Deserialize(parts[2]);HotelModel.RepairTown(candidate);if(!HotelModel.Valid(candidate))continue;
                     newest=seq;best=candidate;
                 }
                 catch(Exception e) when(e is IOException||e is UnauthorizedAccessException||e is ArgumentException||e is FormatException||e is Newtonsoft.Json.JsonException||e is InvalidOperationException){ }

@@ -120,6 +120,21 @@ namespace Purrington.Domain
    if(town==null||!town.HasCoat(coat)||!town.HasMarkings(markings))return CommandResult.Fail("Choose a coat and markings.");
    return Transaction(()=>{State.managerCoat=coat;State.managerMarkings=markings;},"Manager look updated.");
   }
+  // Town layouts can move between releases. A manager left at a street spot, destination or shop that no
+  // longer exists walks back to the hotel gate instead of making the whole save unrecoverable.
+  public static void RepairTown(HotelState s)
+  {
+   var town=TownContent.Current;if(s?.hotels==null||town==null)return;
+   foreach(var hotel in s.hotels)
+   {
+    var t=hotel?.town;if(t==null||t.phase!="street")continue;
+    if(t.destination==null||t.destination.Length>0&&!town.IsStreetTarget(t.destination))t.destination="";
+    if(t.shop==null||t.shop.Length>0&&town.Shop(t.shop)==null)t.shop="";
+    if(!Finite(t.x)||!Finite(t.z))continue;
+    if(t.shop.Length>0){var door=town.Point(town.Shop(t.shop).door);t.x=door.x;t.z=door.z;t.destination="";}
+    else if(TownRoute.Find(town,new LotPoint(t.x,t.z),"hotel_gate").Count==0){var gate=town.Point("hotel_gate");t.x=gate.x;t.z=gate.z;t.destination="";}
+   }
+  }
   internal bool ValidTown(TownState state,TownContent content,int index)
   {
    if(state==null||content==null||!Finite(state.x)||!Finite(state.z)||Math.Abs(state.x)>256||Math.Abs(state.z)>256||!Finite(state.eventRemaining)||state.eventRemaining<0||state.eventRemaining>90||state.marketCompletionSerial<0||index!=0&&(state.eventRemaining>0||state.marketCompletionSerial>0))return false;

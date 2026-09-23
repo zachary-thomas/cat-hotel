@@ -22,6 +22,8 @@ namespace Purrington.Presentation {
    // One sidewalk along the far side of the road; nothing is laid on the asphalt except the zebra crossing.
    Box(paving,"Sidewalk",new Vector3(0,.11f,(SidewalkMinZ+SidewalkMaxZ)/2*U),new Vector3((SidewalkMaxX-SidewalkMinX)*U,.16f,(SidewalkMaxZ-SidewalkMinZ)*U),"E4DCCB");
    Box(paving,"Kerb",new Vector3(0,.2f,SidewalkMinZ*U),new Vector3((SidewalkMaxX-SidewalkMinX)*U,.08f,.16f),"BBB6A5");
+   Box(paving,"Hotel-side sidewalk",new Vector3(0,.11f,12.5f*U),new Vector3((SidewalkMaxX-SidewalkMinX)*U,.16f,.95f*U),"E4DCCB");
+   Box(paving,"Hotel-side kerb",new Vector3(0,.2f,12.98f*U),new Vector3((SidewalkMaxX-SidewalkMinX)*U,.08f,.16f),"BBB6A5");
    var gate=content.Point("hotel_gate");
    for(float z=gate.z+.7f;z<SidewalkMinZ-.3f;z+=.9f)Box(paving,"Zebra stripe",new Vector3(gate.x*U,.075f,z*U),new Vector3(2.6f*U,.03f,.45f*U),"F4F1E8");
    // The plaza sits across the road from the hotel gate.
@@ -37,35 +39,36 @@ namespace Purrington.Presentation {
     float px=(q.x+side*2.6f)*U,pz=(q.z+4.3f)*U;Box(Root,"Stone planter",new Vector3(px,.45f,pz),new Vector3(.9f,.7f,.9f),"BF7958");Box(Root,"Foliage",new Vector3(px,.9f,pz),new Vector3(1.1f,.5f,1.1f),"738448");
    }
   }
+  // Street signs share one letter size so the shops and the hotel read at the same, cat-appropriate scale.
+  const float SignPixel=.065f;
   void Store(string id,string title,bool boutique){
    var store=content.Shop(id);var f=store.footprint;var root=Group(Root,id);Storefronts[id]=root;
+   // The shell is exactly the interior room, so entering cuts this same building away like the hotel's dollhouse view.
    float x=(f.x+f.w/2)*U,z=(f.z+f.d/2)*U,front=(f.z+f.d)*U;
    var shell=Box(root,"Opaque shell",new Vector3(x,1.9f,z),new Vector3(f.w*U,3.6f,f.d*U),"EFE2C9");Hit(shell,id);
    Box(root,"Opaque roof",new Vector3(x,3.95f,z),new Vector3(f.w*U,.55f,f.d*U),boutique?"BF7958":"425C35");
-   Box(root,"Timber cornice",new Vector3(x,3.5f,front+.08f),new Vector3(f.w*U,.22f,.3f),"B3824C");
-   var door=Box(root,"Door",new Vector3(x,1.2f,front+.12f),new Vector3(1.3f,2.2f,.23f),"425C35");Hit(door,id);
-   Box(root,"Door handle",new Vector3(x+.4f,1.2f,front+.27f),new Vector3(.09f,.3f,.07f),"D7AE55");
-   // Voxel lettering on a parapet above the roofline replaces the floating label; the world is z-mirrored, so road-facing letters flip in z.
-   Box(root,"Sign parapet",new Vector3(x,4.95f,front-.1f),new Vector3(Mathf.Min(f.w*U-.6f,VoxelLetters.Width(title,.21f)+1.2f),1.9f,.24f),"244335");
-   var letters=geometry.Build(root,VoxelLetters.Recipe("Store sign "+title,title,.21f,.12f,"F4EAD5"));letters.localPosition=new Vector3(x,4.95f,front+.02f);letters.localScale=new Vector3(1,1,-1);
-   foreach(float offset in new[]{-3.6f,3.6f}){
-    Box(root,"Window frame",new Vector3(x+offset,1.6f,front+.12f),new Vector3(2.7f,1.8f,.24f),"B3824C");
-    Box(root,"Opaque display",new Vector3(x+offset,1.6f,front+.27f),new Vector3(2.35f,1.5f,.08f),"DCE5C5");
-    Box(root,"Awning",new Vector3(x+offset,2.65f,front+.35f),new Vector3(3,.25f,1.2f),boutique?"BF7958":"738448");
-    if(boutique){Box(root,"Display mannequin",new Vector3(x+offset,1.5f,front+.36f),new Vector3(.5f,.8f,.12f),"D6A182");Box(root,"Display head",new Vector3(x+offset,2.05f,front+.36f),new Vector3(.35f,.35f,.12f),"D7AE55");}
-    else foreach(float item in new[]{-.65f,0,.65f})Box(root,"Produce display",new Vector3(x+offset+item,1.4f,front+.36f),new Vector3(.45f,.4f,.12f),item==0?"D7AE55":"BF7958");
+   Box(root,"Timber cornice",new Vector3(x,3.55f,front+.08f),new Vector3(f.w*U,.2f,.3f),"B3824C");
+   var door=Box(root,"Door",new Vector3(x,1.1f,front+.12f),new Vector3(1.2f,2.1f,.23f),"425C35");Hit(door,id);
+   Box(root,"Door handle",new Vector3(x+.38f,1.1f,front+.27f),new Vector3(.09f,.3f,.07f),"D7AE55");
+   float boardWidth=VoxelLetters.Width(title,SignPixel)+.4f;
+   Box(root,"Signboard",new Vector3(x,3.05f,front+.14f),new Vector3(boardWidth,.62f,.1f),"244335");
+   var letters=geometry.Build(root,VoxelLetters.Recipe("Store sign "+title,title,SignPixel,.05f,"F4EAD5"));letters.localPosition=new Vector3(x,3.05f,front+.19f);letters.localScale=new Vector3(1,1,-1);
+   foreach(float offset in new[]{-2.85f,2.85f}){
+    Box(root,"Window frame",new Vector3(x+offset,1.45f,front+.12f),new Vector3(2,1.5f,.24f),"B3824C");
+    Box(root,"Opaque display",new Vector3(x+offset,1.45f,front+.27f),new Vector3(1.7f,1.22f,.08f),"DCE5C5");
+    Box(root,"Awning",new Vector3(x+offset,2.4f,front+.35f),new Vector3(2.3f,.2f,.9f),boutique?"BF7958":"738448");
+    if(boutique){Box(root,"Display mannequin",new Vector3(x+offset,1.35f,front+.36f),new Vector3(.4f,.65f,.12f),"D6A182");Box(root,"Display head",new Vector3(x+offset,1.8f,front+.36f),new Vector3(.28f,.28f,.12f),"D7AE55");}
+    else foreach(float item in new[]{-.45f,0,.45f})Box(root,"Produce display",new Vector3(x+offset+item,1.25f,front+.36f),new Vector3(.34f,.3f,.12f),item==0?"D7AE55":"BF7958");
    }
-   // A short paved apron joins the door to the sidewalk.
-   var doorNode=content.Point(store.door);Box(root,"Door apron",new Vector3(x,.12f,(front+doorNode.z*U)/2),new Vector3(2.4f,.16f,Mathf.Abs(doorNode.z*U-front)+.4f),"E4DCCB");
   }
-  // The hotel gets the same voxel signature as the shops: an arch over its gate with lettering toward the road.
+  // The hotel's signature is a small timber arch over its gate path, high enough for cats to walk beneath.
   void HotelSign(LotPoint gate){
-   var sign=Group(Root,"Hotel sign");float gx=gate.x*U,gz=(gate.z-.35f)*U;const string title="PURRINGTON";
-   float width=VoxelLetters.Width(title,.18f)+1;
-   foreach(float side in new[]{-1f,1f})Box(sign,"Arch post",new Vector3(gx+side*width/2,1.9f,gz),new Vector3(.3f,3.8f,.3f),"B3824C");
-   Box(sign,"Arch beam",new Vector3(gx,3.6f,gz),new Vector3(width+.5f,1.55f,.22f),"244335");
-   Box(sign,"Arch cap",new Vector3(gx,4.45f,gz),new Vector3(width+.8f,.16f,.4f),"B3824C");
-   var letters=geometry.Build(sign,VoxelLetters.Recipe("Hotel sign letters",title,.18f,.1f,"F7CC62"));letters.localPosition=new Vector3(gx,3.6f,gz+.11f);letters.localScale=new Vector3(1,1,-1);
+   var sign=Group(Root,"Hotel sign");const string title="PURRINGTON";
+   float gx=gate.x*U,gz=(gate.z-.3f)*U,width=VoxelLetters.Width(title,SignPixel)+.4f;
+   foreach(float side in new[]{-1f,1f})Box(sign,"Arch post",new Vector3(gx+side*(width/2+.08f),1.35f,gz),new Vector3(.14f,2.7f,.14f),"B3824C");
+   Box(sign,"Signboard",new Vector3(gx,2.42f,gz),new Vector3(width,.62f,.1f),"244335");
+   Box(sign,"Signboard trim",new Vector3(gx,2.78f,gz),new Vector3(width+.34f,.08f,.18f),"B3824C");
+   var letters=geometry.Build(sign,VoxelLetters.Recipe("Hotel sign letters",title,SignPixel,.05f,"F7CC62"));letters.localPosition=new Vector3(gx,2.42f,gz+.05f);letters.localScale=new Vector3(1,1,-1);
   }
   static void Hit(Transform node,string id){node.gameObject.AddComponent<BoxCollider>();node.gameObject.AddComponent<TownStoreHit>().StoreId=id;}
   internal static Transform Group(Transform parent,string name){var t=new GameObject(name).transform;t.SetParent(parent,false);return t;}
