@@ -1041,7 +1041,7 @@ git commit -m "feat(domain): sunrooms, rooftop gardens and spas add income when 
 - Modify: `unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/VoxelWorldShell.cs`, `VoxelWorld.cs`, `VoxelWorldRooms.cs`
 - Modify: `unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/ShellPresentationTests.cs`
 
-- [ ] **Step 1: Write the failing EditMode test**
+- [x] **Step 1: Write the failing EditMode test**
 
 Add to `ShellPresentationTests`:
 
@@ -1052,12 +1052,12 @@ Add to `ShellPresentationTests`:
   Assert.IsFalse(VoxelWorld.FloorVisible(0,-1),"viewing the basement hides everything above it");Assert.IsTrue(VoxelWorld.FloorVisible(-1,0),"the basement stays built under the ground floor");}
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `.\tools\unity.ps1 Test`
 Expected: compile error `'VoxelWorld' does not contain a definition for 'FloorY'`.
 
-- [ ] **Step 3: Add floor placement and visibility to `VoxelWorldShell.cs`**
+- [x] **Step 3: Add floor placement and visibility to `VoxelWorldShell.cs`**
 
 Add these members:
 
@@ -1082,11 +1082,11 @@ In `VoxelWorldRooms.BuildRoom`, after `rooms[r.id]=root;root.localPosition=new V
 
 In `ScreenToGround` (`VoxelWorld.cs:22`), change `GroundPoint(screen,GroundY)` to `GroundPoint(screen,GroundY+FloorY(ViewFloor))`, so taps land on the viewed floor. Keep the returned `p.y` as it is.
 
-- [ ] **Step 4: Run the tests and look at it**
+- [x] **Step 4: Run the tests and look at it**
 
 Run: `.\tools\unity.ps1 Test` (exit 0). In Play mode with God mode on, build stairs and an upstairs room using the domain commands through the UI from Task 7, or temporarily through the Unity CLI's C# execution against `HotelApp.Model`. Check that floor 1 sits exactly on top of floor 0 with no gap or z-fighting at 2.9 units, and that ground roofs are hidden under upstairs cells.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation unity/PurringtonHotel/Assets/Purrington/Tests/EditMode
