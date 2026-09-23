@@ -185,3 +185,4 @@ Execution runs on `test/combined-screenshot-reality` (user's choice), one task a
 | 03/T5 | 11e67a5 | Pavilion and Land wording approved; later committed-only Windows build and smoke QA passed. |
 | 03/T6 | 73b7c18–c35965a | Approved after input harness fixes. Separate queued mouse/touch acceptance passed 21 layout cases; Windows smoke QA passed. Four Meadow Gate 2 captures at 1080×2340 and 2340×1080 passed independent visual review. |
 | 03 deferred QA | 8711ac5 | Focused isolated player passed 25/25 controls checks. Review approved the refund-notice fix with no findings. Temporary acceptance helper remains ignored in the disposable snapshot. Gate 2 used queued Input System touch in a hidden player, rather than a physical Device Simulator session. |
+| 05/T1 | 1bdd5d5, 9d87cb8 | Approved after review fixes for fractional-funds purchase, forged unowned outfits/gifts, and malformed gift metadata. Domain suite PASS 676111 checks with Godot oracle green. |
