@@ -5,7 +5,7 @@ using Purrington.Presentation;
 using UnityEngine;
 
 namespace Purrington.Tests {
- // Phase C: cat blush, the shell detail kit and the retired Godot sign.
+ // Phase C: cat blush, the shell detail kit, the retired Godot sign, roofs and destination kits.
  public sealed class WorldDetailTests {
   sealed class MemoryStore:ISaveStore {HotelState state;public HotelState Load()=>state==null?null:HotelModel.Copy(state);public bool Save(HotelState value){state=HotelModel.Copy(value);return true;}}
   GameObject root;
@@ -33,6 +33,32 @@ namespace Purrington.Tests {
    Assert.That(names.Count(n=>n=="Sconce glow"),Is.GreaterThan(0),"inside walls carry sconces");
    var sign=root.GetComponentsInChildren<TextMesh>(true).FirstOrDefault(t=>t.text=="Meadow House");
    Assert.That(sign==null||!sign.gameObject.activeInHierarchy,Is.True,"the Godot Meadow House board gives way to the PURRINGTON arch");
+  }
+
+  [Test] public void RoofsStepUpFromTheirEdges(){
+   var cells=new System.Collections.Generic.HashSet<Vector2Int>();for(int x=0;x<5;x++)for(int z=0;z<5;z++)cells.Add(new Vector2Int(x,z));cells.Remove(new Vector2Int(4,4));
+   var depth=VoxelWorld.RoofDepths(cells);
+   Assert.AreEqual(1,depth[new Vector2Int(0,0)]);Assert.AreEqual(2,depth[new Vector2Int(1,2)]);Assert.AreEqual(3,depth[new Vector2Int(2,2)]);
+   Assert.AreEqual(1,depth[new Vector2Int(3,4)],"cells beside a notch are edges too");Assert.AreEqual(cells.Count,depth.Count);
+  }
+
+  [Test] public void DestinationKitsStayOffTheHotelLotsRoadsAndHouses(){
+   for(int map=1;map<=3;map++){
+    Object.DestroyImmediate(root);root=new GameObject("detail test");
+    var model=new HotelModel(new MemoryStore(),ParityContent.Current);Assert.IsTrue(model.LoadOrCreate().success);model.State.currentHotel=map;
+    var world=root.AddComponent<VoxelWorld>();world.Initialize(model);
+    var kit=root.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>t.name=="Destination kit");Assert.IsNotNull(kit,"map "+map);
+    var meshes=kit.GetComponentsInChildren<MeshFilter>(true);Assert.That(meshes.Length,Is.GreaterThan(0),"map "+map+" has props");
+    // Reserved ground, in authored units: the base lot and every purchasable plot, then the map's roads and neighbour houses.
+    var reserved=new System.Collections.Generic.List<Rect>();
+    var m=model.Map();Rect Lot(Newtonsoft.Json.Linq.JToken r)=>new Rect((float)r[0]*VoxelWorld.Unit,(float)r[1]*VoxelWorld.Unit,(float)r[2]*VoxelWorld.Unit,(float)r[3]*VoxelWorld.Unit);
+    reserved.Add(Lot(m["base"]));foreach(var plot in m["plots"])reserved.Add(Lot(plot["rect"]));
+    using(var geometry=new GodotGeometry())foreach(var r in geometry.Map(map)["sceneryBounds"])reserved.Add(new Rect((float)r[0],(float)r[1],(float)r[2],(float)r[3]));
+    foreach(var f in meshes)foreach(var v in f.sharedMesh.vertices){
+     var p=kit.InverseTransformPoint(f.transform.TransformPoint(v));
+     foreach(var r in reserved)Assert.IsFalse(r.xMin+.05f<p.x&&p.x<r.xMax-.05f&&r.yMin+.05f<p.z&&p.z<r.yMax-.05f,"map "+map+" prop at "+p+" overlaps "+r);
+    }
+   }
   }
  }
 }

@@ -1,9 +1,12 @@
 param(
-    [ValidateSet('ping','refresh','meadow','test','build','capture','play','stop')][string]$Action='ping',
+    [ValidateSet('ping','refresh','meadow','render','test','build','capture','play','stop')][string]$Action='ping',
     [string]$Filter='',          # test: a namespace or class name to run only those tests
     [string]$Tab='',             # capture: Hotel, Cats, Build, Life or Map
     [double]$Minute=-1,          # capture: pin the lighting to this minute of the day (e.g. 750 noon, 1380 night)
     [double]$Wait=4,             # capture: seconds in Play mode before the shot
+    [int]$Map=0,                # render: 0 Meadow, 1 Seaside, 2 Forest, 3 Snowcap
+    [switch]$Exterior,
+    [double]$Zoom=1,             # render: 2 shows twice as much ground           # render: roofs on instead of the cutaway
     [int]$Timeout=900
 )
 # Drives the Unity Editor that is already open (see Assets/Purrington/Editor/EditorBridge.cs), so it never has to be closed.
@@ -17,7 +20,7 @@ if (-not (Test-Path -LiteralPath $alive) -or ((Get-Date).ToUniversalTime()-[date
 $id=[guid]::NewGuid().ToString('N')
 $response=Join-Path $bridge 'response.json'
 if (Test-Path -LiteralPath $response) { Remove-Item -LiteralPath $response -Force }
-$body=@{id=$id;action=$Action;filter=$Filter;tab=$Tab;minute=$Minute;wait=$Wait} | ConvertTo-Json -Compress
+$body=@{id=$id;action=$Action;filter=$Filter;tab=$Tab;minute=$Minute;wait=$Wait;map=$Map;exterior=[bool]$Exterior;zoom=$Zoom} | ConvertTo-Json -Compress
 $temp=Join-Path $bridge 'request.tmp'
 Set-Content -LiteralPath $temp -Value $body -Encoding utf8
 Move-Item -LiteralPath $temp -Destination (Join-Path $bridge 'request.json') -Force

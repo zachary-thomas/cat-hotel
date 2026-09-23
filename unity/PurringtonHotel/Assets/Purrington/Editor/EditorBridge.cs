@@ -21,7 +21,7 @@ namespace Purrington.Editor
         const string PendingKey = "Purrington.Bridge.Pending", ErrorsKey = "Purrington.Bridge.Errors";
         static double nextPoll, nextBeat;
 
-        [Serializable] class Request { public string id = "", action = "", filter = "", tab = "", stage = ""; public float wait = 4, minute = -1; public double since; }
+        [Serializable] class Request { public string id = "", action = "", filter = "", tab = "", stage = ""; public float wait = 4, minute = -1; public int map = -1; public bool exterior; public float zoom = 1; public double since; }
         [Serializable] class Response { public string id, action, status, message, file; public int passed, failed, skipped; public string[] failures = new string[0]; }
 
         static EditorBridge()
@@ -81,12 +81,12 @@ namespace Purrington.Editor
             {
                 case "ping":
                     var start = UnityEditor.SceneManagement.EditorSceneManager.playModeStartScene;
-                    Reply(r, "ok", "Unity " + Application.unityVersion + (EditorApplication.isPlaying ? " (playing)" : "") + (EditorApplication.isCompiling ? " (compiling)" : "") + " | open scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().path + " | world preview: " + (GameObject.Find("Purrington preview (not saved)") ? "shown" : "off") + " | Play starts from: " + (start ? AssetDatabase.GetAssetPath(start) : "the open scene"));
+                    Reply(r, "ok", "Unity " + Application.unityVersion + (EditorApplication.isPlaying ? " (playing)" : "") + (EditorApplication.isCompiling ? " (compiling)" : "") + " | open scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().path + " | world preview: " + (GameObject.Find("Purrington preview (not saved)") ? "shown" : "off") + " | roots: " + string.Join(", ", UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects().Select(g => g.name)) + " | Play starts from: " + (start ? AssetDatabase.GetAssetPath(start) : "the open scene"));
                     return;
                 case "stop":
                     if (EditorApplication.isPlaying) { EditorApplication.isPlaying = false; r.stage = "exiting"; Save(r); } else Reply(r, "ok", "Not playing.");
                     return;
-                case "refresh": case "meadow": case "test": case "build": case "capture": case "play":
+                case "refresh": case "meadow": case "render": case "test": case "build": case "capture": case "play":
                     if (EditorApplication.isPlaying && r.action != "capture") { EditorApplication.isPlaying = false; r.stage = "leaving play"; Save(r); return; }
                     // Every action starts from freshly compiled scripts.
                     SessionState.EraseString(ErrorsKey);
@@ -94,7 +94,7 @@ namespace Purrington.Editor
                     r.stage = "compiling"; Save(r);
                     return;
                 default:
-                    Reply(r, "error", "Unknown action " + r.action + ". Use ping, refresh, meadow, test, build, capture, play or stop.");
+                    Reply(r, "error", "Unknown action " + r.action + ". Use ping, refresh, meadow, render, test, build, capture, play or stop.");
                     return;
             }
         }
@@ -159,6 +159,15 @@ namespace Purrington.Editor
             {
                 case "refresh":
                     Reply(r, "ok", "Scripts compiled.");
+                    return;
+                case "render":
+                    try
+                    {
+                        var shot = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../builds/unity/editor-captures", DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-map" + Math.Max(0, r.map) + (r.exterior ? "-exterior" : "") + ".png"));
+                        WorldScenePreview.RenderShot(Math.Max(0, r.map), r.exterior, r.minute, shot, r.zoom);
+                        Reply(r, "ok", "Rendered.", x => x.file = shot);
+                    }
+                    catch (Exception e) { Reply(r, "error", e.Message); }
                     return;
                 case "meadow":
                     // Only switches away from a scene with nothing unsaved, so the bridge never discards the user's edits.

@@ -156,6 +156,11 @@ namespace Purrington.Presentation {
    Box(sign,"Signboard",new Vector3(gx,2.42f,gz),new Vector3(width,.62f,.1f),"244335");
    Box(sign,"Signboard trim",new Vector3(gx,2.78f,gz),new Vector3(width+.34f,.08f,.18f),"B3824C");
    var letters=geometry.Build(sign,VoxelLetters.Recipe("Hotel sign letters",title,SignPixel,.05f,"F7CC62"));letters.localPosition=new Vector3(gx,2.42f,gz+.05f);letters.localScale=new Vector3(1,1,-1);
+   // The hotel motto hangs beneath on a cream plank, two short chains keeping it clear of cats walking through.
+   const float motto=.03f;string[] lines={"GOOD CATS","BRIGHTER DAYS"};float plank=VoxelLetters.Width(lines[1],motto)+.3f;
+   foreach(float side in new[]{-1f,1f})Box(sign,"Motto chain",new Vector3(gx+side*(plank/2-.12f),2.02f,gz),new Vector3(.03f,.18f,.03f),"6E4A3B");
+   Box(sign,"Motto plank",new Vector3(gx,1.74f,gz),new Vector3(plank,.4f,.08f),"F4E3C0");
+   for(int i=0;i<2;i++){var line=geometry.Build(sign,VoxelLetters.Recipe("Motto letters",lines[i],motto,.03f,i==0?"244335":"C0664A"));line.localPosition=new Vector3(gx,1.83f-i*.18f,gz+.04f);line.localScale=new Vector3(1,1,-1);}
   }
   static void Hit(Transform node,string id){node.gameObject.AddComponent<BoxCollider>();node.gameObject.AddComponent<TownStoreHit>().StoreId=id;}
   internal static Transform Group(Transform parent,string name){var t=new GameObject(name).transform;t.SetParent(parent,false);return t;}

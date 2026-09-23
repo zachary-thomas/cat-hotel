@@ -34,6 +34,7 @@ With the Unity Editor open, `Test` and `Windows` run inside it automatically, so
 .\tools\unity-bridge.ps1 capture -Tab Life [-Minute 1380]   # Play, screenshot the Game view -> builds/unity/editor-captures
 .\tools\unity-bridge.ps1 capture -Filter pop               # same, with an income pop shown just before the shot
 .\tools\unity-bridge.ps1 meadow                            # open the Meadow scene with the hotel shown in the Scene view
+.\tools\unity-bridge.ps1 render -Map 2 -Exterior -Zoom 2   # render any destination off screen, no Play mode, save untouched
 .\tools\unity-bridge.ps1 refresh | build | play | stop | ping
 ```
 

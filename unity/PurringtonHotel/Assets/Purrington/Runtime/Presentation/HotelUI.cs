@@ -781,6 +781,10 @@ namespace Purrington.Presentation
 
             string[] tabs={"Hotel","Cats","Build","Life","Map"};
 
+            // The mint highlight is one pill that slides from the previous tab to the new one; tab buttons stay clear over the dock.
+            var pill=Panel("Active tab",row,Mint);pill.gameObject.AddComponent<UnityEngine.UI.LayoutElement>().ignoreLayout=true;pill.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
+            var buttons=new Dictionary<string,RectTransform>();
+
             for(int i=0;i<tabs.Length;i++)
 
             {
@@ -789,7 +793,7 @@ namespace Purrington.Presentation
 
                 bool build=dest=="Build";
 
-                var btn=Button(row,dest,()=>Navigate(dest),tab==dest?Mint:CardTone,build?13:12);
+                var btn=Button(row,dest,()=>Navigate(dest),Color.clear,build?13:12);buttons[dest]=btn;
 
                 var size=btn.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();size.flexibleWidth=build?1.35f:1;size.minWidth=build?64:48;
 
@@ -799,6 +803,21 @@ namespace Purrington.Presentation
 
             }
 
+            SlideActiveTab(row,pill,buttons);
+
+        }
+
+        static string shownTab;
+        void SlideActiveTab(RectTransform row,RectTransform pill,Dictionary<string,RectTransform> buttons)
+        {
+            if(!buttons.TryGetValue(tab??"",out var target)){pill.gameObject.SetActive(false);shownTab=null;return;}
+            UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(row);
+            pill.anchorMin=pill.anchorMax=pill.pivot=new Vector2(.5f,.5f);
+            Vector2 Center(RectTransform r)=>(Vector2)row.InverseTransformPoint(r.TransformPoint(r.rect.center));
+            Vector2 to=Center(target),toSize=target.rect.size;
+            bool slide=shownTab!=null&&shownTab!=tab&&buttons.TryGetValue(shownTab,out var from);
+            Vector2 start=slide?Center(buttons[shownTab]):to,startSize=slide?buttons[shownTab].rect.size:toSize;shownTab=tab;
+            Tween.Run(pill,slide?.28f:0,k=>{if(!pill)return;float e=Tween.OutCubic(k);pill.localPosition=Vector2.LerpUnclamped(start,to,e);pill.sizeDelta=Vector2.LerpUnclamped(startSize,toSize,e);});
         }
 
         void NavigationIcon(RectTransform parent,string destination)
