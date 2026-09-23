@@ -27,6 +27,14 @@ Domain tests, about a minute, no Unity needed. The final line must be `PASS <n> 
 .\tools\unity.ps1 QA        # automated smoke captures of the built preview
 ```
 
+With the Unity Editor open, `Test` and `Windows` run inside it automatically, so the project never has to be closed. You can also drive the open Editor directly:
+
+```powershell
+.\tools\unity-bridge.ps1 test [-Filter ClassName]          # EditMode tests in the open Editor
+.\tools\unity-bridge.ps1 capture -Tab Life [-Minute 1380]   # Play, screenshot the Game view -> builds/unity/editor-captures
+.\tools\unity-bridge.ps1 refresh | build | play | stop | ping
+```
+
 ## Conventions
 
 - Existing C# files use dense one-line members. Match the surrounding style when editing them.
