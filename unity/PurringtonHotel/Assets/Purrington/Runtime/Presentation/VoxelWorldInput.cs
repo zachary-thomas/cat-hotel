@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -10,6 +11,13 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
             return result.Count>0;
         }
         public static bool ShouldSendReleaseClick(bool dragged,bool overUI){return !dragged&&!overUI;}
+        bool PickOnViewedFloor(WorldPick marker)
+        {
+            if(marker.catId>=0)return model.Actors.Any(a=>a.kind==Purrington.Domain.ActorKind.Guest&&a.catId==marker.catId&&a.floor==ViewFloor);
+            for(var root=marker.transform;root!=null;root=root.parent)
+                if(floorOf.TryGetValue(root,out int floor))return floor==ViewFloor;
+            return true; // Unregistered scenery keeps its existing ground-click behavior.
+        }
         void ReadInput()
         {
             Vector2 point=default; bool start=false, held=false, end=false;
@@ -77,10 +85,16 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
                 pressed=false; if(pathPainting) GroundDragEnded?.Invoke();
                 if(!ShouldSendReleaseClick(dragged,OverUI(point))) return;
                 var ray=WorldCamera.ScreenPointToRay(point);
-                if(Physics.Raycast(ray,out var hit,500))
+                var hits=Physics.RaycastAll(ray,500);
+                System.Array.Sort(hits,(a,b)=>a.distance.CompareTo(b.distance));
+                foreach(var hit in hits)
                 {
                     var marker=hit.collider.GetComponent<WorldPick>();
-                    if(marker != null) { if(marker.catId>=0) { CatSelected?.Invoke(marker.catId); return; } if(!string.IsNullOrEmpty(marker.objectId)) { if(marker.objectId.StartsWith("room:")) RoomSelected?.Invoke(marker.objectId.Substring(5)); else ObjectSelected?.Invoke(marker.objectId); } }
+                    if(marker==null)break;
+                    if(!PickOnViewedFloor(marker))continue;
+                    if(marker.catId>=0) { CatSelected?.Invoke(marker.catId); return; }
+                    if(!string.IsNullOrEmpty(marker.objectId)) { if(marker.objectId.StartsWith("room:")) RoomSelected?.Invoke(marker.objectId.Substring(5)); else ObjectSelected?.Invoke(marker.objectId); }
+                    break;
                 }
                 GroundClicked?.Invoke(ScreenToGround(point));
             }
