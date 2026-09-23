@@ -192,6 +192,10 @@ static class ShellSuites
 		Check(ShellGrid.WallAt(HotelModel.Floor(m.Hotel(),0),"h:"+(x+1)+","+(z+3))=="door","draw: the double door opens onto the hallway");
 		HotelModel.DoorPosition(room,out float dx,out float dz);Check(Math.Abs(dx-(x+2))<.01&&Math.Abs(dz-(z+3.25f))<.01,"draw: DoorPosition follows the door side ("+dx+","+dz+")");
 		Check(m.Execute("move_room",new JObject{{"id",room.id},{"x",x},{"y",z},{"rotation",room.rotation}}).success&&room.door==1,"draw: moving without turning keeps the door side");
+		var saved=JObject.Parse(new NewtonsoftSaveCodec().Serialize(m.State));
+		((JObject)saved["hotels"][m.State.currentHotel]["rooms"].Last())["door"]="1";
+		var reload=new HotelModel(new MemoryStore(),content);reload.LoadOrCreate();
+		Check(!reload.RestoreJson(saved.ToString()),"draw: a quoted door direction is rejected by the strict save schema");
 		Check(!m.Quote("draw_room",m.RoomDraft(x+5,z,x+7,z+2,"regular")).success,"draw: a 3x3 bedroom is refused");
 		Console.WriteLine("Shell draw suite passed");
 	}
