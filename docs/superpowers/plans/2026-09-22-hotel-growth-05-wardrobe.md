@@ -30,7 +30,7 @@
 
 **Files:** `Wardrobe.json`, `HotelWardrobe.cs`, `HotelState.cs`, `HotelModel.cs`, `StrictSaveJson.cs`, `HotelValidation.cs`, `tests/unity-domain/*`
 
-- [ ] **Step 1: Add the content file**
+- [x] **Step 1: Add the content file**
 
 Create `unity/PurringtonHotel/Assets/Resources/Content/Wardrobe.json`:
 
@@ -85,7 +85,7 @@ Create `unity/PurringtonHotel/Assets/Resources/Content/Wardrobe.json`:
 }
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `tests/unity-domain/WardrobeSuites.cs`:
 
@@ -134,12 +134,12 @@ static class WardrobeSuites
 
 In `tests/unity-domain/Purrington.Domain.Tests.csproj`, add `<Compile Include="WardrobeSuites.cs" />` after `<Compile Include="ConstructionSuites.cs" />`. In `tests/unity-domain/Program.cs`, insert `WardrobeSuites.RunWardrobe(Check,P,content);` right after `ConstructionSuites.RunGodMode(Check,P,content);`.
 
-- [ ] **Step 3: Run to verify it fails**
+- [x] **Step 3: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: build error `The name 'Wardrobe' does not exist in the current context`.
 
-- [ ] **Step 4: Create `HotelWardrobe.cs`**
+- [x] **Step 4: Create `HotelWardrobe.cs`**
 
 ```csharp
 using System;
@@ -163,7 +163,7 @@ public sealed partial class HotelModel {
 }
 ```
 
-- [ ] **Step 5: Apply the save, validation and gift edits**
+- [x] **Step 5: Apply the save, validation and gift edits**
 
 **1. `…/Domain/HotelState.cs`** · replace exactly once:
 
@@ -249,12 +249,12 @@ with:
 int gain=c.favoriteAction==tool?6:3;var gift=Wardrobe.All.FirstOrDefault(w=>w.giftCat==c.id&&c.bond<w.giftBond&&c.bond+gain>=w.giftBond);var r=Transaction(()=>{c.bond=Math.Min(100,c.bond+gain);c.lastCare=State.elapsed;},c.name+" loved that! +"+gain+" friendship"+(gift!=null?" · "+c.name+" gave you the "+gift.name.ToLowerInvariant()+"!":""));
 ```
 
-- [ ] **Step 6: Run to verify it passes**
+- [x] **Step 6: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Wardrobe suite passed` and `PASS <n> checks` (676044 on the plan-02 base during planning, 676099 with plans 02–04 applied).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Resources/Content/Wardrobe.json unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
