@@ -365,8 +365,6 @@ namespace Purrington.Presentation
 
             Card(content,"Exterior walls","Show the outside of your hotel",(bool?)s["exterior"]==true?"On":"Off",()=>{app.Report(app.Model.SetViewSettings(!((bool?)s["exterior"]??false),(bool?)s["evening"]??false));app.World.SetCutaway(!app.Model.State.settings.exterior);Rebuild();},Mint);
 
-            Card(content,"Evening light","Warm lamps and night atmosphere",(bool?)s["evening"]==true?"On":"Off",()=>{app.Report(app.Model.SetViewSettings((bool?)s["exterior"]??false,!((bool?)s["evening"]??false)));app.World.SetEvening(app.Model.State.settings.evening);Rebuild();},Lilac);
-
             Card(content,"Offline earnings","Collect the coins earned while you were away.","Claim",()=>{app.Report(app.Model.ClaimOffline());Rebuild();},Gold);
 
             Card(content,"Save recovery","Retry writing your current hotel safely.","Retry",app.RetrySave,Mint);

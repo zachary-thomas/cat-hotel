@@ -72,7 +72,7 @@ namespace Purrington.Presentation
 
     Audio=GetComponent<HotelAudio>()??gameObject.AddComponent<HotelAudio>();
 
-    World.SetCutaway(!Model.State.settings.exterior);World.SetEvening(Model.State.settings.evening);Report(loaded);if(loaded.success)Report(Model.Reconcile(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),false);initializationError="";
+    World.SetCutaway(!Model.State.settings.exterior);Report(loaded);if(loaded.success)Report(Model.Reconcile(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),false);initializationError="";
 
    }
 
