@@ -58,4 +58,24 @@ static class ArtSuites
 			foreach(int v in new[]{1,2}){double d=Math.Abs(SurfacePalette.Hue(r.target)-SurfacePalette.Hue(SurfacePalette.Tone(r.target,v)));d=Math.Min(d,360-d);Check(SurfacePalette.Chroma(r.target)<.13||d<=12,"palette: tone "+v+" keeps the hue of "+r.target);}
 		}
 	}
+
+	public static void RunDayCycle(Action<bool,string> Check)
+	{
+		string json=System.IO.File.ReadAllText("unity/PurringtonHotel/Assets/Resources/Content/DayCycle.json");
+		var cycle=DayCycle.Parse(json);
+		Check(cycle.Count>=6,"day cycle: at least six keys");
+		var noon=cycle.Evaluate(750);Check(noon.glow==0&&noon.sunIntensity>=1.1f&&Math.Abs(noon.shadowStrength-.58f)<.001f,"day cycle: bright noon, no glow, soft 0.58 shadows");
+		var night=cycle.Evaluate(1380);Check(night.glow==1&&night.sunIntensity<.4f,"day cycle: night glows and dims the light");
+		Check(night.sky.Max()>.05f,"day cycle: night ambient never goes black");
+		var key=cycle.Evaluate(1050);var before=cycle.Evaluate(1049.9f);Check(Math.Abs(key.sunPitch-before.sunPitch)<.1f,"day cycle: continuous into a key");
+		var wrapA=cycle.Evaluate(1439.99f);var wrapB=cycle.Evaluate(0);Check(Math.Abs(wrapA.glow-wrapB.glow)<.01f&&Math.Abs(wrapA.sky[2]-wrapB.sky[2])<.01f,"day cycle: continuous across midnight");
+		for(float m=0;m<1440;m+=7.5f){var l=cycle.Evaluate(m);Check(l.glow>=0&&l.glow<=1&&l.sun.All(c=>c>=0&&c<=1),"day cycle: values in range at "+m);}
+		var noGlow=Newtonsoft.Json.Linq.JObject.Parse(json);((Newtonsoft.Json.Linq.JObject)noGlow["keys"][1]).Remove("glow");
+		Check(json.Contains("\"minute\": 750"),"day cycle: test fixture has a 12:30 key");
+		foreach(var (bad,why) in new[]{("{}","keys"),(json.Replace("\"minute\": 750","\"minute\": 100"),"order"),(noGlow.ToString(),"glow")})
+		{
+			try{DayCycle.Parse(bad);Check(false,"day cycle: rejects "+why);}
+			catch(FormatException e){Check(e.Message.Contains("DayCycle.json")&&e.Message.Contains(why),"day cycle: error names file and "+why);}
+		}
+	}
 }

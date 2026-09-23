@@ -1,0 +1,11 @@
+{
+  "keys": [
+    { "minute": 0,    "sunPitch": 40, "sunYaw": 208, "sun": "93A6E2", "sunIntensity": 0.3,  "shadowStrength": 0.35, "sky": "6070B0", "equator": "4F5C98", "ground": "40604C", "background": "3B4A7A", "exposure": -0.15, "temperature": -20, "glow": 1 },
+    { "minute": 300,  "sunPitch": 10, "sunYaw": 60,  "sun": "F7B7A3", "sunIntensity": 0.55, "shadowStrength": 0.45, "sky": "E8B8C8", "equator": "D9B7C9", "ground": "8FAE7A", "background": "F1C6C9", "exposure": -0.05, "temperature": 6,   "glow": 0.6 },
+    { "minute": 450,  "sunPitch": 30, "sunYaw": 45,  "sun": "FFE6C4", "sunIntensity": 1.0,  "shadowStrength": 0.55, "sky": "FFF1D6", "equator": "F4E6C8", "ground": "B9D98A", "background": "CFEAF7", "exposure": 0.05,  "temperature": 4,   "glow": 0 },
+    { "minute": 750,  "sunPitch": 52, "sunYaw": 28,  "sun": "FFF6E2", "sunIntensity": 1.2,  "shadowStrength": 0.58, "sky": "FFF4DE", "equator": "F6EBD2", "ground": "BFDD92", "background": "BFE6F8", "exposure": 0.1,   "temperature": 0,   "glow": 0 },
+    { "minute": 1050, "sunPitch": 22, "sunYaw": 355, "sun": "FFD39A", "sunIntensity": 1.05, "shadowStrength": 0.6,  "sky": "FFE3BD", "equator": "F7D8B0", "ground": "B5CF84", "background": "F6DDB8", "exposure": 0.05,  "temperature": 10,  "glow": 0.15 },
+    { "minute": 1170, "sunPitch": 9,  "sunYaw": 340, "sun": "F6A98A", "sunIntensity": 0.6,  "shadowStrength": 0.45, "sky": "E9B8C4", "equator": "C9B0D8", "ground": "8C9F7A", "background": "D7B3CF", "exposure": -0.05, "temperature": 4,   "glow": 0.85 },
+    { "minute": 1290, "sunPitch": 38, "sunYaw": 215, "sun": "93A6E2", "sunIntensity": 0.3,  "shadowStrength": 0.35, "sky": "6070B0", "equator": "4F5C98", "ground": "40604C", "background": "3F4E82", "exposure": -0.15, "temperature": -20, "glow": 1 }
+  ]
+}
