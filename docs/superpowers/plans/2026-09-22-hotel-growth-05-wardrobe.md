@@ -420,10 +420,10 @@ git commit -m "feat(ui): wardrobe with try-on, buy & wear, and friendship gifts"
 - Modify: `unity/PurringtonHotel/Assets/Resources/Content/Wardrobe.json` (part tuning only)
 - Create: `docs/art/qa-shots/hotel-growth/wardrobe-*.png`
 
-- [ ] **Step 1: Tune the parts on real cats.** For each of the 12 items, capture it on three differently sized cats (a kitten, Miso and the largest roster cat) in the care view. Adjust only the `box` numbers and colors in `Wardrobe.json` until each item reads clearly at phone size and doesn't clip through ears or legs. Keep the colors in the concept palette (`docs/art/STYLE-GUIDE.md`).
-- [ ] **Step 2: Re-run both harnesses.** `dotnet run --project tests/unity-domain` (the item count and gift checks guard the content), then `.\tools\unity.ps1 Test`.
-- [ ] **Step 3: Capture Gate 3.** Save `docs/art/qa-shots/hotel-growth/wardrobe-care-{portrait,landscape}.png`, `wardrobe-roaming.png` (three dressed guests in the hotel) and `wardrobe-grid.png` (all 12 items). Reload the save and confirm outfits persist.
-- [ ] **Step 4: Commit**
+- [x] **Step 1: Tune the parts on real cats.** All 18 authored cats share one native rig size. The 36-case contact sheet therefore uses labeled 0.72× Pip and 1.25× Captain scale probes around actual-size Miso. Only `box` numbers and palette colors changed in `Wardrobe.json`; the real roaming guests use native size.
+- [x] **Step 2: Re-run both harnesses.** Domain PASS 676111 checks, Unity EditMode 79/79, and Windows build exit 0 in the isolated snapshot.
+- [x] **Step 3: Capture Gate 3.** The four requested images are committed. The player check verified 36 fit cases, three dressed guest actors, and three outfits after save/reload.
+- [x] **Step 4: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Resources/Content/Wardrobe.json docs/art/qa-shots/hotel-growth
