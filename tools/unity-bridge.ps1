@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('ping','refresh','test','build','capture','play','stop')][string]$Action='ping',
+    [ValidateSet('ping','refresh','meadow','test','build','capture','play','stop')][string]$Action='ping',
     [string]$Filter='',          # test: a namespace or class name to run only those tests
     [string]$Tab='',             # capture: Hotel, Cats, Build, Life or Map
     [double]$Minute=-1,          # capture: pin the lighting to this minute of the day (e.g. 750 noon, 1380 night)

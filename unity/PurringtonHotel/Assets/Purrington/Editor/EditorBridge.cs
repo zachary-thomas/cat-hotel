@@ -81,12 +81,12 @@ namespace Purrington.Editor
             {
                 case "ping":
                     var start = UnityEditor.SceneManagement.EditorSceneManager.playModeStartScene;
-                    Reply(r, "ok", "Unity " + Application.unityVersion + (EditorApplication.isPlaying ? " (playing)" : "") + (EditorApplication.isCompiling ? " (compiling)" : "") + " | open scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().path + " | Play starts from: " + (start ? AssetDatabase.GetAssetPath(start) : "the open scene"));
+                    Reply(r, "ok", "Unity " + Application.unityVersion + (EditorApplication.isPlaying ? " (playing)" : "") + (EditorApplication.isCompiling ? " (compiling)" : "") + " | open scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().path + " | world preview: " + (GameObject.Find("Purrington preview (not saved)") ? "shown" : "off") + " | Play starts from: " + (start ? AssetDatabase.GetAssetPath(start) : "the open scene"));
                     return;
                 case "stop":
                     if (EditorApplication.isPlaying) { EditorApplication.isPlaying = false; r.stage = "exiting"; Save(r); } else Reply(r, "ok", "Not playing.");
                     return;
-                case "refresh": case "test": case "build": case "capture": case "play":
+                case "refresh": case "meadow": case "test": case "build": case "capture": case "play":
                     if (EditorApplication.isPlaying && r.action != "capture") { EditorApplication.isPlaying = false; r.stage = "leaving play"; Save(r); return; }
                     // Every action starts from freshly compiled scripts.
                     SessionState.EraseString(ErrorsKey);
@@ -94,7 +94,7 @@ namespace Purrington.Editor
                     r.stage = "compiling"; Save(r);
                     return;
                 default:
-                    Reply(r, "error", "Unknown action " + r.action + ". Use ping, refresh, test, build, capture, play or stop.");
+                    Reply(r, "error", "Unknown action " + r.action + ". Use ping, refresh, meadow, test, build, capture, play or stop.");
                     return;
             }
         }
@@ -155,6 +155,12 @@ namespace Purrington.Editor
             {
                 case "refresh":
                     Reply(r, "ok", "Scripts compiled.");
+                    return;
+                case "meadow":
+                    // Only switches away from a scene with nothing unsaved, so the bridge never discards the user's edits.
+                    if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().isDirty) { Reply(r, "error", "The open scene has unsaved changes; use Purrington > Open Meadow scene."); return; }
+                    WorldScenePreview.OpenMeadow();
+                    Reply(r, "ok", "Meadow scene open with the hotel preview.");
                     return;
                 case "build":
                     try { ProjectSetup.BuildWindows(); Reply(r, "ok", "Windows preview built."); }

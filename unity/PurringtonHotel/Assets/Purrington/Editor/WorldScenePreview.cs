@@ -32,7 +32,21 @@ namespace Purrington.Editor
                 else if (state == PlayModeStateChange.EnteredEditMode) Restore();
             };
             AssemblyReloadEvents.beforeAssemblyReload += Clear;
+            // Opening the Meadow scene shows the hotel straight away; the scene itself only holds the runtime bootstrapper.
+            UnityEditor.SceneManagement.EditorSceneManager.sceneOpened += (scene, _) => { if (IsMeadow(scene.path) && Mode == 0) Mode = 1; Restore(); };
+            if (Mode == 0 && IsMeadow(UnityEngine.SceneManagement.SceneManager.GetActiveScene().path)) Mode = 1;
             Restore();
+        }
+
+        const string MeadowScene = "Assets/Purrington/Scenes/Meadow.unity";
+        static bool IsMeadow(string path) => path == MeadowScene;
+
+        [MenuItem("Purrington/Open Meadow scene", priority = 10)]
+        public static void OpenMeadow()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode || !UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            UnityEditor.SceneManagement.EditorSceneManager.OpenScene(MeadowScene);
+            EditorApplication.ExecuteMenuItem("Window/General/Scene");
         }
 
         static int Mode { get => SessionState.GetInt(ModeKey, 0); set => SessionState.SetInt(ModeKey, value); }
