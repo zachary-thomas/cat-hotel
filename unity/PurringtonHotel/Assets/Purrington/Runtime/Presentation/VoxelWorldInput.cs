@@ -109,6 +109,7 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
                     var marker=hit.collider.GetComponent<WorldPick>();
                     if(marker==null)break;
                     if(!PickOnViewedFloor(marker))continue;
+                    if(marker.catId<0&&string.IsNullOrEmpty(marker.objectId))continue; // staff, visitors and decor never block a pick behind them
                     if(marker.catId>=0) { CatSelected?.Invoke(marker.catId); return; }
                     if(!string.IsNullOrEmpty(marker.objectId)) { if(marker.objectId.StartsWith("room:")) RoomSelected?.Invoke(marker.objectId.Substring(5)); else ObjectSelected?.Invoke(marker.objectId); }
                     break;
