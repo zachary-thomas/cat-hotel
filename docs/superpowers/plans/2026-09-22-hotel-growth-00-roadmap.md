@@ -147,7 +147,7 @@ Known textual hotspots (resolve by keeping both sides; none are semantic conflic
 ### Task 4: Phase gates (orchestrator runs these; Unity QA agent captures)
 
 - [ ] **Gate 1 (after 01 + 02):** domain PASS; EditMode PASS; an existing save migrates. Test this by copying a real profile save into `tmp/qa-profile`, launching the preview with `-purrington-profile tmp/qa-profile`, and checking that the hotel looks identical to before and that the lawn matches.
-- [ ] **Gate 2 (after 03):** capture Meadow with a lobby, a hallway between two bedrooms, a window seat in the hallway and an outdoor pavilion, in portrait and landscape. Draw a room using touch in Device Simulator.
+- [x] **Gate 2 (after 03):** capture Meadow with a lobby, a hallway between two bedrooms, a window seat in the hallway and an outdoor pavilion, in portrait and landscape. Draw a room with queued touch input in a phone-sized isolated Unity player; the Device Simulator editor window itself was not used.
 - [ ] **Gate 3 (after 05):** capture three dressed cats in care view and roaming; reload the save and confirm the outfits persist.
 - [ ] **Gate 4 (after 04):** capture a two-floor hotel with stairs, the rooftop garden and the basement spa. Confirm a guest walks upstairs to a floor-1 bedroom (watch mode).
 - [ ] **Gate 5 (after 06):** capture an L-shaped room built with the wall tool, with furniture and a guest inside.
@@ -178,3 +178,10 @@ Execution runs on `test/combined-screenshot-reality` (user's choice), one task a
 | 02/T8 | 6426174, fa4fd72, ec2be97 | Approved. Shell undo/redo and Unity script metadata. Domain suite PASS 676064; isolated committed-project Unity run passed 69/69 EditMode tests. |
 | 01/T1–T2 | c1f9034, 4cd1b5b | Approved. World lawn swatches now drive owned parcel material colors. Isolated Unity run passed 72/72 EditMode tests, including 3/3 new lawn tests. |
 | 01/T3 | 4b5a076, 87fbe63 | Approved after seam fix. The raised owned parcel lawn slab was removed; unowned sale dressing remains. Isolated Unity run passed 73/73 EditMode tests; Windows preview and four-map visual QA passed. |
+| 03/T1 | 6243d2b, 9404bde | Approved after explicit-door navigation regression fix. Domain suite PASS 676084 checks, including the frozen Godot oracle. |
+| 03/T2 | 9c150a3, d9479a1 | Approved. Connected Unity editor passed 75/75 EditMode tests; cutaway and exterior preview inspected. |
+| 03/T3 | 45730bb | Code approved; 76/76 EditMode tests. Focused queued-touch player later proved the 0.35-inch cursor offset, two-finger pan and normal one-finger pan. |
+| 03/T4 | 7823682 | Code approved; 76/76 EditMode tests. Focused player later proved three-cell Grow at 60 coins, exact 4×3 room and floor-facing door, three edge types and notices, visible Undo, and named sale-plot quote. |
+| 03/T5 | 11e67a5 | Pavilion and Land wording approved; later committed-only Windows build and smoke QA passed. |
+| 03/T6 | 73b7c18–c35965a | Approved after input harness fixes. Separate queued mouse/touch acceptance passed 21 layout cases; Windows smoke QA passed. Four Meadow Gate 2 captures at 1080×2340 and 2340×1080 passed independent visual review. |
+| 03 deferred QA | 8711ac5 | Focused isolated player passed 25/25 controls checks. Review approved the refund-notice fix with no findings. Temporary acceptance helper remains ignored in the disposable snapshot. Gate 2 used queued Input System touch in a hidden player, rather than a physical Device Simulator session. |

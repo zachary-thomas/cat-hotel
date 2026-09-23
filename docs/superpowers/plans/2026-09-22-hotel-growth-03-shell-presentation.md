@@ -264,7 +264,7 @@ In `ReadInput`:
 1. Change `if(pathPainting) { GroundDragged?.Invoke(ScreenToGround(point)); }` to `if(pathPainting) { GroundDragged?.Invoke(ScreenToGround(DrawPoint(point))); }`.
 2. In the `if(end && pressed)` block, change its first statement `pressed=false;` to `pressed=false; if(pathPainting) GroundDragEnded?.Invoke();`.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `.\tools\unity.ps1 Test` (exit 0). In the editor, open **Window → General → Device Simulator** and pick a phone. In Build → Paths, a one-finger drag paints with the cells appearing about 0.35 inch above the finger, and a two-finger drag pans the camera. Outside paint mode, one-finger drag still pans.
 
@@ -358,7 +358,7 @@ In `HotelApp.cs:71`, change `World.GroundDragged+=UI.GroundDragged;` to `World.G
 1. Change `if(action=="paint_path"||action=="erase_path"){` to `if(action=="paint_path"||action=="erase_path"||action=="paint_floor"||action=="erase_floor"){`.
 2. In the room branch, change `var room=new RoomState{x=(int)x,z=(int)z,width=(int)w,depth=(int)d,rotation=rotation};` to `var room=new RoomState{x=(int)x,z=(int)z,width=(int)w,depth=(int)d,rotation=rotation,door=(int?)p["door"]??-1};`. The door marker then follows the drafted door side. `draw_room` already goes through this branch because its action name contains `room`.
 
-- [ ] **Step 4: Compile, test and play-check**
+- [x] **Step 4: Compile, test and play-check**
 
 Run: `.\tools\unity.ps1 Test` (exit 0). In Play mode:
 1. Build → Hotel → Grow. Drag across three tiles of lawn. The preview shows 3 outlines, the notice reads `Confirm · 60 coins. The hotel grows by 3 tiles`, and Confirm builds floor with walls around it.
@@ -381,13 +381,13 @@ git commit -m "feat(ui): Hotel build tools: grow, draw rooms, doors & windows, e
 **Files:**
 - Modify: `unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/HotelParityUI.cs` (`ParityCatalogue`)
 
-- [ ] **Step 1: Say what Rooms and Land do now**
+- [x] **Step 1: Say what Rooms and Land do now**
 
 In `ParityCatalogue`:
 - In the `Rooms` category cards, change the subtitle argument `"Rooms"` to `"Outdoor pavilion · draw indoor rooms under Hotel"`.
 - At the start of the `Land` block, insert: `if(category=="Land")Card(content,"Grow straight onto land","Use Hotel → Grow: land for sale is bought as the hotel grows onto it.","Grow",()=>BeginCommand("paint_floor",new JObject{{"floor",0},{"cells",new JArray()},{"buy",true}},"Grow the hotel"),Mint);`
 
-- [ ] **Step 2: Test and commit**
+- [x] **Step 2: Test and commit**
 
 Run: `.\tools\unity.ps1 Test` (exit 0).
 
@@ -404,7 +404,7 @@ git commit -m "feat(ui): explain pavilions and growing onto land"
 - Modify: `unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/ParityInputAcceptance.cs`
 - Create: `docs/art/qa-shots/hotel-growth/shell-*.png`
 
-- [ ] **Step 1: Add a draw-room scenario to the queued pointer acceptance**
+- [x] **Step 1: Add a draw-room scenario to the queued pointer acceptance**
 
 Read `ParityInputAcceptance.cs` for how existing scenarios queue real Input System touches and assert on `app.Model`. Add a scenario that runs in both touch and mouse modes:
 1. Enable God mode.
@@ -416,12 +416,12 @@ Read `ParityInputAcceptance.cs` for how existing scenarios queue real Input Syst
 
 Follow the existing scenarios' result reporting so a failure fails `tools/unity.ps1 QA`.
 
-- [ ] **Step 2: Build and run QA**
+- [x] **Step 2: Build and run QA**
 
 Run: `.\tools\unity.ps1 Windows`, then `.\tools\unity.ps1 QA`.
 Expected: exit 0; `result.txt` lists the new scenario as passed.
 
-- [ ] **Step 3: Capture Gate 2**
+- [x] **Step 3: Capture Gate 2**
 
 In God mode on Meadow, build:
 - a lobby at the arrival side with an archway entrance and two windows;
@@ -431,7 +431,7 @@ In God mode on Meadow, build:
 
 Capture cutaway and exterior views in portrait (1080×2340) and landscape (2340×1080) as `docs/art/qa-shots/hotel-growth/shell-{cutaway,exterior}-{portrait,landscape}.png`. Check that the walls meet cleanly at corners and T-junctions, door openings line up with the hallway, the floor boards under rooms and hallways match, and nothing z-fights.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/ParityInputAcceptance.cs docs/art/qa-shots/hotel-growth
@@ -441,3 +441,5 @@ git commit -m "test(qa): draw-room input acceptance; shell captures"
 ## Verification record
 
 Task 1's code was applied to a scratch copy (with plan 02 applied) on 2026-09-22 and ran green: `PASS 676041 checks`, including the Godot oracle. Tasks 2–6 are Unity presentation code and were **not** compiled during planning. Each task's `tools/unity.ps1 Test` step is the gate.
+
+Execution update: Tasks 1–6 were implemented and independently reviewed. The committed-only Unity snapshot passed 76/76 EditMode tests, Windows build and smoke QA. The separate queued mouse/touch acceptance run completed 21 layout cases with no failed checks or runtime errors. A focused isolated-player run subsequently passed 25 checks for the 0.35-inch touch cursor offset, one- and two-finger panning, three-cell Grow price, exact 4×3 Bedroom and floor-facing door, door/window/archway cycle and coin notices, visible Undo, and the named sale-plot quote. The final JSON is in `.superpowers/sdd/2026-09-22-hotel-growth-03-shell-presentation/task6-snapshot/tmp/deferred-shell-edfafc44435d4689bf51f9fa7860be0f/deferred-shell.json`. Gate 2's four Meadow captures passed visual review at 1080×2340 and 2340×1080. The focused acceptance helper was temporary and remained in the ignored disposable snapshot; production behavior was exercised through the player UI.

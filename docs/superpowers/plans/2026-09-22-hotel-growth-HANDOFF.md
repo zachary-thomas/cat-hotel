@@ -2,6 +2,16 @@
 
 Written by the orchestrating session for the next agent. Read this first, then the [roadmap](2026-09-22-hotel-growth-00-roadmap.md). Also read `CLAUDE.md` at the repo root.
 
+## Current continuation (supersedes the older progress sections below)
+
+Plans **02 (continuous hotel domain), 01 (lawn)** and **03 (shell presentation and build tools)** are complete, task-reviewed and verified. Work is on the user-authorized `test/combined-screenshot-reality` branch. The next implementation task is **Plan 05 Task 1, cat wardrobe domain**, followed by the remaining Plan 05 presentation/QA tasks, Plan 04 floors and stairs, and Plan 06 wall tool. The execution log in the roadmap has the commit list and review outcomes.
+
+Plan 03's committed-only Unity snapshot passed 76/76 EditMode tests, a Windows build and smoke QA. Its queued mouse/touch Bedroom scenario passed 21 layout cases. A further focused run passed **25/25** checks for phone gestures, Grow and room dimensions, the three wall openings and coin notices, visible Undo, and a named sale-plot quote. That run found one real UI gap, fixed and independently approved in `8711ac5`: cheaper edge replacements now say how many coins were refunded. The focused helper is ignored in the disposable snapshot; the production fix is committed. The final report is `.superpowers/sdd/2026-09-22-hotel-growth-03-shell-presentation/deferred-task-3-4-verification-report.md`.
+
+Gate 2 visual review approved the four Meadow shell captures in `docs/art/qa-shots/hotel-growth/`, at 1080×2340 portrait and 2340×1080 landscape. They show a continuous hotel with lobby, hall, two bedrooms and suite, hall furniture, exterior openings, roof, and a separate pavilion. Touch verification used queued Input System events in a phone-sized hidden Unity player, not the editor's Device Simulator window.
+
+Unrelated live edits remain in `HotelUI.cs`, `VoxelWorld*.cs`, `CatSpeechOverlay.cs`, a room-status file, welcome art and screenshots, and separate main-street/playable-polish documents. Preserve them; do not stage them with hotel-growth commits. A Plan 05 Task 1 brief is in `.superpowers/sdd/2026-09-22-hotel-growth-05-wardrobe/task-1-brief.md`.
+
 ## Continuation update (later on 2026-09-22)
 
 The sections below preserve the original handoff at commit `cb35d1f`. This update supersedes its progress and Unity-test notes.
