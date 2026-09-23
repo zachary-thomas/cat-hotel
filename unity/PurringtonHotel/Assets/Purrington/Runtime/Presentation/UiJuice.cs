@@ -37,7 +37,8 @@ namespace Purrington.Presentation {
   // New sheets rise and fade in; rebuilding the same sheet (a tap inside it) does not replay the motion.
   public static void SlideIn(RectTransform sheet,float distance=36){
    if(!sheet||Tween.Reduced||!Application.isPlaying)return;
-   var group=sheet.GetComponent<CanvasGroup>()??sheet.gameObject.AddComponent<CanvasGroup>();
+   // TryGetComponent, not ??: in the Editor a missing GetComponent returns a fake-null object that ?? does not replace.
+   if(!sheet.TryGetComponent<CanvasGroup>(out var group))group=sheet.gameObject.AddComponent<CanvasGroup>();
    var rest=sheet.anchoredPosition;
    Tween.Run(sheet,.24f,k=>{if(!sheet)return;float e=Tween.OutCubic(k);sheet.anchoredPosition=rest+Vector2.down*distance*(1-e);group.alpha=Mathf.Clamp01(k*2.2f);},()=>{if(sheet){sheet.anchoredPosition=rest;group.alpha=1;}});
   }

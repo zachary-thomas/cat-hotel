@@ -78,7 +78,7 @@ namespace Purrington.Presentation
     TownUI=new HotelTownUI(this);
     UI=new GameObject("Mobile Interface").AddComponent<HotelUI>();UI.Initialize(this);World.CatSelected+=UI.OpenCare;World.GroundClicked+=UI.GroundClicked;World.ObjectSelected+=UI.SelectObject;World.RoomSelected+=UI.SelectRoom;World.GroundDragged+=UI.GroundDragged;World.GroundDragEnded+=UI.GroundDragEnded;World.StoreSelected+=TownUI.SelectStore;World.CashierSelected+=UI.CashierArrived;World.StoreEntered+=UI.StoreArrived;World.TownMessage+=message=>UI.ShowNotice(message,false);World.TownCommand+=result=>Report(result);
 
-    Audio=GetComponent<HotelAudio>()??gameObject.AddComponent<HotelAudio>();
+    if(!TryGetComponent<HotelAudio>(out var audio))audio=gameObject.AddComponent<HotelAudio>();Audio=audio;
 
     World.SetCutaway(!Model.State.settings.exterior);Report(loaded);if(loaded.success)Report(Model.Reconcile(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),false);initializationError="";
 

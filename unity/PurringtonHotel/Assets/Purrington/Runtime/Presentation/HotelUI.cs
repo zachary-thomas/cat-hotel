@@ -1511,7 +1511,7 @@ namespace Purrington.Presentation
 
         }
 
-        static void Height(RectTransform r,float value){var le=r.gameObject.GetComponent<UnityEngine.UI.LayoutElement>()??r.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();le.minHeight=value;le.preferredHeight=value;}
+        static void Height(RectTransform r,float value){if(!r.TryGetComponent<UnityEngine.UI.LayoutElement>(out var le))le=r.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();le.minHeight=value;le.preferredHeight=value;}
 
         static Color Hex(string text){ColorUtility.TryParseHtmlString("#"+text,out var c);return c;}
 
