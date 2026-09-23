@@ -44,7 +44,7 @@
 
 **Files:** `HotelShell.cs`, `HotelModel.cs`, `HotelNavigation.cs`, `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `ShellSuites`:
 
@@ -90,12 +90,12 @@ Register it in `Program.cs` after `ShellSuites.RunDraw(Check,P,content);`:
 ShellSuites.RunFloors(Check,P,content);
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: build error `'HotelModel' does not contain a definition for 'FloorLock'`.
 
-- [ ] **Step 3: Apply the edits**
+- [x] **Step 3: Apply the edits**
 
 **1. `…/Domain/HotelShell.cs`** · replace exactly once:
 
@@ -416,12 +416,12 @@ with:
 public CommandResult PreviewRetrieveObject(string id,float x,float z,int rotation=0,int floor=0){return Quote("retrieve_object",P("id",id,"x",x,"y",z,"rotation",rotation,"floor",floor));}public CommandResult RetrieveObject(string id,float x,float z,int rotation=0,int floor=0){return Execute("retrieve_object",P("id",id,"x",x,"y",z,"rotation",rotation,"floor",floor));}
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell floors suite passed` and `PASS <n> checks` (it was 676063 during planning).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
@@ -434,7 +434,7 @@ git commit -m "feat(domain): upper floors, rooftop and basement with stairwells"
 
 **Files:** `HotelState.cs`, `HotelNavigation.cs`, `tests/unity-domain/ShellSuites.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 In `RunFloors`, insert these three lines directly before the line containing `"floors: no spas on the ground floor"`:
 
@@ -444,12 +444,12 @@ In `RunFloors`, insert these three lines directly before the line containing `"f
 		Check(path.Any(p=>p.floor==1&&p.x<x+3),"floors: the route climbs the stairwell");
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: build error `'LotPoint' does not contain a constructor that takes 3 arguments`.
 
-- [ ] **Step 3: Apply the edits**
+- [x] **Step 3: Apply the edits**
 
 **1. `…/Domain/HotelState.cs`** · replace exactly once:
 
@@ -696,12 +696,12 @@ with:
 +p.z.ToString("F2",System.Globalization.CultureInfo.InvariantCulture)+(p.floor!=0?"@"+p.floor:"");}
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell floors suite passed`. The oracle, `Life visits` and `Dense 600s` sections still pass. `PASS <n> checks` (676064 during planning).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
@@ -714,7 +714,7 @@ git commit -m "feat(domain): floor-aware navigation linked by stairwells"
 
 **Files:** `HotelState.cs`, `HotelLife.cs`, `HotelVisitors.cs`, `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `ShellSuites`:
 
@@ -747,12 +747,12 @@ Register it in `Program.cs` after `ShellSuites.RunFloors(Check,P,content);`:
 ShellSuites.RunFloorLife(Check,P,content);
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: build error `'ActorSnapshot' does not contain a definition for 'floor'`.
 
-- [ ] **Step 3: Apply the edits**
+- [x] **Step 3: Apply the edits**
 
 **1. `…/Domain/HotelState.cs`** · replace exactly once:
 
@@ -958,12 +958,12 @@ with:
 slot.Point
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell floor life suite passed`. A simulated guest walks upstairs within 900 simulated seconds. `PASS <n> checks` (676074 during planning).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
@@ -976,7 +976,7 @@ git commit -m "feat(domain): guests, staff and visitors live on every floor"
 
 **Files:** `HotelNavigation.cs`, `tests/unity-domain/ShellSuites.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 In `RunFloorLife`, insert this block directly before `Console.WriteLine("Shell floor life suite passed");`:
 
@@ -990,12 +990,12 @@ In `RunFloorLife`, insert this block directly before `Console.WriteLine("Shell f
 		}
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `System.Exception: floor life: a ready sunroom adds income`, because the sunroom isn't ready without the themed-room status rule.
 
-- [ ] **Step 3: Apply the edits**
+- [x] **Step 3: Apply the edits**
 
 **1. `…/Domain/HotelNavigation.cs`** · replace exactly once:
 
@@ -1021,12 +1021,12 @@ with:
 total+=h.staff.Sum()*2;total+=h.rooms.Where(r=>Themed(r.kind)&&RoomStatus(r.id,i).ready).Select(r=>r.kind).Distinct().Sum(k=>k=="sunroom"?15:k=="garden"?20:25);}
 ```
 
-- [ ] **Step 4: Run to verify it passes, then run the Unity gate**
+- [x] **Step 4: Run to verify it passes, then run the Unity gate**
 
 Run: `dotnet run --project tests/unity-domain`. Expected: `PASS <n> checks` (676079 during planning).
 Run: `.\tools\unity.ps1 Test`. Expected: exit 0. Presentation code that builds `LotPoint`, `VenueSlot` or `ActorSnapshot` still compiles, because the new fields have defaults. If Unity reports a compile error in `Presentation/`, fix only that call site by passing the floor through.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
@@ -1041,7 +1041,7 @@ git commit -m "feat(domain): sunrooms, rooftop gardens and spas add income when 
 - Modify: `unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/VoxelWorldShell.cs`, `VoxelWorld.cs`, `VoxelWorldRooms.cs`
 - Modify: `unity/PurringtonHotel/Assets/Purrington/Tests/EditMode/ShellPresentationTests.cs`
 
-- [ ] **Step 1: Write the failing EditMode test**
+- [x] **Step 1: Write the failing EditMode test**
 
 Add to `ShellPresentationTests`:
 
@@ -1052,12 +1052,12 @@ Add to `ShellPresentationTests`:
   Assert.IsFalse(VoxelWorld.FloorVisible(0,-1),"viewing the basement hides everything above it");Assert.IsTrue(VoxelWorld.FloorVisible(-1,0),"the basement stays built under the ground floor");}
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `.\tools\unity.ps1 Test`
 Expected: compile error `'VoxelWorld' does not contain a definition for 'FloorY'`.
 
-- [ ] **Step 3: Add floor placement and visibility to `VoxelWorldShell.cs`**
+- [x] **Step 3: Add floor placement and visibility to `VoxelWorldShell.cs`**
 
 Add these members:
 
@@ -1082,11 +1082,11 @@ In `VoxelWorldRooms.BuildRoom`, after `rooms[r.id]=root;root.localPosition=new V
 
 In `ScreenToGround` (`VoxelWorld.cs:22`), change `GroundPoint(screen,GroundY)` to `GroundPoint(screen,GroundY+FloorY(ViewFloor))`, so taps land on the viewed floor. Keep the returned `p.y` as it is.
 
-- [ ] **Step 4: Run the tests and look at it**
+- [x] **Step 4: Run the tests and look at it**
 
 Run: `.\tools\unity.ps1 Test` (exit 0). In Play mode with God mode on, build stairs and an upstairs room using the domain commands through the UI from Task 7, or temporarily through the Unity CLI's C# execution against `HotelApp.Model`. Check that floor 1 sits exactly on top of floor 0 with no gap or z-fighting at 2.9 units, and that ground roofs are hidden under upstairs cells.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation unity/PurringtonHotel/Assets/Purrington/Tests/EditMode

@@ -45,7 +45,7 @@ namespace Purrington.Presentation
 
         {
 
-            CancelPlacement(false);lastPathCell=null;roomAnchor=null; commandAction=action;commandPayload=(JObject)payload.DeepClone();commandTitle=title;placement="command";
+            CancelPlacement(false);lastPathCell=null;roomAnchor=null; commandAction=action;commandPayload=(JObject)payload.DeepClone();if(action=="place_template")commandPayload["floor"]=currentFloor;commandTitle=title;placement="command";
 
             rotation=(int?)payload["rotation"]??0;hasTarget=action=="buy_plot"||action=="resize_room";
 
@@ -179,7 +179,7 @@ namespace Purrington.Presentation
 
             }
 
-            if(category=="Land")Card(content,"Grow straight onto land","Use Hotel → Grow: land for sale is bought as the hotel grows onto it.","Grow",()=>BeginCommand("paint_floor",new JObject{{"floor",0},{"cells",new JArray()},{"buy",true}},"Grow the hotel"),Mint);
+            if(category=="Land")Card(content,"Grow straight onto land","Use Hotel → Grow: land for sale is bought as the hotel grows onto it.","Grow",()=>BeginCommand("paint_floor",new JObject{{"floor",currentFloor},{"cells",new JArray()},{"buy",true}},"Grow the hotel"),Mint);
 
             if(category=="Land")foreach(var plot in app.Model.Map()["plots"]??new JArray())
 

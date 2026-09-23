@@ -57,10 +57,10 @@ namespace Purrington.Domain
   void ChooseVisitorCounter(Actor a)
   {
    foreach (var venue in Venues().Where(v => v.open && v.role == "bar")
-    .OrderBy(v => a.Position.Distance(new LotPoint(v.x,v.z))))
+    .OrderBy(v => a.Position.Distance(v.Point)))
    foreach (var slot in venue.slots)
    {
-    var point = new LotPoint(slot.x,slot.z);
+    var point = slot.Point;
     if (reservations.ContainsKey(slot.key) || !Free(point,a,true)) continue;
     var route = ActivityRoute(a.Position,point);
     if (route.Count == 0) continue;

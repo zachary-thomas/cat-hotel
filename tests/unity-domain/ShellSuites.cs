@@ -153,6 +153,9 @@ static class ShellSuites
 		ground.edges[ShellGrid.Edge('v',x,z+1)].kind="window";Check(m.Save().success,"nav: save window");
 		var glazed=new HotelModel(store,content);glazed.LoadOrCreate();
 		Check(glazed.Route(outside,inside,false).Count==0,"nav: windows block like walls");
+		ground.edges[ShellGrid.Edge('v',x,z+1)].kind="open";Check(m.Save().success,"nav: save exterior archway");
+		var arched=new HotelModel(store,content);arched.LoadOrCreate();
+		Check(arched.Route(outside,inside,false).Count>0,"nav: archway passes through the same exterior edge blocked by the window");
 		Check(glazed.GuestCapacity(0)==4&&glazed.Rate(0)==64,"nav: Meadow capacity/rate unchanged with shell walls");
 		Console.WriteLine("Shell navigation suite passed");
 	}
@@ -295,4 +298,239 @@ static class ShellSuites
 		Check(m.Execute("remove_room",P("{\"id\":\""+room.id+"\"}")).success&&ShellGrid.WallAt(HotelModel.Floor(m.Hotel(),0),roomWall)=="window","edges: player windows outlive the room");
 		Console.WriteLine("Shell edges suite passed");
 	}
+	public static JObject PaintOn(int level,int x,int z,int w,int d){var p=Paint(x,z,w,d);p["floor"]=level;return p;}
+	public static JObject RoomOn(int level,int x,int z,int w,int d,int rotation,string kind="regular"){var p=Room(x,z,w,d,rotation,kind);p["floor"]=level;return p;}
+	public static JObject Furnish(string item,int level,float x,float z,int rotation=0){return new JObject{{"item",item},{"x",x},{"y",z},{"rotation",rotation},{"floor",level}};}
+	public static void RunFloors(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;var lot=m.Hotel();lot.rooms.Clear();lot.floors.Clear();lot.objects.Clear();lot.paths.Clear();
+		Check(FindClear(m,10,8,out int x,out int z),"floors: clear land");
+		Check(m.Execute("paint_floor",Paint(x,z,8,7)).success,"floors: ground floor island");
+		Check(m.Execute("set_edge",EdgePayload("door","v:"+x+","+(z+3))).success,"floors: front door");
+		var stairs=RoomOn(0,x+1,z+1,2,3,0,"stairs");
+		var early=m.Quote("draw_room",stairs);Check(!early.success&&early.message.Contains("level 3"),"floors: upstairs opens at hotel level 3 ("+early.message+")");
+		m.Hotel().level=3;
+		Check(m.FloorLock(1)==null&&m.FloorLock(2).Contains("level 5"),"floors: FloorLock explains locked floors for the UI");
+		Check(!m.Quote("paint_floor",PaintOn(1,x+4,z,1,1)).success,"floors: no painting upstairs before a stairwell");
+		double coins=m.State.coins;var built=m.Execute("draw_room",stairs);Check(built.success,"floors: stairs built ("+built.message+")");
+		Check(HotelModel.Floor(m.Hotel(),1)?.cells.Count==6,"floors: stairs open a 2x3 landing upstairs");
+		Check(Math.Abs(coins-m.State.coins-188)<.01,"floors: stairs cost 68 fitting + 120 landing ("+(coins-m.State.coins)+")");
+		var off=m.Quote("paint_floor",PaintOn(1,x+9,z,1,1));Check(!off.success&&off.message.Contains("underneath"),"floors: upstairs needs floor underneath ("+off.message+")");
+		Check(m.Execute("paint_floor",PaintOn(1,x+3,z,5,4)).success,"floors: grow upstairs over the ground floor");
+		var above=m.Quote("erase_floor",Paint(x+4,z+1,1,1));Check(!above.success&&above.message.Contains("above"),"floors: can't erase ground under upstairs ("+above.message+")");
+		var landing=m.Quote("erase_floor",PaintOn(1,x+1,z+1,1,1));Check(!landing.success&&landing.message.Contains("stairs"),"floors: can't erase the landing ("+landing.message+")");
+		var draft=m.RoomDraft(x+4,z,x+7,z+2,"regular",1);Check((int)draft["door"]==1,"floors: upstairs bedroom opens onto the landing hall");
+		Check(m.Execute("draw_room",draft).success,"floors: bedroom upstairs");var room=m.Hotel().rooms.Last();
+		Check(room.floor==1&&HotelModel.Interior(m.Hotel(),room),"floors: upstairs bedroom is interior");
+		var garden=m.Quote("draw_room",RoomOn(1,x+3,z+3,3,3,0,"garden"));Check(!garden.success&&garden.message.Contains("Upstairs holds"),"floors: gardens belong on the roof ("+garden.message+")");
+		var roof=m.Quote("draw_room",RoomOn(1,x+3,z,2,3,0,"stairs"));Check(!roof.success&&roof.message.Contains("level 5"),"floors: the rooftop opens at hotel level 5 ("+roof.message+")");
+		var path=m.Route(new LotPoint(x-1.5f,z+3.5f),new LotPoint(x+5.5f,z+1.5f,1),false);
+		Check(path.Count>0&&path[0].floor==0&&path[path.Count-1].floor==1,"floors: cats reach the upstairs bedroom");
+		Check(path.Any(p=>p.floor==1&&p.x<x+3),"floors: the route climbs the stairwell");
+		var climbs=path.Zip(path.Skip(1),(a,b)=>(a,b)).Where(v=>v.a.floor!=v.b.floor).ToArray();
+		Check(climbs.Length==1&&Math.Abs(climbs[0].a.x-climbs[0].b.x)<.001&&Math.Abs(climbs[0].a.z-climbs[0].b.z)<.001&&climbs[0].a.x>=x+1&&climbs[0].a.x<x+3&&climbs[0].a.z>=z+1&&climbs[0].a.z<z+4,"floors: the only cross-floor link is directly over the stairwell");
+		Check(!m.MovementSegmentClear(new LotPoint(x+5.25f,z+1.25f),new LotPoint(x+5.25f,z+1.25f,1),false),"floors: cats cannot jump between floors outside stairs");
+		Check(!m.Quote("draw_room",RoomOn(0,x+4,z+4,3,3,0,"spa")).success,"floors: no spas on the ground floor");
+		m.Hotel().level=7;
+		var down=m.Execute("draw_room",RoomOn(-1,x+5,z+4,2,3,0,"stairs"));Check(down.success,"floors: basement stairs open the basement ("+down.message+")");
+		Check(HotelModel.Floor(m.Hotel(),-1)?.cells.Count==6,"floors: the basement starts under its stairs");
+		var outside=m.Quote("paint_floor",PaintOn(-1,x+9,z,1,1));Check(!outside.success&&outside.message.Contains("under the hotel"),"floors: the basement stays under the hotel");
+		var stair=m.Hotel().rooms.First(r=>r.kind=="stairs"&&r.floor==0);int stairCells=HotelModel.Floor(m.Hotel(),1).cells.Count;coins=m.State.coins;
+		Check(!m.Quote("remove_room",new JObject{{"id",stair.id}}).success,"floors: occupied upstairs room keeps its last stairwell");
+		foreach(var action in new[]{"move_room","resize_room","copy_room"}){
+			var edit=action=="resize_room"?new JObject{{"id",stair.id},{"w",3},{"h",3}}:new JObject{{"id",stair.id},{"x",x+2},{"y",z+1}};
+			var result=m.Quote(action,edit);Check(!result.success&&result.message.Contains("stairs"),"floors: "+action+" refuses unsupported stair edits ("+result.message+")");
+		}
+		Check(HotelModel.Floor(m.Hotel(),1).cells.Count==stairCells&&Math.Abs(coins-m.State.coins)<.01,"floors: refused stair edits preserve landing and coins");
+		Check(HotelModel.Valid(m.State),"floors: the saved multilevel hotel is valid");
+		var reopened=new HotelModel(new MemoryStore{state=HotelModel.Copy(m.State)},content);Check(reopened.LoadOrCreate().success&&HotelModel.Floor(reopened.Hotel(),1)?.cells.Count==stairCells&&HotelModel.Floor(reopened.Hotel(),-1)?.cells.Count==6,"floors: stairs and landings survive a save reload");
+		Console.WriteLine("Shell floors suite passed");
+	}
+	public static void RunFloorLife(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;
+		var h=m.Hotel();h.rooms.Clear();h.floors.Clear();h.objects.Clear();h.paths.Clear();h.level=3;
+		var arr=m.Map()["arrival"];int x=(int)Math.Floor((float)arr[0])-7,z=(int)Math.Floor((float)arr[1])-6;
+		Check(m.Execute("paint_floor",Paint(x,z,8,7)).success,"floor life: lobby around the arrival point");
+		Check(m.Execute("draw_room",RoomOn(0,x+1,z+1,2,3,0,"stairs")).success,"floor life: stairs");
+		Check(m.Execute("paint_floor",PaintOn(1,x+3,z,5,6)).success,"floor life: upstairs hall");
+		Check(m.Execute("draw_room",m.RoomDraft(x+4,z,x+7,z+2,"regular",1)).success,"floor life: upstairs bedroom");var room=m.Hotel().rooms.Last();
+		var reception=Catalog.All.First(i=>i.role=="reception");var bed=Catalog.All.First(i=>i.role=="bed"&&i.bond==0&&i.width<=2&&i.depth<=2);
+		var desk=m.Execute("place_object",Furnish(reception.id,0,x+4,z+4));Check(desk.success,"floor life: reception in the lobby ("+desk.message+")");
+		var placed=m.PlaceObject(bed.id,x+4.5f,z+.5f,0,1);Check(placed.success,"floor life: bed upstairs ("+placed.message+")");
+		Check(m.Hotel().objects.Last().floor==1&&m.Hotel().objects.Last().room==room.id,"floor life: the bed belongs to the upstairs bedroom");
+		var bedId=m.Hotel().objects.Last().id;Check(m.MoveObject(bedId,x+4.5f,z+.5f).success&&m.Hotel().objects.Last().floor==1,"floor life: moving furniture keeps its floor");
+		var status=m.RoomStatus(room.id);Check(status.ready,"floor life: upstairs bedroom is ready ("+status.status+")");
+		Check(m.GuestCapacity()==2,"floor life: upstairs bedroom adds two guests ("+m.GuestCapacity()+")");
+		bool climbed=false,slept=false;var previousPositions=new Dictionary<string,LotPoint>();for(int t=0;t<4500&&!slept;t++)
+		{
+			m.Tick(.2f);
+			climbed|=m.Actors.Any(a=>a.kind==ActorKind.Guest&&a.floor==1);
+			slept=m.Actors.Any(a=>a.kind==ActorKind.Guest&&a.floor==1&&a.venueId==bedId&&a.action=="sleep");
+			foreach(var a in m.Actors)
+			{
+				Check(m.MovementSegmentClear(new LotPoint(a.x,a.z,a.floor),new LotPoint(a.x,a.z,a.floor),false),"floor life: actor remains on walkable floor "+a.id);
+				Check(a.venueId!=bedId||a.action!="sleep"||a.floor==1,"floor life: same x/z downstairs does not count as arriving at the upstairs bed");
+				if(previousPositions.TryGetValue(a.id,out var prior)&&prior.floor!=a.floor)Check(prior.x>=x+.65f&&prior.x<x+3.35f&&prior.z>=z+.65f&&prior.z<z+4.35f&&a.x>=x+.65f&&a.x<x+3.35f&&a.z>=z+.65f&&a.z<z+4.35f,"floor life: actors change level only inside the stairs");
+				previousPositions[a.id]=new LotPoint(a.x,a.z,a.floor);
+			}
+		}
+		Check(climbed,"floor life: a guest walks upstairs");
+		Check(slept,"floor life: a guest reaches the upstairs bed and sleeps");
+		var upperDesk=m.Execute("place_object",Furnish(reception.id,1,x+4,z+4));Check(upperDesk.success,"floor life: reception at the same x/z upstairs ("+upperDesk.message+")");
+		m.Tick(1);var counters=m.Venues().Where(v=>v.role=="reception"&&v.open&&v.staffSlot!=null).ToArray();
+		Check(counters.Length==2&&counters.Select(v=>v.floor).OrderBy(f=>f).SequenceEqual(new[]{0,1}),"floor life: two receptions remain open at the same x/z on separate floors");
+		Check(m.Actors.Count(a=>a.kind==ActorKind.Staff&&counters.Any(v=>v.id==a.venueId&&v.floor==a.floor))==2,"floor life: each reception has staff on its own floor");
+		Check(m.Actors.Any(a=>a.kind==ActorKind.Guest&&a.floor==1),"floor life: layout change preserves a guest upstairs");
+		Console.WriteLine("Shell floor life suite passed");
+	}
+	public static void RunThemedIncome(Action<bool,string> Check,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;
+		var h=m.Hotel();h.rooms.Clear();h.floors.Clear();h.objects.Clear();h.paths.Clear();h.level=7;
+		var arr=m.Map()["arrival"];int x=(int)Math.Floor((float)arr[0])-7,z=(int)Math.Floor((float)arr[1])-6;
+		Check(Catalog.All.Any(i=>i.id=="perch"&&i.role=="sun"&&i.surfaces.Contains("indoor")),"themed income: indoor sunny perch exists");
+		Check(Catalog.All.Any(i=>i.id=="bench"&&i.surfaces.Contains("outdoor")),"themed income: outdoor bench exists");
+		Check(Catalog.All.Any(i=>i.id=="fireplace"&&i.surfaces.Contains("indoor")),"themed income: indoor fireplace exists");
+		Check(m.Execute("paint_floor",Paint(x,z,8,7)).success,"themed income: ground lobby");
+		Check(m.Execute("draw_room",RoomOn(0,x+1,z+1,2,3,0,"stairs")).success,"themed income: upstairs stairs");
+		Check(m.Execute("paint_floor",PaintOn(1,x+3,z,5,6)).success,"themed income: upstairs floor");
+		Check(m.Execute("place_object",Furnish("reception_counter",0,x+4,z+4)).success,"themed income: reception");
+		Check(m.Execute("place_object",Furnish("box",0,x+4,z+2)).success,"themed income: existing activity service");
+		Check(m.Venues().Any(v=>v.item=="box"&&v.open),"themed income: existing activity is reachable");
+		Check(m.Execute("draw_room",m.RoomDraft(x+5,z+3,x+7,z+5,"sunroom",1)).success,"themed income: first sunroom");var sun=m.Hotel().rooms.Last();
+		double before=m.Rate();Check(!m.RoomStatus(sun.id).ready&&Math.Abs(m.Rate()-before)<.01,"themed income: empty sunroom earns nothing");
+		Check(m.Execute("place_object",Furnish("perch",1,x+6,z+4)).success,"themed income: sunroom perch");
+		Check(m.RoomStatus(sun.id).ready&&Math.Abs(m.Rate()-before-15)<.01,"themed income: one reachable sunroom adds exactly 15 ("+(m.Rate()-before)+")");
+		Check(m.Execute("draw_room",m.RoomDraft(x+5,z,x+7,z+2,"sunroom",1)).success,"themed income: second sunroom");var secondSun=m.Hotel().rooms.Last();
+		before=m.Rate();Check(m.Execute("place_object",Furnish("perch",1,x+6,z+1)).success,"themed income: second perch");
+		Check(m.RoomStatus(secondSun.id).ready&&Math.Abs(m.Rate()-before)<.01,"themed income: another ready sunroom cannot double the bonus ("+(m.Rate()-before)+")");
+		Check(m.Execute("draw_room",RoomOn(1,x+3,z+3,2,3,0,"stairs")).success,"themed income: rooftop stairs");
+		Check(m.Execute("paint_floor",PaintOn(2,x+5,z+3,3,3)).success,"themed income: rooftop floor");
+		Check(m.Execute("draw_room",m.RoomDraft(x+5,z+3,x+7,z+5,"garden",2)).success,"themed income: rooftop garden");var garden=m.Hotel().rooms.Last();
+		before=m.Rate();Check(!m.RoomStatus(garden.id).ready&&Math.Abs(m.Rate()-before)<.01,"themed income: empty rooftop garden earns nothing");
+		Check(m.Execute("place_object",Furnish("garden_planter",2,x+6,z+4)).success,"themed income: garden planter");
+		Check(!m.RoomStatus(garden.id).ready&&Math.Abs(m.Rate()-before)<.01,"themed income: decoration alone is not a reachable activity");
+		Check(m.Execute("place_object",Furnish("bench",2,x+5.5f,z+5)).success,"themed income: garden bench");
+		Check(m.RoomStatus(garden.id).ready&&Math.Abs(m.Rate()-before-20)<.01,"themed income: reachable rooftop garden adds exactly 20 ("+(m.Rate()-before)+")");
+		Check(m.Execute("draw_room",RoomOn(-1,x+1,z+4,2,3,0,"stairs")).success,"themed income: basement stairs");
+		Check(m.Execute("paint_floor",PaintOn(-1,x+3,z+4,3,3)).success,"themed income: basement floor");
+		Check(m.Execute("draw_room",m.RoomDraft(x+3,z+4,x+5,z+6,"spa",-1)).success,"themed income: basement spa");var spa=m.Hotel().rooms.Last();
+		before=m.Rate();Check(!m.RoomStatus(spa.id).ready&&Math.Abs(m.Rate()-before)<.01,"themed income: empty spa earns nothing");
+		Check(m.Execute("place_object",Furnish("fireplace",-1,x+4,z+5)).success,"themed income: spa fireplace");
+		Check(m.RoomStatus(spa.id).ready&&Math.Abs(m.Rate()-before-25)<.01,"themed income: reachable basement spa adds exactly 25 ("+(m.Rate()-before)+")");
+		Console.WriteLine("Shell themed income suite passed");
+	}
+	public static void RunMigratedDenseNavigation(Action<bool,string> Check,ParityContent content,HotelState denseSeed)
+	{
+		var seed=HotelModel.Copy(denseSeed);seed.version=2;
+		var m=new HotelModel(new MemoryStore{state=seed},content);
+		Check(m.LoadOrCreate().success,"dense migration: 24-room hotel loads with shell walls");
+		var h=m.Hotel();var ground=HotelModel.Floor(h,0);
+		Check(ground!=null&&ground.cells.Count>=24*12&&ground.edges.Count>=24,"dense migration: room floors and door edges survive ("+ground?.cells.Count+" cells, "+ground?.edges.Count+" stored edges)");
+		int wallEdges=ShellGrid.Edges(ground).Count(e=>{var kind=ShellGrid.WallAt(ground,e);return kind=="wall"||kind=="window";});
+		int wallRuns=ShellDraw.Runs(ground).Count(r=>r.kind=="wall"||r.kind=="window");
+		Check(wallRuns<wallEdges/2,"dense migration: contiguous walls collapse into runs ("+wallRuns+" runs / "+wallEdges+" edges)");
+		Check(m.GuestCapacity()==48,"dense migration: all bedrooms stay reachable");
+		var paths=new Dictionary<string,PathState>(h.paths);h.paths.Clear();
+		bool found=FindClear(m,2,3,out int x,out int z);
+		foreach(var path in paths)h.paths[path.Key]=path.Value;
+		Check(found,"dense migration: clear space for a connected stairwell");
+		Check(m.Execute("paint_floor",Paint(x,z,2,3)).success,"dense migration: ground floor for stairs");
+		Check(m.Execute("set_edge",new JObject{{"floor",0},{"kind","door"},{"edges",new JArray("v:"+x+","+(z+1))}}).success,"dense migration: stairs entrance");
+		Check(m.Execute("draw_room",RoomOn(0,x,z,2,3,2,"stairs")).success,"dense migration: stairwell and upper landing");
+		var route=m.Route(new LotPoint(x-.25f,z+1.25f),new LotPoint(x+.75f,z+1.25f,1),false);
+		Check(route.Count>0&&route.Any(p=>p.floor==1),"dense migration: path climbs to the landing through retained walls");
+		var timer=System.Diagnostics.Stopwatch.StartNew();int maxGuests=0;
+		for(int tick=0;tick<3000;tick++){m.Tick(.2f);var actors=m.Actors;maxGuests=Math.Max(maxGuests,actors.Count(a=>a.catId<1000));foreach(var actor in actors)Check(m.CanWalk(actor.x,actor.z),"dense migration: actor walks within the retained shell "+actor.id);}
+		timer.Stop();
+		Check(maxGuests==18&&m.Hotel().visits>0,"dense migration: 600 seconds of visits complete with the shell retained");
+		Console.WriteLine("Dense migrated 600s: "+wallRuns+" wall runs / "+wallEdges+" edges, "+m.Hotel().visits+" visits, "+maxGuests+" guests, "+timer.ElapsedMilliseconds+"ms CPU");
+	}
+	public static void RunStairSafety(Action<bool,string> Check,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;var h=m.Hotel();h.rooms.Clear();h.floors.Clear();h.objects.Clear();h.paths.Clear();h.level=7;
+		Check(FindClear(m,10,8,out int x,out int z),"stairs: clear land");
+		Check(m.Execute("paint_floor",Paint(x,z,8,6)).success,"stairs: ground shell");
+		Check(m.Execute("draw_room",RoomOn(0,x+1,z+1,2,3,0,"stairs")).success,"stairs: first upper stair");
+		var first=h.rooms.Last();string internalEdge="v:"+(x+2)+","+(z+2);
+		foreach(int level in new[]{0,1})foreach(string kind in new[]{"wall","window"}){
+			var blocked=m.Quote("set_edge",new JObject{{"floor",level},{"kind",kind},{"edges",new JArray(internalEdge)}});
+			Check(!blocked.success,"stairs: "+kind+" cannot block stair interior on floor "+level);
+		}
+		Check(m.Execute("set_edge",new JObject{{"floor",1},{"kind","door"},{"edges",new JArray(internalEdge)}}).success,"stairs: passable landing edge allowed");
+		Check(m.Execute("set_edge",new JObject{{"floor",0},{"kind","door"},{"edges",new JArray(internalEdge)}}).success,"stairs: passable lower stair edge allowed");
+		var blockedSave=HotelModel.Copy(m.State);HotelModel.Floor(blockedSave.hotels[0],1).edges[internalEdge]=new EdgeState{kind="wall"};Check(!HotelModel.Valid(blockedSave),"stairs: blocked saved landing rejected");
+		blockedSave=HotelModel.Copy(m.State);HotelModel.Floor(blockedSave.hotels[0],0).edges[internalEdge]=new EdgeState{kind="window"};Check(!HotelModel.Valid(blockedSave),"stairs: blocked saved lower flight rejected");
+		var orphan=HotelModel.Copy(m.State);orphan.hotels[0].rooms.RemoveAll(r=>r.id==first.id);Check(!HotelModel.Valid(orphan),"stairs: orphan upper floor rejected on reload");
+		Check(m.Execute("paint_floor",PaintOn(1,x+3,z+1,1,1)).success,"stairs: expanded upper floor");
+		Check(!m.Quote("remove_room",new JObject{{"id",first.id}}).success,"stairs: last stair cannot strand paid upper floor");
+		Check(!m.Quote("draw_room",RoomOn(0,x+5,z+1,2,3,0,"stairs")).success,"stairs: disconnected upper landing cannot be opened");
+		Check(m.Execute("paint_floor",PaintOn(1,x+4,z+1,1,1)).success,"stairs: bridge between landing sites");
+		Check(m.Execute("draw_room",RoomOn(0,x+5,z+1,2,3,0,"stairs")).success,"stairs: connected alternative upper stair");
+		string bridgeEdge="v:"+(x+5)+","+(z+1);
+		Check(!m.Quote("set_edge",new JObject{{"floor",1},{"kind","wall"},{"edges",new JArray(bridgeEdge)}}).success,"stairs: divider cannot split the continuous upper floor");
+		HotelModel.Floor(m.Hotel(),1).edges[bridgeEdge]=new EdgeState{kind="wall"};
+		Check(!m.Quote("remove_room",new JObject{{"id",first.id}}).success,"stairs: wall-isolated landing cannot lose its only stair");
+		HotelModel.Floor(m.Hotel(),1).edges.Remove(bridgeEdge);
+		Check(m.Execute("set_edge",new JObject{{"floor",1},{"kind","door"},{"edges",new JArray(bridgeEdge)}}).success,"stairs: door joins the landing islands");
+		Check(m.Execute("remove_room",new JObject{{"id",first.id}}).success&&HotelModel.Floor(m.Hotel(),1).cells.Count>6,"stairs: connected alternative route allows removal and retains paid floor");
+		var isolatedSave=HotelModel.Copy(m.State);HotelModel.Floor(isolatedSave.hotels[0],1).edges[bridgeEdge]=new EdgeState{kind="wall"};Check(!HotelModel.Valid(isolatedSave),"stairs: disconnected retained island rejected on reload");
+		var lone=new HotelModel(new MemoryStore(),content);lone.LoadOrCreate();lone.State.coins=100000;lone.Hotel().rooms.Clear();lone.Hotel().floors.Clear();lone.Hotel().objects.Clear();lone.Hotel().paths.Clear();lone.Hotel().level=7;
+		Check(FindClear(lone,6,5,out int lx,out int lz),"stairs: clear land for safe removal");
+		Check(lone.Execute("paint_floor",Paint(lx,lz,6,5)).success,"stairs: second ground shell");
+		Check(lone.Execute("draw_room",RoomOn(0,lx+1,lz+1,2,3,0,"stairs")).success,"stairs: lone upper stair");
+		var upper=lone.Hotel().rooms.Last();double before=lone.State.coins;
+		Check(lone.Execute("remove_room",new JObject{{"id",upper.id}}).success&&HotelModel.Floor(lone.Hotel(),1)==null&&Math.Abs(lone.State.coins-before-188)<.01,"stairs: empty upper landing removed and refunded");
+		Check(lone.Execute("draw_room",RoomOn(-1,lx+3,lz+1,2,3,0,"stairs")).success,"stairs: lone basement stair");
+		var lower=lone.Hotel().rooms.Last();before=lone.State.coins;
+		orphan=HotelModel.Copy(lone.State);orphan.hotels[0].rooms.RemoveAll(r=>r.id==lower.id);Check(!HotelModel.Valid(orphan),"stairs: orphan basement floor rejected on reload");
+		Check(lone.Execute("remove_room",new JObject{{"id",lower.id}}).success&&HotelModel.Floor(lone.Hotel(),-1)==null&&Math.Abs(lone.State.coins-before-188)<.01,"stairs: empty basement floor removed and refunded");
+		Check(lone.Execute("draw_room",RoomOn(-1,lx+1,lz+1,2,3,0,"stairs")).success,"stairs: first basement route");
+		var firstLower=lone.Hotel().rooms.Last();
+		Check(lone.Execute("draw_room",RoomOn(-1,lx+3,lz+1,2,3,0,"stairs")).success,"stairs: second basement route");
+		string basementDoor="v:"+(lx+3)+","+(lz+2);
+		Check(lone.Execute("set_edge",new JObject{{"floor",-1},{"kind","door"},{"edges",new JArray(basementDoor)}}).success,"stairs: shared basement passage stays open");
+		Check(lone.Execute("remove_room",new JObject{{"id",firstLower.id}}).success&&HotelModel.Floor(lone.Hotel(),-1).cells.Count==12,"stairs: connected basement alternative retains paid floor");
+		Check(HotelModel.Valid(m.State)&&HotelModel.Valid(lone.State),"stairs: edited hotels remain loadable");
+		Console.WriteLine("Shell stair safety suite passed");
+	}
+static JObject Wall(int x0,int z0,int x1,int z1){return new JObject{{"floor",0},{"from",new JArray(x0,z0)},{"to",new JArray(x1,z1)}};}
+	static JObject Claim(int x,int z,string kind){return new JObject{{"floor",0},{"x",x},{"y",z},{"kind",kind},{"name","Corner "+kind}};}
+	public static void RunWallTool(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;var lot=m.Hotel();lot.rooms.Clear();lot.floors.Clear();lot.objects.Clear();lot.paths.Clear();
+		Check(FindClear(m,8,7,out int x,out int z),"walls: clear land");
+		Check(m.Execute("paint_floor",Paint(x,z,6,5)).success,"walls: open-plan floor");
+		double coins=m.State.coins;var wall=m.Execute("draw_wall",Wall(x+6,z+2,x+3,z+5));
+		Check(wall.success&&Math.Abs(coins-m.State.coins-30)<.01,"walls: an L-shaped wall of 6 edges costs 30 ("+wall.message+")");
+		Check(HotelModel.WallPath(x+6,z+2,x+3,z+5).Count==6,"walls: the UI preview path matches the built walls");
+		var floor=HotelModel.Floor(m.Hotel(),0);
+		Check(ShellGrid.WallAt(floor,"h:"+(x+4)+","+(z+2))=="wall"&&ShellGrid.WallAt(floor,"v:"+(x+3)+","+(z+3))=="wall","walls: the bend runs along x, then z");
+		var doorless=m.Quote("claim_room",Claim(x,z,"suite"));Check(!doorless.success&&doorless.message.Contains("door"),"walls: a space needs a door first ("+doorless.message+")");
+		Check(m.Execute("set_edge",EdgePayload("door","v:"+x+","+(z+1))).success,"walls: front door");
+		coins=m.State.coins;var suite=m.Execute("claim_room",Claim(x,z,"suite"));Check(suite.success,"walls: claim the L-shaped space as a suite ("+suite.message+")");
+		var room=m.Hotel().rooms.Last();
+		Check(room.cells!=null&&room.cells.Count==21&&room.width==6&&room.depth==5&&HotelModel.Interior(m.Hotel(),room),"walls: the suite keeps its 21 L-shaped cells");
+		Check(Math.Abs(coins-m.State.coins-Math.Round(1225*.45,MidpointRounding.AwayFromZero))<.01,"walls: an L suite costs 45% of a 21-cell suite");
+		Check(HotelModel.RoomHas(room,x+1.5f,z+3.5f)&&!HotelModel.RoomHas(room,x+4.5f,z+3.5f),"walls: membership follows the L, not its bounding box");
+		var small=m.Quote("claim_room",Claim(x+4,z+3,"regular"));Check(!small.success,"walls: 9 cells is too small for a bedroom ("+small.message+")");
+		Check(m.Execute("set_edge",EdgePayload("door","v:"+(x+3)+","+(z+3))).success,"walls: door between the two spaces");
+		var lounge=m.Execute("claim_room",Claim(x+4,z+3,"shared"));Check(lounge.success,"walls: the small space becomes a lounge ("+lounge.message+")");
+		Check(!m.Quote("claim_room",Claim(x+1,z+1,"regular")).success,"walls: claimed space can't be claimed twice");
+		var plant=Catalog.All.First(i=>i.surfaces.Contains("indoor")&&i.width<=1&&i.depth<=1&&i.bond==0);
+		Check(m.PlaceObject(plant.id,x+1,z+3).success&&m.Hotel().objects.Last().room==room.id,"walls: furniture in the L's arm belongs to the suite");
+		Check(!m.Quote("set_edge",EdgePayload("none","h:"+(x+4)+","+(z+2))).success,"walls: walls that enclose rooms stay");
+		Check(!m.Quote("move_room",new JObject{{"id",room.id},{"x",x},{"y",z},{"rotation",0}}).success,"walls: wall-tool rooms reshape by walls, not moving");
+		Check(m.Route(new LotPoint(x-1.5f,z+1.5f),new LotPoint(x+4.5f,z+3.5f),false).Count>0,"walls: cats walk through the suite into the lounge");
+		var codec=new NewtonsoftSaveCodec();var restored=codec.Deserialize(codec.Serialize(m.State));
+		Check(HotelModel.Valid(restored)&&restored.hotels[restored.currentHotel].rooms.Last().cells.Count==9,"walls: room shapes survive a save");
+		var bad=JObject.Parse(codec.Serialize(m.State));var badRoom=(JArray)bad["hotels"][m.State.currentHotel]["rooms"];badRoom[badRoom.Count-1]["cells"]=new JArray("nope");
+		var other=new HotelModel(new MemoryStore(),content);other.LoadOrCreate();Check(!other.RestoreJson(bad.ToString()),"walls: corrupt room cells are rejected");
+		Check(!JObject.Parse(codec.Serialize(other.State))["hotels"][0]["rooms"][0].ToString().Contains("cells"),"walls: rectangle rooms don't store cells");
+		Check(m.Execute("remove_room",P("{\"id\":\""+room.id+"\"}")).success&&ShellGrid.WallAt(HotelModel.Floor(m.Hotel(),0),"h:"+(x+4)+","+(z+2))=="wall","walls: removing the room keeps the walls");
+		Check(m.Undo().success&&m.Hotel().rooms.Any(r=>r.id==room.id),"walls: undo restores the claimed room");
+		Console.WriteLine("Wall tool suite passed");
+	}
+
 }

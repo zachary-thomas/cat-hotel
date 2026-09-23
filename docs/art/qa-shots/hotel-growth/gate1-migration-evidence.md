@@ -1,0 +1,7 @@
+# Gate 1 — real version 2 save migration
+
+On 2026-09-22, a copy of the local Unity preview's September 18 version 2 journal pair was placed in an ignored isolated profile. The original files were read only. The committed-only wardrobe build (`tmp/w5t4`) loaded that profile and completed the opt-in player smoke flow with exit 0, including startup, camera, navigation, care, panel bounds, zoom, layouts and a save. The player captured 21 frames. Representative views are [portrait](gate1-migrated-v2-portrait.png) and [landscape](gate1-migrated-v2-landscape.png). The migrated Meadow hotel, grounds, rooms, furniture and outdoor paths were inspected visually at both sizes; the owned lawn matches the surrounding grass.
+
+The journal changed from save version 2 to 3 after the player saved it. Before and after: 4 hotels, 16 rooms, 126 objects, and 12 owned plot IDs. All original scalar fields of each room and object matched by ID across the migration: **0 differences** in position, size, rotation, kind, item, name, room assignment or paid amount. Four new floor shells carry the migrated building cells and edges. The frozen Godot oracle and the domain migration regressions remain green in the full suite.
+
+The player used an isolated `-purrington-profile`; the user's live save was not launched or modified. This check verifies that the existing layout and furnishings survive migration and render coherently. It is a visual inspection, not a pixel-for-pixel comparison against an old player capture with the same camera framing.

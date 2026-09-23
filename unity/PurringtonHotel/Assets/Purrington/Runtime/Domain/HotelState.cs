@@ -14,7 +14,7 @@ namespace Purrington.Domain {
 }
 [Serializable] public sealed class HotelData { public bool owned,maid; public TownState town=new TownState(); public List<string> plots=new List<string>(); public List<RoomState> rooms=new List<RoomState>(); public List<FloorState> floors=new List<FloorState>(); public List<ObjectState> objects=new List<ObjectState>(); public Dictionary<string,PathState> paths=new Dictionary<string,PathState>(); public int level=1,visits,happy,cleaned,purchases,dirtCursor; public float dirtClock; public int[] upgrades={1,0,0,1},staff={0,0,0}; public Dictionary<string,bool> dirty=new Dictionary<string,bool>(); }
 [Serializable] public sealed class PathState {public string style="earth";public double paid;}
-[Serializable] public sealed class RoomState { public string id,name="New room",kind="regular"; public int x,z,width,depth,rotation,floor,door=-1; public double paid; }
+[Serializable] public sealed class RoomState { public string id,name="New room",kind="regular"; public int x,z,width,depth,rotation,floor,door=-1; public double paid; [JsonProperty(NullValueHandling=NullValueHandling.Ignore)] public List<string> cells; }
 [Serializable] public sealed class ObjectState {public string id,itemId,room="";public float x,z;public int rotation,floor;public double paid;}
 [Serializable] public sealed class CatState {public int id,bond,friend=-1;public string name,preference,favoriteAction;public Dictionary<string,string> outfit=new Dictionary<string,string>();public bool known=true;public float lastCare=-100;}
 [Serializable] public sealed class SettingsState {public float textScale=1; public bool motion=true,music=true,sound=true,exterior,evening,godMode,assistedCare;}
@@ -31,12 +31,13 @@ public sealed class ParityContent {
  public static RoomState ReadRoom(JToken r){return new RoomState{id=(string)r["id"],name=(string)r["name"],kind=(string)r["kind"],x=(int)r["x"],z=(int)r["y"],width=(int)r["w"],depth=(int)r["h"],rotation=(int?)r["rotation"]??0,paid=(double?)r["paid"]??0};}
  public static ObjectState ReadObject(JToken o){return new ObjectState{id=(string)o["id"],itemId=(string)o["item"],room=(string)o["room"]??"",x=(float)o["x"],z=(float)o["y"],rotation=(int?)o["rotation"]??0,paid=(double?)o["paid"]??0};}
 }
-public struct LotPoint {public float x,z;public LotPoint(float x,float z){this.x=x;this.z=z;}public float Distance(LotPoint b){return (float)Math.Sqrt((x-b.x)*(x-b.x)+(z-b.z)*(z-b.z));}}
+public struct LotPoint {public float x,z;public int floor;public LotPoint(float x,float z){this.x=x;this.z=z;floor=0;}public LotPoint(float x,float z,int floor){this.x=x;this.z=z;this.floor=floor;}
+ public float Distance(LotPoint b){return (float)Math.Sqrt((x-b.x)*(x-b.x)+(z-b.z)*(z-b.z))+Math.Abs(floor-b.floor)*100;}}
 public sealed class RoomStatusInfo {public bool ready;public string status,message;public double bonus;}
-public sealed class VenueSlot {public string key,action;public float x,z,facing;}
-public sealed class VenueSnapshot {public string id,item,name,room,role,status;public bool open;public int service,capacity;public float x,z;public string[] tags;public List<VenueSlot> slots=new List<VenueSlot>();public VenueSlot staffSlot;public float frontX,frontZ,centerX,centerZ;}
+public sealed class VenueSlot {public string key,action;public float x,z,facing;public int floor;public LotPoint Point=>new LotPoint(x,z,floor);}
+public sealed class VenueSnapshot {public string id,item,name,room,role,status;public bool open;public int service,capacity;public float x,z;public int floor;public LotPoint Point=>new LotPoint(x,z,floor);public string[] tags;public List<VenueSlot> slots=new List<VenueSlot>();public VenueSlot staffSlot;public float frontX,frontZ,centerX,centerZ;}
 public enum ActorKind { Guest, Staff, DayVisitor, TownWelcome }
-public sealed class ActorSnapshot {public ActorKind kind;public int visitorIndex=-1;public float speechElapsed,speechDuration=3.1f;public string id,name,role,action="rest",venueId="",speech="",gesture="",intent="";public int catId;public string phase,slot,sourceRoom;public bool checkedIn,drink;public float remaining;public int completed;public float x,z,facing,activityElapsed,activityDuration;public long activityToken;}
+public sealed class ActorSnapshot {public ActorKind kind;public int visitorIndex=-1;public float speechElapsed,speechDuration=3.1f;public string id,name,role,action="rest",venueId="",speech="",gesture="",intent="";public int catId;public string phase,slot,sourceRoom;public bool checkedIn,drink;public float remaining;public int completed;public int floor;public float x,z,facing,activityElapsed,activityDuration;public long activityToken;}
 }
 
 
