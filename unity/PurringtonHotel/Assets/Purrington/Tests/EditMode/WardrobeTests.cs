@@ -25,7 +25,10 @@ public sealed class WardrobeTests {
     Assert.That(hat.localPosition.y,Is.GreaterThan(.15f));
     var tie=rig.Bindings["body"].Find("Wear_neck");
     Assert.IsNotNull(tie);
-    Assert.That(tie.localPosition.z,Is.GreaterThan(0));
+    Assert.AreEqual(3,tie.childCount);
+    Assert.That(tie.localPosition.z,Is.GreaterThan(.5f),"Tie clears the head and sits below the chin");
+    Assert.That(hat.GetChild(0).localScale.x,Is.GreaterThan(.7f),"Hat brim uses the head core mesh width");
+    Assert.That(hat.localPosition.y,Is.LessThan(rig.Bindings["ears.0"].localPosition.y+.15f),"Hat brim stays between the ears");
     CatOutfitView.Apply(geometry,rig,new Dictionary<string,string>());
     Assert.IsNull(rig.Bindings["head"].Find("Wear_head"));
     Assert.IsNull(rig.Bindings["body"].Find("Wear_neck"));
@@ -55,5 +58,14 @@ public sealed class WardrobeTests {
     }
    } finally {Object.DestroyImmediate(parent.gameObject);}
   }
+ }
+
+ [Test] public void OutfitSignatureChangesOnlyWhenAnEquippedSlotChanges() {
+  var outfit=new Dictionary<string,string>{{"head","sun_hat"}};
+  var initial=CatOutfitView.Signature(outfit);
+  outfit["neck"]="bow_tie";
+  Assert.AreNotEqual(initial,CatOutfitView.Signature(outfit));
+  outfit.Remove("neck");
+  Assert.AreEqual(initial,CatOutfitView.Signature(outfit));
  }
 }

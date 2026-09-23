@@ -71,7 +71,7 @@ namespace Purrington.Presentation
     var wardrobeAsset=Resources.Load<TextAsset>("Content/Wardrobe");if(wardrobeAsset==null)throw new InvalidOperationException("The wardrobe content is missing.");
     Wardrobe.LoadJson(wardrobeAsset.text);
 
-    var content=ParityContent.LoadJson(manifest.text);Model=new HotelModel(new JournalSaveStore(Path.Combine(profile,"hotel"),new NewtonsoftSaveCodec()),content);var loaded=Model.LoadOrCreate();
+    var content=ParityContent.LoadJson(manifest.text);var wardrobe=Resources.Load<TextAsset>("Content/Wardrobe");if(wardrobe==null)throw new InvalidOperationException("The wardrobe content is missing.");Wardrobe.LoadJson(wardrobe.text);Model=new HotelModel(new JournalSaveStore(Path.Combine(profile,"hotel"),new NewtonsoftSaveCodec()),content);var loaded=Model.LoadOrCreate();
 
     World=new GameObject("Voxel Hotel").AddComponent<VoxelWorld>();World.Initialize(Model);
 
