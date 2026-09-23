@@ -9,6 +9,11 @@ namespace Purrington.Presentation {public sealed partial class VoxelWorld {
  public static bool FloorVisible(int level,int viewFloor){return level<=viewFloor;}
  public int ViewFloor{get;private set;}
  readonly System.Collections.Generic.Dictionary<Transform,int> floorOf=new System.Collections.Generic.Dictionary<Transform,int>();
+ readonly System.Collections.Generic.Dictionary<string,float> actorY=new System.Collections.Generic.Dictionary<string,float>();
+ int watchCatId=-1;
+ public bool WatchCat(int catId){if(model==null||!model.Actors.Any(a=>a.kind==ActorKind.Guest&&a.catId==catId))return false;if(care)SetCareMode(0,false);watchCatId=catId;manualCamera=true;zoom=Mathf.Min(zoom,5.5f);return true;}
+ public void StopWatching(){watchCatId=-1;FitHotel();}
+ public int WatchedCatId=>watchCatId;
  void OnFloor(Transform root,int level){floorOf[root]=level;var p=root.localPosition;p.y+=FloorY(level);root.localPosition=p;}
  public void SetViewFloor(int level){ViewFloor=level;foreach(var pair in floorOf)if(pair.Key){pair.Key.gameObject.SetActive(FloorVisible(pair.Value,ViewFloor));if(rooms.ContainsValue(pair.Key))ApplyCutaway(pair.Key,pair.Value);}if(scenery)scenery.gameObject.SetActive(ViewFloor>=0);foreach(var n in neighborhoods) n.Value.Root.gameObject.SetActive(ViewFloor>=0&&n.Key==currentMap);}
  void ApplyCutaway(Transform root,int level){var full=root.Find("FullWalls");var cut=root.Find("CutawayWalls");var roof=root.Find("Roof");bool showFull=level<ViewFloor||exterior;if(full)full.gameObject.SetActive(showFull);if(cut)cut.gameObject.SetActive(!showFull);if(roof)roof.gameObject.SetActive(showFull&&level!=2);}
