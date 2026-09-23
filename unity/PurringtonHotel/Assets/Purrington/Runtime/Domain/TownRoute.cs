@@ -44,7 +44,7 @@ namespace Purrington.Domain
      while(previous.TryGetValue(current,out string prior)){current=prior;ids.Add(current);}
      ids.Reverse();
      var points=ids.Select(content.Point).ToList();
-     if(start.Distance(points[0])>.001f)points.Insert(0,start);
+     points.Insert(0,start);
      return points;
     }
     foreach(var neighbor in content.Neighbors(current))

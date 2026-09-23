@@ -14,6 +14,34 @@ namespace Purrington.Domain {
    if(!town.specialFlags.Contains("market_bundle"))return CommandResult.Fail("Get a Market Day bundle at Paw Mart.");
    return Transaction(()=>{town.specialFlags.Remove("market_bundle");town.eventRemaining=90;},"Market Day has begun!");
   }
+  // Called only while the hotel scene is visible. Pending scenes survive reload;
+  // they never reserve a room or evict a guest, and wait for safe arrival space.
+  public void AdvanceTownWelcome(float seconds){
+   if(State.currentHotel!=0||RequiresSaveRecovery||!Finite(seconds)||seconds<=0)return;
+   var town=Hotel(0).town;
+   bool basket=TownQuestCompleted("welcome_picnic")&&!town.basketWelcomeDelivered;
+   if(!basket&&town.marketWelcomeDelivered>=town.marketCompletionSerial)return;
+   if(town.welcomeKind=="")town.welcomeKind=basket?"basket":"market";
+   basket=town.welcomeKind=="basket";
+   const string id="town:welcome";
+   var actor=actors.Find(a=>a.view.id==id);
+   var existing=actors.Find(a=>a.view.catId==(basket?5:8)&&a.view.kind==ActorKind.Guest);
+   if(actor==null&&existing==null){
+    var position=FreeArrival();if(!position.HasValue)return;
+    actor=new Actor{view=new ActorSnapshot{id=id,catId=basket?5:8,name=State.cats[basket?5:8].name,kind=ActorKind.TownWelcome,role="town welcome",x=position.Value.x,z=position.Value.z}};
+    actors.Add(actor);Activity(actor,"welcome","greet",6);
+   }
+   var visible=actor??existing;
+   visible.view.speech=basket?"Thank you for the Welcome Basket!":"Market Day was lovely!";
+   visible.view.gesture="happy";visible.view.speechElapsed=6-town.welcomeRemaining;visible.view.speechDuration=6;
+   float before=town.welcomeRemaining;town.welcomeRemaining=Math.Max(0,before-seconds);
+   if(town.welcomeRemaining>0)return;
+   // A failed acknowledgement keeps the scene pending and retries on next frame.
+   var result=Transaction(()=>{if(basket)town.basketWelcomeDelivered=true;else town.marketWelcomeDelivered++;town.welcomeRemaining=6;town.welcomeKind="";},"Hotel welcome delivered.");
+   if(!result.success){Hotel(0).town.welcomeRemaining=before;return;}
+   visible.view.speech="";visible.view.gesture="";
+   if(actor!=null)actors.Remove(actor);
+  }
   void AdvanceMarketDay(float seconds){
    var town=Hotel(0).town;
    if(town.eventRemaining<=0)return;

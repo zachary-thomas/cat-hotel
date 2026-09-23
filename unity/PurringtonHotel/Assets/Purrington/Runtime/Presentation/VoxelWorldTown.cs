@@ -41,6 +41,11 @@ namespace Purrington.Presentation {
   Vector3 townStreetFocus;float townStreetZoom;bool townStreetManual,townStreetFollowing;Bounds? townStreetBounds;
   public void ExitStoreInterior(){
    if(storeInterior==null||!storeInterior.IsVisible)return;
+   if(model.Hotel(0).town.shop.Length==0){SuspendStoreInterior();return;}
+   var result=model.LeaveTownShop();TownCommand?.Invoke(result);if(!result.success)return;SuspendStoreInterior();
+  }
+  void SuspendStoreInterior(){
+   if(storeInterior==null||!storeInterior.IsVisible)return;
    storeInterior.Exit();townFollowing=townStreetFollowing;pressed=false;focus=townStreetFocus;zoom=townStreetZoom;manualCamera=townStreetManual;lastFitBounds=townStreetBounds;UpdateCamera();SyncManager(0);
   }
   public bool SelectStoreCashier(){return storeInterior!=null&&storeInterior.SelectCashier();}
@@ -60,7 +65,7 @@ namespace Purrington.Presentation {
    if(state.shop=="paw_mart"||state.shop=="clothing")EnterStoreInterior(state.shop);
   }
   public void ExitTownMode(){
-   if(!townMode)return;ExitStoreInterior();townMode=false;townFollowing=false;pressed=false;
+   if(!townMode)return;SuspendStoreInterior();townMode=false;townFollowing=false;pressed=false;
    previewCoat=previewMarkings=null;SyncManager(0);
    focus=townSavedFocus;zoom=townSavedZoom;manualCamera=townSavedManual;lastFitBounds=townSavedBounds;UpdateCamera();
   }
@@ -85,6 +90,7 @@ namespace Purrington.Presentation {
    var result=model.SendManager(target);TownCommand?.Invoke(result);
   }
   void SyncManager(float delta){
+   if(!townMode&&!care&&currentMap==0)model.AdvanceTownWelcome(delta);
    squareArt?.Update(model,delta,model.State.settings.motion);
    if(TownContent.Current==null)return;
    string coat=previewCoat??model.State.managerCoat,marking=previewMarkings??model.State.managerMarkings,look=coat+"/"+marking;

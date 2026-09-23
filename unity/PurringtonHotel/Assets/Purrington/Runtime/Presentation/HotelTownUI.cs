@@ -6,6 +6,7 @@ namespace Purrington.Presentation {
  public sealed class HotelTownUI {
   // Refresh only explicit successful cashier commands; idle wallet updates stay lightweight.
   public static void RefreshCashier(CommandResult result,System.Action refresh,System.Action<CommandResult> report){if(result.success)refresh();report(result);}
+  public static string MarketStatus(HotelModel model)=>model.MarketDayRemaining>0?"In the square \u00b7 "+System.Math.Ceiling(model.MarketDayRemaining)+"s left":model.TownInventory.Contains("market_bundle")?"Bundle ready \u00b7 host a 90-second market":model.MarketDayCompleted?(model.Hotel(0).town.marketWelcomeDelivered<model.MarketDayReactionToken?"Completed \u00b7 hotel welcome ready":"Completed \u00b7 guests welcomed"):"Get a bundle at Paw Mart to host the market.";
   readonly HotelApp app;
   public HotelTownUI(HotelApp app){this.app=app;}
   public void Explore()=>app.UI.ExploreMainStreet();
@@ -20,6 +21,8 @@ namespace Purrington.Presentation {
   public void SelectStore(string id){var store=TownContent.Current.Shop(id);if(store!=null)Destination(store.door);}
  }
  public sealed partial class HotelUI {
+  TextMeshProUGUI marketStatus;RectTransform marketStart;
+  void RefreshMarketStatus(){if(marketStatus!=null)marketStatus.text="MARKET DAY\n<size=80%>"+HotelTownUI.MarketStatus(app.Model)+"</size>";if(marketStart!=null)marketStart.gameObject.SetActive(app.Model.MarketDayRemaining<=0&&app.Model.TownInventory.Contains("market_bundle"));}
   int clothingCat=-1;string clothingSlot="head";
   bool managerEditing;string townCoat,townMarkings,townName,storeChoice="";
   public void StoreArrived(string target){if(tab=="Town"&&app.World.StoreInterior.IsVisible){storeChoice="";Rebuild();}}
@@ -48,8 +51,8 @@ namespace Purrington.Presentation {
    if(!managerEditing){
     var destinations=Row(content,48*textScale);Button(destinations,"Paw Mart",()=>app.TownUI.Destination("paw_mart_door"),Mint,13);Button(destinations,"Clothing",()=>app.TownUI.Destination("clothing_door"),Coral,13);
     var next=Row(content,48*textScale);Button(next,"Square",()=>app.TownUI.Destination("square"),Gold,13);Button(next,"Manager",()=>{managerEditing=true;townCoat=app.Model.State.managerCoat;townMarkings=app.Model.State.managerMarkings;townName=app.Model.State.managerName;Rebuild();app.World.FocusManagerAppearance();},Mint,13);
-    Info(content,"MARKET DAY",app.Model.MarketDayRemaining>0?"In the square · "+System.Math.Ceiling(app.Model.MarketDayRemaining)+"s left":app.Model.TownInventory.Contains("market_bundle")?"Bundle ready · host a 90-second market":app.Model.MarketDayCompleted?"Completed · new guests welcomed":"Get a bundle at Paw Mart to host the market.");
-    if(app.Model.TownInventory.Contains("market_bundle")&&app.Model.MarketDayRemaining<=0)Height(Button(content,"Start Market Day",()=>{var result=app.Model.StartMarketDay();app.Report(result);if(result.success){app.World.FitTown();Rebuild();}},Gold,14),48*textScale);
+    marketStatus=Info(content,"MARKET DAY",HotelTownUI.MarketStatus(app.Model));
+    marketStart=Button(content,"Start Market Day",()=>{var result=app.Model.StartMarketDay();app.Report(result);if(result.success){app.World.FitTown();Rebuild();}},Gold,14);Height(marketStart,48*textScale);RefreshMarketStatus();
     var back=Row(content,48*textScale);Button(back,"Fit hotel",()=>app.World.FitHotel(),Lilac,13);Button(back,"Back to Hotel",CloseTown,Cream,13);
     return;
    }

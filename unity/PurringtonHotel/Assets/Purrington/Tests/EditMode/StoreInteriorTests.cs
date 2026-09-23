@@ -5,9 +5,9 @@ using UnityEngine;
 
 public sealed class StoreInteriorTests {
  sealed class MemoryStore:ISaveStore {
-  HotelState saved;
+  HotelState saved;public bool fail;
   public HotelState Load()=>saved==null?null:HotelModel.Copy(saved);
-  public bool Save(HotelState state){saved=HotelModel.Copy(state);return true;}
+  public bool Save(HotelState state){if(fail)return false;saved=HotelModel.Copy(state);return true;}
  }
  GodotGeometry geometry;
  [SetUp] public void LoadTown(){TownContent.LoadJson(Resources.Load<TextAsset>("Content/MainStreet").text);geometry=new GodotGeometry();}
@@ -92,6 +92,15 @@ public sealed class StoreInteriorTests {
     Assert.IsTrue(viewport.Contains(point),"Shop floor is cropped at "+point);
    }
   } finally {Object.DestroyImmediate(host);}
+ }
+ [Test] public void LeavePersistsButSuspendingTownRetainsShopAndFailedLeaveKeepsView(){
+  var store=new MemoryStore();var model=new HotelModel(store,ParityContent.LoadJson(Resources.Load<TextAsset>("Content/GodotReference").text));model.LoadOrCreate();model.SendManager("paw_mart_door");model.SkipManagerTravel();
+  var host=new GameObject("Leave regression");try{
+   var world=host.AddComponent<VoxelWorld>();world.Initialize(model);world.EnterTownMode();world.ExitTownMode();Assert.AreEqual("paw_mart",model.Hotel().town.shop);
+   world.EnterTownMode();Assert.AreEqual(1,world.ActiveStoreInteriorCount);store.fail=true;world.ExitStoreInterior();Assert.AreEqual(1,world.ActiveStoreInteriorCount);Assert.AreEqual("paw_mart",model.Hotel().town.shop);
+   store.fail=false;world.ExitStoreInterior();Assert.AreEqual(0,world.ActiveStoreInteriorCount);world.ExitTownMode();world.EnterTownMode();Assert.AreEqual(0,world.ActiveStoreInteriorCount);
+   var reload=new HotelModel(store,ParityContent.Current);Assert.IsTrue(reload.LoadOrCreate().success);Assert.AreEqual("",reload.Hotel().town.shop);
+  }finally{Object.DestroyImmediate(host);}
  }
  [TestCase(true)]
  [TestCase(false)]

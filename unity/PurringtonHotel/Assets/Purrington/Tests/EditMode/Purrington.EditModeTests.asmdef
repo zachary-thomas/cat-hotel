@@ -1,7 +1,7 @@
 {
   "name": "Purrington.EditModeTests",
   "rootNamespace": "Purrington.Tests",
-  "references": ["Purrington.Domain", "Purrington.Presentation"],
+  "references": ["Purrington.Domain", "Purrington.Presentation", "Unity.TextMeshPro", "Unity.ugui"],
   "includePlatforms": ["Editor"],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

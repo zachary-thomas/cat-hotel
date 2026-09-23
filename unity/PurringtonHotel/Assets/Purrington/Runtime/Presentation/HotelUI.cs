@@ -139,6 +139,7 @@ namespace Purrington.Presentation
 
         {
 
+            RefreshMarketStatus();
             if (wallet == null) return;
             double rate = app.Model.Rate();
             wallet.text = "<b>" + Math.Floor(app.Model.State.coins).ToString("N0") + "</b>";
@@ -1104,13 +1105,13 @@ namespace Purrington.Presentation
 
         }
 
-        void Info(Transform parent,string title,string description)
+        TextMeshProUGUI Info(Transform parent,string title,string description)
 
         {
 
             var panel=Panel(title,parent,Color.white);Height(panel,120*textScale);
 
-            var label=Text(panel,title+"\n<size=80%>"+description+"</size>",17,Ink,true);Stretch(label.rectTransform,14,12,14,12);
+            var label=Text(panel,title+"\n<size=80%>"+description+"</size>",17,Ink,true);Stretch(label.rectTransform,14,12,14,12);return label;
 
         }
 

@@ -6,6 +6,7 @@ using Purrington.Presentation;
 using UnityEngine;
 public sealed class ClothingStoreTests {
  [SetUp] public void Load(){TownContent.LoadJson(Resources.Load<TextAsset>("Content/MainStreet").text);Wardrobe.LoadJson(Resources.Load<TextAsset>("Content/Wardrobe").text);}
+ [Test] public void OccupiedCareSlotTryOnReplacesOnlyPreview(){var outfit=new Dictionary<string,string>{{"head","sun_hat"},{"neck","bow_tie"}};var preview=HotelUI.CareTryOnOutfit(outfit,"head","beanie");Assert.AreEqual("beanie",preview["head"]);Assert.AreEqual("sun_hat",outfit["head"]);Assert.AreEqual("bow_tie",preview["neck"]);}
  [Test] public void BoutiqueHasDistinctFixturesAndNoCarts(){
   using(var geometry=new GodotGeometry()){
    var root=new GameObject("boutique test");try{

@@ -8,7 +8,10 @@ namespace Purrington.Domain
  [Serializable] public sealed class TownState
  {
   public float x=0,z=12.75f,eventRemaining;
-  public int marketCompletionSerial;
+  public int marketCompletionSerial,marketWelcomeDelivered;
+  public bool basketWelcomeDelivered;
+  public float welcomeRemaining=6;
+  public string welcomeKind="";
   public string destination="",shop="",phase="street";
   public List<string> questFlags=new List<string>(),specialFlags=new List<string>();
  }
@@ -44,6 +47,11 @@ namespace Purrington.Domain
    if(Hotel(0).town.phase=="street"&&Hotel(0).town.destination==""&&new LotPoint(Hotel(0).town.x,Hotel(0).town.z).Distance(TownContent.Current.Point(targetId))<.0001f)return CommandResult.Fail("Already at this destination.");
    if(BuildManagerRoute(targetId).Count==0)return CommandResult.Fail("The way to Main Street is blocked.");
    return Transaction(()=>{Hotel(0).town.destination=targetId;Hotel(0).town.shop="";},"On the way to "+targetId+".");
+  }
+  public CommandResult LeaveTownShop()
+  {
+   if(State.currentHotel!=0||Hotel(0).town.shop.Length==0)return CommandResult.Fail("You are already outside.");
+   return Transaction(()=>Hotel(0).town.shop="","Back on Main Street.");
   }
   public CommandResult SkipManagerTravel()
   {
@@ -115,6 +123,8 @@ namespace Purrington.Domain
   internal bool ValidTown(TownState state,TownContent content,int index)
   {
    if(state==null||content==null||!Finite(state.x)||!Finite(state.z)||Math.Abs(state.x)>256||Math.Abs(state.z)>256||!Finite(state.eventRemaining)||state.eventRemaining<0||state.eventRemaining>90||state.marketCompletionSerial<0||index!=0&&(state.eventRemaining>0||state.marketCompletionSerial>0))return false;
+   if(state.welcomeKind!=""&&state.welcomeKind!="basket"&&state.welcomeKind!="market")return false;
+   if(state.marketWelcomeDelivered<0||state.marketWelcomeDelivered>state.marketCompletionSerial||!Finite(state.welcomeRemaining)||state.welcomeRemaining<0||state.welcomeRemaining>6||index!=0&&(state.marketWelcomeDelivered>0||state.basketWelcomeDelivered))return false;
    if(state.destination==null||state.shop==null||state.questFlags==null||state.specialFlags==null)return false;
    if(state.destination.Length>0&&!content.IsStreetTarget(state.destination))return false;
    if(state.shop.Length>0&&content.Shop(state.shop)==null)return false;
@@ -126,6 +136,8 @@ namespace Purrington.Domain
    }
    else if(state.shop.Length==0&&TownRoute.Find(content,position,"hotel_gate").Count==0)return false;
    if(state.questFlags.Any(id=>id==null)||state.questFlags.Distinct().Count()!=state.questFlags.Count)return false;
+   if(state.basketWelcomeDelivered&&!state.questFlags.Contains("welcome_picnic:completed"))return false;
+   if(state.welcomeKind=="basket"&&(state.basketWelcomeDelivered||!state.questFlags.Contains("welcome_picnic:completed"))||state.welcomeKind=="market"&&state.marketWelcomeDelivered>=state.marketCompletionSerial)return false;
    // Only authored quest stages are accepted; completion and reward are atomic.
    if(state.questFlags.Any(flag=>!content.Quests.Any(q=>new[]{"accepted","completed","rewarded"}.Any(stage=>flag==(string)q["id"]+":"+stage))))return false;
    foreach(var quest in content.Quests){string id=(string)quest["id"];bool accepted=state.questFlags.Contains(id+":accepted"),completed=state.questFlags.Contains(id+":completed"),rewarded=state.questFlags.Contains(id+":rewarded");if(completed!=rewarded||completed&&!accepted)return false;string grant=(string)quest["grantWear"];if(index==0&&grant!=null&&accepted!=State.wardrobe.Contains(grant))return false;}

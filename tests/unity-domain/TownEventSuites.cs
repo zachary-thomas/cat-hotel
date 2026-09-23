@@ -6,6 +6,7 @@ using Purrington.Domain;
 
 static class TownEventSuites {
  public static void Run(Action<bool,string> check) {
+  FinalFixChecks(check);
   var content=ParityContent.Current;
   var store=new MemoryStore();var model=new HotelModel(store,content);check(model.LoadOrCreate().success,"event setup");
   check(!model.StartMarketDay().success,"bundle required");
@@ -43,4 +44,30 @@ static class TownEventSuites {
   pacedStore.fail=false;paced.Tick(95);int completed=paced.MarketDayReactionToken;
   var finalReload=new HotelModel(pacedStore,content);check(finalReload.LoadOrCreate().success&&finalReload.MarketDayRemaining==0&&finalReload.MarketDayReactionToken==completed,"completion flushes immediately");
   finalReload.Tick(1);check(finalReload.MarketDayReactionToken==completed,"checkpoint cadence cannot repeat completion after reload"); }
+ static void FinalFixChecks(Action<bool,string> check){
+  var occupiedStore=new MemoryStore();var occupied=new HotelModel(occupiedStore,ParityContent.Current);occupied.LoadOrCreate();occupied.State.coins=2000;
+  foreach(var cat in occupied.State.cats)cat.known=cat.id==5;
+  occupied.Tick(.1f);occupied.BuyTownItem("welcome_basket");occupied.AcceptTownQuest("welcome_picnic");occupied.CompleteTownQuest("welcome_picnic");var actorIds=string.Join(";",occupied.Actors.Select(a=>a.id));var occupiedReservations=string.Join(";",occupied.Reservations.OrderBy(p=>p.Key));occupied.AdvanceTownWelcome(.1f);
+  check(occupied.Actors.Any(a=>a.catId==5&&a.speech.Contains("Basket"))&&actorIds==string.Join(";",occupied.Actors.Select(a=>a.id)),"existing Biscuit reacts without duplicate actor");check(occupiedReservations==string.Join(";",occupied.Reservations.OrderBy(p=>p.Key)),"existing Biscuit keeps reservations");
+  var unknown=new HotelModel(new MemoryStore(),ParityContent.Current);unknown.LoadOrCreate();unknown.State.coins=2000;unknown.BuyTownItem("welcome_basket");unknown.AcceptTownQuest("welcome_picnic");unknown.CompleteTownQuest("welcome_picnic");unknown.AdvanceTownWelcome(.1f);check(unknown.State.cats[5].known&&unknown.Actors.Any(a=>a.catId==5&&a.speech.Contains("Basket")),"new Biscuit discovers and visits");
+  var store=new MemoryStore();var model=new HotelModel(store,ParityContent.Current);model.LoadOrCreate();model.State.coins=2000;
+  model.SendManager("paw_mart_door");model.SkipManagerTravel();var door=new LotPoint(model.Hotel().town.x,model.Hotel().town.z);
+  store.fail=true;check(!model.LeaveTownShop().success&&model.Hotel().town.shop=="paw_mart","failed Leave remains inside");store.fail=false;
+  check(model.LeaveTownShop().success&&model.Hotel().town.shop==""&&new LotPoint(model.Hotel().town.x,model.Hotel().town.z).Distance(door)==0,"Leave clears shop and preserves door");
+  var reload=new HotelModel(store,ParityContent.Current);check(reload.LoadOrCreate().success&&reload.Hotel().town.shop=="","Leave survives reload");
+  var neighbor=TownContent.Current.Neighbors("paw_mart_door").First();var near=TownContent.Current.Point(neighbor);var delta=door.Distance(near);model.Hotel().town.x=door.x+(near.x-door.x)*.0005f/delta;model.Hotel().town.z=door.z+(near.z-door.z)*.0005f/delta;
+  check(model.SendManager("paw_mart_door").success,"near-node trip starts");model.Tick(.1f);check(model.Hotel().town.destination==""&&model.Hotel().town.shop=="paw_mart","near-node trip reaches destination");
+  model.State.cats[5].known=true;model.BuyTownItem("welcome_basket");model.AcceptTownQuest("welcome_picnic");double coins=model.State.coins;model.CompleteTownQuest("welcome_picnic");check(model.State.coins==coins+40,"known Biscuit reward once");
+  reload=new HotelModel(store,ParityContent.Current);check(reload.LoadOrCreate().success,"pending Basket reload");reload.Tick(.1f);var reservations=string.Join(";",reload.Reservations.OrderBy(p=>p.Key));reload.AdvanceTownWelcome(.1f);
+  check(reload.Actors.Any(a=>a.catId==5&&a.speech.Contains("Basket")),"Biscuit has actual hotel reaction with full roster");check(reservations==string.Join(";",reload.Reservations.OrderBy(p=>p.Key)),"welcome preserves reservations");
+  reload.Save();var during=new HotelModel(store,ParityContent.Current);during.LoadOrCreate();during.AdvanceTownWelcome(.1f);check(during.Actors.Any(a=>a.speech.Contains("Basket")),"interrupted Basket welcome resumes");
+  store.fail=true;during.AdvanceTownWelcome(10);check(!during.Hotel().town.basketWelcomeDelivered,"failed welcome acknowledgment stays pending");store.fail=false;during.AdvanceTownWelcome(10);check(during.Hotel().town.basketWelcomeDelivered,"Basket welcome acknowledged");
+  var done=new HotelModel(store,ParityContent.Current);done.LoadOrCreate();done.AdvanceTownWelcome(1);check(!done.Actors.Any(a=>a.kind==ActorKind.TownWelcome)&&!done.CompleteTownQuest("welcome_picnic").success,"Basket welcome and reward cannot repeat after reload");
+  done.BuyTownItem("market_bundle");done.StartMarketDay();done.Tick(90);check(done.Hotel().town.marketWelcomeDelivered==0,"market completion queues hotel welcome while away");
+  var market=new HotelModel(store,ParityContent.Current);market.LoadOrCreate();market.AdvanceTownWelcome(.1f);check(market.Actors.Any(a=>a.kind==ActorKind.TownWelcome&&a.speech.Contains("Market Day")),"Market completion delivers actual actor after reload");market.AdvanceTownWelcome(6);
+  var queuedStore=new MemoryStore();var queued=new HotelModel(queuedStore,ParityContent.Current);queued.LoadOrCreate();queued.State.coins=2000;queued.BuyTownItem("market_bundle");queued.StartMarketDay();queued.Tick(90);queued.AdvanceTownWelcome(1);queued.BuyTownItem("welcome_basket");queued.AcceptTownQuest("welcome_picnic");queued.CompleteTownQuest("welcome_picnic");queued.Save();
+  var queuedReload=new HotelModel(queuedStore,ParityContent.Current);check(queuedReload.LoadOrCreate().success&&queuedReload.Hotel().town.welcomeKind=="market","active market welcome retains identity when Basket arrives");queuedReload.AdvanceTownWelcome(5);check(queuedReload.Hotel().town.marketWelcomeDelivered==1&&!queuedReload.Hotel().town.basketWelcomeDelivered,"active welcome finishes before queued Basket");queuedReload.AdvanceTownWelcome(.1f);check(queuedReload.Actors.Any(a=>a.catId==5&&a.speech.Contains("Basket")),"queued Basket follows Market welcome");
+  var finished=new HotelModel(store,ParityContent.Current);finished.LoadOrCreate();finished.AdvanceTownWelcome(1);check(finished.Hotel().town.marketWelcomeDelivered==1&&!finished.Actors.Any(a=>a.kind==ActorKind.TownWelcome),"Market welcome durable and idempotent");
+ }
+
 }
