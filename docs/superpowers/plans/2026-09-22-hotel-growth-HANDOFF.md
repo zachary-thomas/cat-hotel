@@ -1,5 +1,13 @@
 # Hotel Growth: Handoff (2026-09-22)
 
+## Current status (2026-09-22)
+
+The implementation now includes all six plans, including stairs and themed floors (`5568dd1`, `a32cddc`) and the freeform wall tool (`8dae9a6`). The user asked to keep every feature in one PR and disabled the Superpowers workflow, so the task-by-task instructions below are historical context. Work continues directly on `test/combined-screenshot-reality` from the isolated `codex/hotel-growth-fast` worktree. The remaining steps are a final branch review, push, and one PR.
+
+The combined domain suite passed **736,573 checks** with the Godot oracle green. Unity EditMode passed **81/81** after the wall tool landed. The Windows player built, and smoke QA passed startup, camera, navigation, care, panels, zoom, layouts, and save. The final wall tool adjustment passed its focused **24-check** suite. These checks do not replace a manual end-to-end playthrough of every floor and wall gesture.
+
+The isolated Unity import modified font, render, and ProjectSettings assets during verification. They were left unstaged. Other unrelated live edits in the shared checkout were also left untouched.
+
 Written by the orchestrating session for the next agent. Read this first, then the [roadmap](2026-09-22-hotel-growth-00-roadmap.md). Also read `CLAUDE.md` at the repo root.
 
 ## Current continuation (supersedes the older progress sections below)

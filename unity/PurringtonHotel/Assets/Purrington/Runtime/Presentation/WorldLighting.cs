@@ -11,6 +11,8 @@ namespace Purrington.Presentation
     {
         public static float Glow { get; private set; }
         public Light Sun { get; private set; }
+        // Set by views with their own backdrop (the basement); null lets the day cycle color the sky.
+        public Color? BackgroundOverride { get; set; }
         HotelModel model; Camera cam; GodotGeometry geometry; DayCycle cycle; float? pinned;
         VolumeProfile profile; ColorAdjustments adjust; WhiteBalance balance; DayLight light;
 
@@ -42,6 +44,7 @@ namespace Purrington.Presentation
         {
             var l = light = cycle.Evaluate(Minute, light);
             ApplyTo(Sun, cam, l);
+            if (BackgroundOverride.HasValue && cam != null) cam.backgroundColor = BackgroundOverride.Value;
             if (adjust != null) adjust.postExposure.Override(l.exposure);
             if (balance != null) balance.temperature.Override(l.temperature);
             Glow = l.glow;

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using Purrington.Domain;
@@ -6,36 +7,78 @@ namespace Purrington.Presentation {
     public sealed partial class HotelUI
     {
         Vector2Int? roomAnchor;
-        bool ShellDrawing(string action){return action=="paint_floor"||action=="erase_floor"||action=="draw_room";}
+        int currentFloor;
+        static string FloorName(int level){return level==-1?"Basement":level==0?"Ground":level==1?"Upstairs":"Rooftop";}
+        RectTransform FloorChip(Transform parent)
+        {
+            var levels=app.Model.Hotel().floors.Select(f=>f.level).OrderBy(level=>level).ToArray();
+            currentFloor=app.World.ViewFloor;
+            if(levels.Length==0)return null;
+            int index=System.Array.IndexOf(levels,currentFloor);
+            if(index<0){index=System.Array.IndexOf(levels,0);if(index<0)index=0;currentFloor=levels[index];app.World.SetViewFloor(currentFloor);}
+            if(levels.Length<2)return null;
+            var row=Row(parent,40);
+            int below=index>0?levels[index-1]:currentFloor,above=index<levels.Length-1?levels[index+1]:currentFloor;
+            Button(row,"▼",()=>SwitchFloor(below),index>0?Mint:Cream,14);
+            Button(row,FloorName(currentFloor),()=>{},Gold,13);
+            Button(row,"▲",()=>SwitchFloor(above),index<levels.Length-1?Mint:Cream,14);
+            return row;
+        }
+        void SwitchFloor(int level){if(level==currentFloor)return;CancelPlacement(false);app.World.StopWatching();currentFloor=level;app.World.SetViewFloor(level);Rebuild();}
+        bool ShellDrawing(string action){return action=="paint_floor"||action=="erase_floor"||action=="draw_room"||action=="draw_wall";}
         void ShellCatalogue(RectTransform content)
         {
             if(category!="Hotel")return;
-            Card(content,"Grow the hotel","Drag across land · "+ShellGrid.CellPrice.ToString("N0")+" coins a tile · land for sale is bought as you go","Grow",()=>BeginCommand("paint_floor",new JObject{{"floor",0},{"cells",new JArray()},{"buy",true}},"Grow the hotel"),Mint);
+            currentFloor=app.World.ViewFloor;
+            string lockCopy=app.Model.FloorLock(currentFloor);
+            if(lockCopy!=null){Info(content,"FLOOR LOCKED",lockCopy);return;}
+            Card(content,"Grow the hotel","Drag across land · "+ShellGrid.CellPrice.ToString("N0")+" coins a tile · land for sale is bought as you go","Grow",()=>BeginCommand("paint_floor",new JObject{{"floor",currentFloor},{"cells",new JArray()},{"buy",true}},"Grow the hotel"),Mint);
             foreach(var kind in new[]{"regular","suite","shared"})
             {
                 string name=kind=="regular"?"Bedroom":kind=="suite"?"Suite":"Lounge";string chosen=kind;
-                Card(content,name,"Drag a rectangle · inside the hotel or on open land","Draw",()=>BeginCommand("draw_room",new JObject{{"kind",chosen},{"floor",0},{"name",name}},name),Gold);
+                Card(content,name,"Drag a rectangle · inside the hotel or on open land","Draw",()=>BeginCommand("draw_room",new JObject{{"kind",chosen},{"floor",currentFloor},{"name",name}},name),Gold);
             }
-            Card(content,"Doors & windows","Tap a wall: wall → door → window → archway","Edit",()=>BeginCommand("set_edge",new JObject{{"floor",0},{"kind","door"},{"edges",new JArray()}},"Doors & windows"),Mint);
-            Card(content,"Remove floor","Drag across empty hotel floor · refunds the tiles","Erase",()=>BeginCommand("erase_floor",new JObject{{"floor",0},{"cells",new JArray()}},"Remove floor"),Coral);
+            if(currentFloor<2){string upLock=app.Model.FloorLock(currentFloor+1);if(upLock==null)Card(content,"Stairs","Opens the floor above","Draw",()=>BeginCommand("draw_room",new JObject{{"kind","stairs"},{"w",2},{"h",3},{"rotation",0},{"floor",currentFloor}},"Stairs"),Gold);else Info(content,"UPSTAIRS LOCKED",upLock);}
+            if(currentFloor==0&&app.Model.FloorLock(-1)==null)Card(content,"Stairs down","Opens the basement","Draw",()=>BeginCommand("draw_room",new JObject{{"kind","stairs"},{"w",2},{"h",3},{"rotation",0},{"floor",-1}},"Stairs down"),Gold);
+            string themed=currentFloor==1?"sunroom":currentFloor==2?"garden":currentFloor==-1?"spa":null;
+            if(themed!=null){string title=themed=="sunroom"?"Sunroom":themed=="garden"?"Garden":"Spa";string subtitle=themed=="sunroom"?"Sunny naps · +15 coins/min when furnished":themed=="garden"?"Open-air plants · +20 coins/min":"Warm soaks · +25 coins/min";Card(content,title,subtitle,"Draw",()=>BeginCommand("draw_room",new JObject{{"kind",themed},{"floor",currentFloor},{"name",title}},title),Gold);}
+            Card(content,"Doors & windows","Tap a wall: wall → door → window → archway","Edit",()=>BeginCommand("set_edge",new JObject{{"floor",currentFloor},{"kind","door"},{"edges",new JArray()}},"Doors & windows"),Mint);
+            Card(content,"Walls","Drag along the grid · one bend per drag · "+ShellGrid.WallPrice.ToString("N0")+" coins an edge","Build",()=>BeginCommand("draw_wall",new JObject{{"floor",currentFloor}},"Walls"),Mint);
+            foreach(var kind in currentFloor==2?new[]{"garden"}:new[]{"regular","suite","shared"}.Concat(currentFloor==1?new[]{"sunroom"}:currentFloor==-1?new[]{"spa"}:new string[0]))
+            {
+                string chosen=kind;string name=kind=="regular"?"Bedroom":kind=="suite"?"Suite":kind=="shared"?"Lounge":char.ToUpper(kind[0])+kind.Substring(1);
+                Card(content,"Make a "+name.ToLower(),"Tap inside a walled space with a door","Tap",()=>BeginCommand("claim_room",new JObject{{"floor",currentFloor},{"kind",chosen},{"name",name}},"Make a "+name.ToLower()),Gold);
+            }
+            Card(content,"Remove floor","Drag across empty hotel floor · refunds the tiles","Erase",()=>BeginCommand("erase_floor",new JObject{{"floor",currentFloor},{"cells",new JArray()}},"Remove floor"),Coral);
         }
         bool ShellTarget(Vector3 point)
         {
             if(commandAction=="set_edge")
             {
-                var floor=HotelModel.Floor(app.Model.Hotel(),0);string edge=ShellDraw.NearestEdge(point.x,point.z);
+                var floor=HotelModel.Floor(app.Model.Hotel(),currentFloor);string edge=ShellDraw.NearestEdge(point.x,point.z);
                 if(floor==null||ShellGrid.WallAt(floor,edge)==null){ShowNotice("Tap a wall of the hotel.",true);return true;}
-                var payload=new JObject{{"floor",0},{"kind",ShellDraw.NextKind(floor,edge)},{"edges",new JArray(edge)}};
+                var payload=new JObject{{"floor",currentFloor},{"kind",ShellDraw.NextKind(floor,edge)},{"edges",new JArray(edge)}};
                 var result=app.Model.Execute("set_edge",payload);if(result.success)app.Audio?.PlayEffect("build");
                 app.Report(result);Rebuild();ShowNotice(result.message+(result.success&&result.cost!=0?(result.cost>0?" · "+result.cost.ToString("N0")+" coins":" · "+(-result.cost).ToString("N0")+" coins refunded"):""),!result.success);
                 return true;
             }
+            if(commandAction=="draw_wall")
+            {
+                int gx=Mathf.RoundToInt(point.x),gz=Mathf.RoundToInt(point.z);if(roomAnchor==null)roomAnchor=new Vector2Int(gx,gz);
+                commandPayload["from"]=new JArray(roomAnchor.Value.x,roomAnchor.Value.y);commandPayload["to"]=new JArray(gx,gz);
+                hasTarget=true;PreviewCommand();return true;
+            }
+            if(commandAction=="claim_room"){commandPayload["x"]=Mathf.FloorToInt(point.x);commandPayload["y"]=Mathf.FloorToInt(point.z);hasTarget=true;PreviewCommand();return true;}
             if(!ShellDrawing(commandAction))return false;
             int cx=Mathf.FloorToInt(point.x),cz=Mathf.FloorToInt(point.z);
             if(commandAction=="draw_room")
             {
+                if((string)commandPayload["kind"]=="stairs")
+                {
+                    commandPayload["x"]=cx;commandPayload["y"]=cz;hasTarget=true;PreviewCommand();return true;
+                }
                 if(roomAnchor==null)roomAnchor=new Vector2Int(cx,cz);
-                var draft=app.Model.RoomDraft(roomAnchor.Value.x,roomAnchor.Value.y,cx,cz,(string)commandPayload["kind"]??"regular");
+                var draft=app.Model.RoomDraft(roomAnchor.Value.x,roomAnchor.Value.y,cx,cz,(string)commandPayload["kind"]??"regular",currentFloor);
                 draft["name"]=commandPayload["name"]??commandTitle;commandPayload=draft;
             }
             else

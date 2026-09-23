@@ -69,28 +69,36 @@ namespace Purrington.Presentation
             {
                 var item=wear;
                 bool owned=app.Model.OwnsWear(item.id);
-                string note=item.id==worn?"Wearing now":owned?"In the wardrobe":item.giftCat>=0?"Gift from "+app.Model.State.cats[item.giftCat].name+" at friendship "+item.giftBond:item.price.ToString("N0")+" coins";
-                string action=item.id==worn?"Worn":owned?"Wear":item.giftCat>=0?"Locked":tryingOn==item.id?"Buy & wear":"Try on";
+                bool questLocked=!owned&&item.quest!=null;
+                string note=item.id==worn?"Wearing now":owned?"In the wardrobe":questLocked?"Free from First Look at Thread & Paw":item.giftCat>=0?"Gift from "+app.Model.State.cats[item.giftCat].name+" at friendship "+item.giftBond:item.price.ToString("N0")+" coins";
+                string action=item.id==worn?"Worn":owned?"Wear":questLocked?"Quest reward":item.giftCat>=0?"Locked":tryingOn==item.id?"Buy & wear":"Try on";
                 Card(content,item.name,note,action,()=>
                 {
                     if(owned){Wear(cat.id,item.id);return;}
+                    if(questLocked)return;
                     if(item.giftCat>=0){ShowNotice(note,false);return;}
                     if(tryingOn!=item.id)
                     {
                         tryingOn=item.id;
-                        var preview=new Dictionary<string,string>(cat.outfit);
-                        preview[item.slot]=item.id;
+                        var preview=CareTryOnOutfit(cat.outfit,item.slot,item.id);
                         app.World.PreviewOutfit(preview);
                         Rebuild();
                         return;
                     }
                     var bought=app.Model.BuyWear(item.id);
                     app.Report(bought);
-                    if(!bought.success){ShowNotice(bought.message,true);return;}
+                    if(!bought.success){tryingOn="";WardrobePreviewActual();Rebuild();ShowNotice(bought.message,true);return;}
                     app.Audio?.PlayEffect("spend");
                     Wear(cat.id,item.id);
-                },item.id==worn?Gold:Mint,item.id!=worn);
+                },item.id==worn?Gold:Mint,item.id!=worn&&!questLocked);
             }
+        }
+
+        public static Dictionary<string,string> CareTryOnOutfit(Dictionary<string,string> outfit,string slot,string id)
+        {
+            var preview=new Dictionary<string,string>(outfit);
+            preview[slot]=id;
+            return preview;
         }
 
         void Wear(int catId,string id)

@@ -45,7 +45,7 @@ namespace Purrington.Presentation
 
         {
 
-            CancelPlacement(false);lastPathCell=null;roomAnchor=null; commandAction=action;commandPayload=(JObject)payload.DeepClone();commandTitle=title;placement="command";
+            CancelPlacement(false);lastPathCell=null;roomAnchor=null; commandAction=action;commandPayload=(JObject)payload.DeepClone();if(action=="place_template")commandPayload["floor"]=currentFloor;commandTitle=title;placement="command";
 
             rotation=(int?)payload["rotation"]??0;hasTarget=action=="buy_plot"||action=="resize_room";
 
@@ -179,7 +179,7 @@ namespace Purrington.Presentation
 
             }
 
-            if(category=="Land")Card(content,"Grow straight onto land","Use Hotel → Grow: land for sale is bought as the hotel grows onto it.","Grow",()=>BeginCommand("paint_floor",new JObject{{"floor",0},{"cells",new JArray()},{"buy",true}},"Grow the hotel"),Mint);
+            if(category=="Land")Card(content,"Grow straight onto land","Use Hotel → Grow: land for sale is bought as the hotel grows onto it.","Grow",()=>BeginCommand("paint_floor",new JObject{{"floor",currentFloor},{"cells",new JArray()},{"buy",true}},"Grow the hotel"),Mint);
 
             if(category=="Land")foreach(var plot in app.Model.Map()["plots"]??new JArray())
 
@@ -212,6 +212,7 @@ namespace Purrington.Presentation
             var mapName=(string)app.Model.Map()["name"]??"Meadow House";
 
             var content=Sheet("Hotel life","Life at "+mapName,.70f);
+            if(app.Model.State.currentHotel==0){var explore=Button(content,"Explore Main Street",app.TownUI.Explore,Mint,15);Height(explore,52*textScale);}
 
             int staying=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest);
             int arriving=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest&&!a.checkedIn);
@@ -418,7 +419,6 @@ namespace Purrington.Presentation
             if(wardrobeOpen){gestureInput.Suspend();surface.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;WardrobePanel();return;}
 
             var tray=Panel("Care tools",safe,Cream);Pin(tray,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,10),new Vector2(-10,compactCare?160:244));
-
             var column=Vertical(tray,5,8);careHint=Text(column,CareGestureInput.Help(careTool),13,Ink);Height(careHint.rectTransform,compactCare?24:40);
 
             string[] tools={"pet","brush","wand","yarn","cushion","box"};

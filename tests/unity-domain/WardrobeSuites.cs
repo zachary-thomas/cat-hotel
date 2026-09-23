@@ -10,7 +10,7 @@ static class WardrobeSuites
 	public static void RunWardrobe(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
 	{
 		string wardrobeJson=File.ReadAllText("unity/PurringtonHotel/Assets/Resources/Content/Wardrobe.json");Wardrobe.LoadJson(wardrobeJson);
-		Check(Wardrobe.All.Length==12&&Wardrobe.Slots.All(s=>Wardrobe.All.Count(w=>w.slot==s)>=3),"wardrobe: 12 items across head, neck and back");
+		Check(Wardrobe.All.Length==13&&Wardrobe.Slots.All(s=>Wardrobe.All.Count(w=>w.slot==s)>=3),"wardrobe: 13 items across head, neck and back");
 		Check(Wardrobe.All.Count(w=>w.giftCat>=0)==3,"wardrobe: three signature gifts");
 		var badGiver=JObject.Parse(wardrobeJson);badGiver["items"].First(i=>(string)i["id"]=="tiny_crown")["giftCat"]=18;bool rejectedGiver=false;
 		try{Wardrobe.LoadJson(badGiver.ToString());}catch(FormatException){rejectedGiver=true;}
@@ -35,10 +35,25 @@ static class WardrobeSuites
 		Check(m.OwnsWear("tiny_crown")&&m.Dress(0,"head","tiny_crown").success,"wardrobe: the gift can be worn");
 		var codec=new NewtonsoftSaveCodec();var restored=codec.Deserialize(codec.Serialize(m.State));
 		Check(HotelModel.Valid(restored)&&restored.cats[0].outfit["head"]=="tiny_crown"&&restored.wardrobe.Contains("sun_hat"),"wardrobe: outfits and purchases survive a save");
+		Check(m.Dress(1,"head","sun_hat").success,"wardrobe: a purchased item is shared with another cat");
+		var earned=codec.Deserialize(codec.Serialize(m.State));
+		Check(HotelModel.Valid(earned)&&earned.cats[0].outfit["head"]=="tiny_crown"&&earned.cats[1].outfit["head"]=="sun_hat","wardrobe: earned gift and purchased wear survive a save together");
+        Check(m.DressManager("head","sun_hat").success,"boutique: manager uses shared purchased clothing");
+        var sharedReload=new HotelModel(store,content);sharedReload.LoadOrCreate();
+        Check(sharedReload.State.managerOutfit["head"]=="sun_hat"&&sharedReload.State.cats[1].outfit["head"]=="sun_hat","boutique: manager and cat share clothing through reload");
+        m.DressManager("head","");
+        var beforePreview=codec.Serialize(m.State);var preview=new System.Collections.Generic.Dictionary<string,string>(m.State.managerOutfit);preview["neck"]="bow_tie";
+        Check(codec.Serialize(m.State)==beforePreview,"boutique: preview copy leaves coins, inventory and outfits untouched");
+
 		var legacy=JObject.Parse(codec.Serialize(m.State));((JObject)legacy).Remove("wardrobe");foreach(var c in legacy["cats"])((JObject)c).Remove("outfit");
 		var old=new HotelModel(new MemoryStore(),content);old.LoadOrCreate();Check(old.RestoreJson(legacy.ToString())&&old.State.cats.All(c=>c.outfit.Count==0),"wardrobe: older saves load undressed");
 		var bad=JObject.Parse(codec.Serialize(m.State));bad["cats"][0]["outfit"]["head"]=5;Check(!old.RestoreJson(bad.ToString()),"wardrobe: strict JSON rejects a non-string outfit");
 		var wrongSlot=JObject.Parse(codec.Serialize(m.State));wrongSlot["cats"][0]["outfit"]["neck"]="sun_hat";Check(!old.RestoreJson(wrongSlot.ToString()),"wardrobe: validation rejects wear in the wrong slot");
+		var beforeRejected=codec.Serialize(old.State);
+		var earlyGift=JObject.Parse(codec.Serialize(m.State));earlyGift["cats"][0]["bond"]=0;earlyGift["cats"][0]["outfit"]["head"]="sun_hat";((JArray)earlyGift["wardrobe"]).Add("tiny_crown");
+		Check(!old.RestoreJson(earlyGift.ToString())&&codec.Serialize(old.State)==beforeRejected,"wardrobe: forged gift inventory is rejected without changing the hotel");
+		var unownedOutfit=JObject.Parse(codec.Serialize(m.State));unownedOutfit["cats"][0]["outfit"]["neck"]="bow_tie";
+		Check(!old.RestoreJson(unownedOutfit.ToString())&&codec.Serialize(old.State)==beforeRejected,"wardrobe: unowned equipped wear is rejected without changing the hotel");
 		var unpaid=JObject.Parse(codec.Serialize(m.State));((JArray)unpaid["wardrobe"]).RemoveAt(0);unpaid["cats"][0]["outfit"]["head"]="sun_hat";
 		Check(!old.RestoreJson(unpaid.ToString()),"wardrobe: a saved outfit needs a purchased item");
 		var lockedGift=JObject.Parse(codec.Serialize(m.State));lockedGift["cats"][0]["bond"]=49;
