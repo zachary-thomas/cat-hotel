@@ -714,7 +714,7 @@ git commit -m "feat(domain): floor-aware navigation linked by stairwells"
 
 **Files:** `HotelState.cs`, `HotelLife.cs`, `HotelVisitors.cs`, `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `ShellSuites`:
 
@@ -747,12 +747,12 @@ Register it in `Program.cs` after `ShellSuites.RunFloors(Check,P,content);`:
 ShellSuites.RunFloorLife(Check,P,content);
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: build error `'ActorSnapshot' does not contain a definition for 'floor'`.
 
-- [ ] **Step 3: Apply the edits**
+- [x] **Step 3: Apply the edits**
 
 **1. `…/Domain/HotelState.cs`** · replace exactly once:
 
@@ -958,12 +958,12 @@ with:
 slot.Point
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell floor life suite passed`. A simulated guest walks upstairs within 900 simulated seconds. `PASS <n> checks` (676074 during planning).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
