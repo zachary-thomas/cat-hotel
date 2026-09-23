@@ -44,7 +44,7 @@
 
 **Files:** `HotelShell.cs`, `HotelModel.cs`, `HotelNavigation.cs`, `tests/unity-domain/ShellSuites.cs`, `tests/unity-domain/Program.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `ShellSuites`:
 
@@ -90,12 +90,12 @@ Register it in `Program.cs` after `ShellSuites.RunDraw(Check,P,content);`:
 ShellSuites.RunFloors(Check,P,content);
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: build error `'HotelModel' does not contain a definition for 'FloorLock'`.
 
-- [ ] **Step 3: Apply the edits**
+- [x] **Step 3: Apply the edits**
 
 **1. `…/Domain/HotelShell.cs`** · replace exactly once:
 
@@ -416,12 +416,12 @@ with:
 public CommandResult PreviewRetrieveObject(string id,float x,float z,int rotation=0,int floor=0){return Quote("retrieve_object",P("id",id,"x",x,"y",z,"rotation",rotation,"floor",floor));}public CommandResult RetrieveObject(string id,float x,float z,int rotation=0,int floor=0){return Execute("retrieve_object",P("id",id,"x",x,"y",z,"rotation",rotation,"floor",floor));}
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell floors suite passed` and `PASS <n> checks` (it was 676063 during planning).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
