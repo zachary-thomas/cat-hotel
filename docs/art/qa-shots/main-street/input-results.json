@@ -1,0 +1,2210 @@
+{
+  "status": "completed",
+  "cases": [
+    {
+      "case": "360x640-text100",
+      "checks": [
+        {
+          "name": "requested viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Main Street opens without placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "10"
+        },
+        {
+          "name": "nonblank render: main-street",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "store sign lies in world viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "sign tap begins manager travel",
+          "passed": true,
+          "detail": "destination=paw_mart_door hits=Store sign"
+        },
+        {
+          "name": "street drag pans camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street pinch zooms camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back returns to Hotel",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street never shows an interior",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back restores hotel camera framing",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "placement fixture is really active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Explore cancels active placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "rename persisted",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Paw Mart entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "cashier arrival opens conversation",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-talk",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy Welcome Basket",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "nonblank render: cart-push",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-park",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy Market Day bundle",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "blocked journal: Complete quest",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "Leave returns outdoors",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Accept quest",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "First Look complete",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique try-on active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-try-on",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "manager wears purchased hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Start Market Day",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "market running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "active market save",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal reload",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal keeps manager and wardrobe",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal resumes market",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "market completes",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended-fixture",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "return to hotel",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-main-street.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-paw-mart-talk.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-cart-push.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-cart-park.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-boutique-try-on.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-market-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text100-market-ended-fixture.png"
+      ],
+      "marketAverageFrameMs": 16.91365,
+      "marketWorstFrameMs": 31.3780041
+    },
+    {
+      "case": "360x640-text150",
+      "checks": [
+        {
+          "name": "requested viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Main Street opens without placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "10"
+        },
+        {
+          "name": "nonblank render: main-street",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "store sign lies in world viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "sign tap begins manager travel",
+          "passed": true,
+          "detail": "destination=paw_mart_door hits=Store sign"
+        },
+        {
+          "name": "street drag pans camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street pinch zooms camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back returns to Hotel",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street never shows an interior",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back restores hotel camera framing",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "placement fixture is really active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Explore cancels active placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "rename persisted",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Paw Mart entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "cashier arrival opens conversation",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-talk",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy Welcome Basket",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "nonblank render: cart-push",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-park",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy Market Day bundle",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "Leave returns outdoors",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "First Look complete",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique try-on active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-try-on",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "manager wears purchased hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Start Market Day",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "market running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "active market save",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal reload",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal keeps manager and wardrobe",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal resumes market",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "market completes",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended-fixture",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "return to hotel",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-main-street.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-paw-mart-talk.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-cart-push.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-cart-park.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-boutique-try-on.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-market-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\360x640-text150-market-ended-fixture.png"
+      ],
+      "marketAverageFrameMs": 16.92439,
+      "marketWorstFrameMs": 32.04
+    },
+    {
+      "case": "390x844-text100",
+      "checks": [
+        {
+          "name": "requested viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Main Street opens without placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "12"
+        },
+        {
+          "name": "nonblank render: main-street",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "store sign lies in world viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "sign tap begins manager travel",
+          "passed": true,
+          "detail": "destination=paw_mart_door hits=Store sign"
+        },
+        {
+          "name": "street drag pans camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street pinch zooms camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back returns to Hotel",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street never shows an interior",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back restores hotel camera framing",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "placement fixture is really active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Explore cancels active placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "rename persisted",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Paw Mart entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "cashier arrival opens conversation",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-talk",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy Market Day bundle",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "Leave returns outdoors",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "First Look complete",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique try-on active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-try-on",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "manager wears purchased hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Start Market Day",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "market running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "active market save",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal reload",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal keeps manager and wardrobe",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal resumes market",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "market completes",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended-fixture",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "return to hotel",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text100-main-street.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text100-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text100-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text100-paw-mart-talk.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text100-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text100-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text100-boutique-try-on.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text100-market-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text100-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text100-market-ended-fixture.png"
+      ],
+      "marketAverageFrameMs": 16.93476,
+      "marketWorstFrameMs": 32.3891945
+    },
+    {
+      "case": "390x844-text150",
+      "checks": [
+        {
+          "name": "requested viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Main Street opens without placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "12"
+        },
+        {
+          "name": "nonblank render: main-street",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "store sign lies in world viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "sign tap begins manager travel",
+          "passed": true,
+          "detail": "destination=paw_mart_door hits=Store sign"
+        },
+        {
+          "name": "street drag pans camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street pinch zooms camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back returns to Hotel",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street never shows an interior",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back restores hotel camera framing",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "placement fixture is really active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Explore cancels active placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "rename persisted",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Paw Mart entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "cashier arrival opens conversation",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-talk",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy Market Day bundle",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "Leave returns outdoors",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "First Look complete",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique try-on active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-try-on",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "manager wears purchased hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Start Market Day",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "market running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "active market save",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal reload",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal keeps manager and wardrobe",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal resumes market",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "market completes",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended-fixture",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "return to hotel",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text150-main-street.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text150-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text150-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text150-paw-mart-talk.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text150-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text150-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text150-boutique-try-on.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text150-market-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text150-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\390x844-text150-market-ended-fixture.png"
+      ],
+      "marketAverageFrameMs": 16.9012032,
+      "marketWorstFrameMs": 30.5103035
+    },
+    {
+      "case": "430x932-text100",
+      "checks": [
+        {
+          "name": "requested viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Main Street opens without placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "12"
+        },
+        {
+          "name": "nonblank render: main-street",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "store sign lies in world viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "sign tap begins manager travel",
+          "passed": true,
+          "detail": "destination=paw_mart_door hits=Store sign"
+        },
+        {
+          "name": "street drag pans camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street pinch zooms camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back returns to Hotel",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street never shows an interior",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back restores hotel camera framing",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "placement fixture is really active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Explore cancels active placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "rename persisted",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Paw Mart entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "cashier arrival opens conversation",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-talk",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy Market Day bundle",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "Leave returns outdoors",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "First Look complete",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique try-on active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-try-on",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "manager wears purchased hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Start Market Day",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "market running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "active market save",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal reload",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal keeps manager and wardrobe",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal resumes market",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "market completes",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended-fixture",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "return to hotel",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text100-main-street.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text100-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text100-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text100-paw-mart-talk.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text100-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text100-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text100-boutique-try-on.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text100-market-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text100-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text100-market-ended-fixture.png"
+      ],
+      "marketAverageFrameMs": 16.8981457,
+      "marketWorstFrameMs": 30.1351051
+    },
+    {
+      "case": "430x932-text150",
+      "checks": [
+        {
+          "name": "requested viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Main Street opens without placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "12"
+        },
+        {
+          "name": "nonblank render: main-street",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "store sign lies in world viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "sign tap begins manager travel",
+          "passed": true,
+          "detail": "destination=paw_mart_door hits=Store sign"
+        },
+        {
+          "name": "street drag pans camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street pinch zooms camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back returns to Hotel",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street never shows an interior",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back restores hotel camera framing",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "placement fixture is really active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Explore cancels active placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "rename persisted",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Paw Mart entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "cashier arrival opens conversation",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-talk",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy Market Day bundle",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "Leave returns outdoors",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "First Look complete",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique try-on active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-try-on",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "manager wears purchased hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Start Market Day",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "market running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "active market save",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal reload",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal keeps manager and wardrobe",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal resumes market",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "market completes",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended-fixture",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "return to hotel",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text150-main-street.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text150-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text150-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text150-paw-mart-talk.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text150-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text150-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text150-boutique-try-on.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text150-market-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text150-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\430x932-text150-market-ended-fixture.png"
+      ],
+      "marketAverageFrameMs": 16.8999538,
+      "marketWorstFrameMs": 30.5601044
+    },
+    {
+      "case": "1280x800-text100",
+      "checks": [
+        {
+          "name": "requested viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Main Street opens without placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "16"
+        },
+        {
+          "name": "nonblank render: main-street",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "store sign lies in world viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "sign tap begins manager travel",
+          "passed": true,
+          "detail": "destination=paw_mart_door hits=Store sign"
+        },
+        {
+          "name": "street drag pans camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street pinch zooms camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back returns to Hotel",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street never shows an interior",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back restores hotel camera framing",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "placement fixture is really active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Explore cancels active placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "rename persisted",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Paw Mart entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "cashier arrival opens conversation",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-talk",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy Market Day bundle",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "Leave returns outdoors",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "First Look complete",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique try-on active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-try-on",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "manager wears purchased hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Start Market Day",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "market running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "active market save",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal reload",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal keeps manager and wardrobe",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal resumes market",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "market completes",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended-fixture",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "return to hotel",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text100-main-street.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text100-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text100-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text100-paw-mart-talk.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text100-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text100-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text100-boutique-try-on.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text100-market-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text100-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text100-market-ended-fixture.png"
+      ],
+      "marketAverageFrameMs": 17.0622635,
+      "marketWorstFrameMs": 40.3323
+    },
+    {
+      "case": "1280x800-text150",
+      "checks": [
+        {
+          "name": "requested viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Main Street opens without placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "14"
+        },
+        {
+          "name": "nonblank render: main-street",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "store sign lies in world viewport",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "sign tap begins manager travel",
+          "passed": true,
+          "detail": "destination=paw_mart_door hits=Store sign"
+        },
+        {
+          "name": "street drag pans camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street pinch zooms camera",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back returns to Hotel",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "street never shows an interior",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Back restores hotel camera framing",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "placement fixture is really active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Explore cancels active placement",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "rename persisted",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "Paw Mart entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "cashier arrival opens conversation",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-talk",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Buy Market Day bundle",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "Leave returns outdoors",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique entered",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "visible controls stay in safe area",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 logical unit targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "visible controls have 44 screen pixel targets",
+          "passed": true,
+          "detail": "[]"
+        },
+        {
+          "name": "interactive controls exist",
+          "passed": true,
+          "detail": "11"
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "First Look complete",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "boutique try-on active",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-try-on",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "manager wears purchased hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "blocked journal: Start Market Day",
+          "passed": true,
+          "detail": "Couldn't save — nothing changed. Tap Retry."
+        },
+        {
+          "name": "market running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "active market save",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal reload",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal keeps manager and wardrobe",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "journal resumes market",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "market completes",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended-fixture",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "return to hotel",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text150-main-street.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text150-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text150-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text150-paw-mart-talk.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text150-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text150-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text150-boutique-try-on.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text150-market-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text150-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\input-reviewed\\1280x800-text150-market-ended-fixture.png"
+      ],
+      "marketAverageFrameMs": 16.9621258,
+      "marketWorstFrameMs": 34.2533035
+    }
+  ],
+  "failedChecks": 0,
+  "runtimeErrors": [],
+  "inputMethod": "queued MouseState and TouchState through InputSystemUIInputModule",
+  "layoutSetup": "Viewport, simulated safe insets and text scale configured before each case; opt-in care fixtures reset bonds to 20 and clear cooldown before gesture assertions"
+}

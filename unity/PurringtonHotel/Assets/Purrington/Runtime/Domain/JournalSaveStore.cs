@@ -44,8 +44,8 @@ namespace Purrington.Domain
                 byte[] bytes=Encoding.UTF8.GetBytes(next.ToString(CultureInfo.InvariantCulture)+"\n"+Hash(payload)+"\n"+payload);
                 using(var stream=new FileStream(temporary,FileMode.Create,FileAccess.Write,FileShare.None)){stream.Write(bytes,0,bytes.Length);stream.Flush(true);}
                 // Only replace the older slot; latest committed slot is untouched throughout.
-                if(File.Exists(slot))File.Delete(slot);
-                File.Move(temporary,slot);sequence=next;return true;
+                if(File.Exists(slot))File.Replace(temporary,slot,null);else File.Move(temporary,slot);
+                CleanupTemps();sequence=next;return true;
             }
             catch(Exception e) when(e is IOException||e is UnauthorizedAccessException||e is ArgumentException||e is InvalidOperationException||e is OverflowException){return false;}
         }
@@ -61,6 +61,14 @@ namespace Purrington.Domain
                 recoveryBlocked=priorBlocked;sequence=priorSequence;return false;
             } catch(IOException){recoveryBlocked=priorBlocked;sequence=priorSequence;return false;}
               catch(UnauthorizedAccessException){recoveryBlocked=priorBlocked;sequence=priorSequence;return false;}
+        }
+        void CleanupTemps()
+        {
+            for(int i=0;i<2;i++)
+            {
+                string temporary=path+"."+i+".save.tmp";
+                if(File.Exists(temporary))File.Delete(temporary);
+            }
         }
         static string Hash(string value){using(var sha=SHA256.Create()){return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(value))).Replace("-","").ToLowerInvariant();}}
     }

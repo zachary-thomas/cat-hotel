@@ -1,0 +1,1 @@
+PASS: startup, orthographic camera, navigation, care stage, panel bounds, wheel zoom, layouts, save. Screenshots require visual review.

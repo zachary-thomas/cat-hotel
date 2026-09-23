@@ -26,7 +26,8 @@ namespace Purrington.Presentation
 
     {
 
-        static readonly Color Ink = Hex("173D32"), Cream = Hex("FFF8E9"), Mint = Hex("60D6A6"), Coral = Hex("FFAB97"), Gold = Hex("FFD16F"), Lilac = Hex("DFD2F5");
+        static readonly Color Ink = ConceptTheme.Ink, Cream = ConceptTheme.Cream, Mint = ConceptTheme.Sage, Coral = ConceptTheme.Clay, Gold = ConceptTheme.Honey, Lilac = Hex("E6DFCE");
+        static readonly Color CardTone=ConceptTheme.Ui.Card,InkSoft=ConceptTheme.Ui.InkSoft,LeafText=ConceptTheme.Ui.LeafText,Coin=ConceptTheme.Ui.Coin;
 
         HotelApp app;
 
@@ -36,7 +37,7 @@ namespace Purrington.Presentation
 
         TMP_FontAsset body, heading;
 
-        TextMeshProUGUI wallet, toast;
+        TextMeshProUGUI wallet, walletRate, toast;
 
         string tab = "Hotel", category = "All", placement = "", selectedObject = "", careTool = "pet";
 
@@ -44,13 +45,13 @@ namespace Purrington.Presentation
 
         Vector3 target;
 
-        bool hasTarget, settings, compactObjective, saveError;
+        bool hasTarget, settings, compactObjective=true, saveError;
 
         Vector2 lastSize;
 
         Rect lastSafe;
 
-        bool wideLayout;
+        bool wideLayout,buildToolsExpanded;
 
         string persistentSaveError="";
 
@@ -139,7 +140,12 @@ namespace Purrington.Presentation
 
         {
 
-            if (wallet != null) wallet.text = "<b>" + Math.Floor(app.Model.State.coins).ToString("N0") + "</b> coins · "+app.Model.Rate().ToString("N1")+" / min";
+            RefreshMarketStatus();
+            if (wallet == null) return;
+            double rate = app.Model.Rate();
+            wallet.text = Math.Floor(app.Model.State.coins).ToString("N0");
+            if (walletRate != null) walletRate.text = "+" + Math.Round(rate).ToString("N0") + " / min";
+            else wallet.text += " · +" + Math.Round(rate).ToString("N0") + " / min";
 
         }
 
@@ -147,9 +153,12 @@ namespace Purrington.Presentation
 
         {
 
-            if (careCat >= 0) app.World.SetCareMode(careCat,false);
+            bool returningFromTown=app.World.IsTownMode;
+            if(returningFromTown){managerEditing=false;app.World.ExitTownMode();}
+            if (careCat >= 0) { CloseWardrobe(); app.World.SetCareMode(careCat,false); }
 
             careCat = -1; settings=false; tab=destination; CancelPlacement(false); Rebuild();
+            if (destination == "Hotel" && !returningFromTown) app.World.FitHotel();
 
         }
 
@@ -157,7 +166,7 @@ namespace Purrington.Presentation
 
         {
 
-            if(careCat>=0)app.World.SetCareMode(careCat,false);
+            if(careCat>=0){CloseWardrobe();app.World.SetCareMode(careCat,false);}
 
             careCat=-1;CancelPlacement(false);settings=true;Rebuild();
 
@@ -167,9 +176,10 @@ namespace Purrington.Presentation
 
         {
 
+            if(tab=="Town"&&!settings){if(BackFromStore())return;if(managerEditing){managerEditing=false;app.World.ClearManagerPreview();Rebuild();}else CloseTown();return;}
             if (IsPlacing) { CancelPlacement(); return; }
 
-            if (careCat>=0) { if(careDetails){careDetails=false;Rebuild();}else CloseCare(); return; }
+            if (careCat>=0) { if(careDetails){careDetails=false;Rebuild();}else if(wardrobeOpen){CloseWardrobe();Rebuild();}else CloseCare(); return; }
 
             if (settings) {settings=false; Rebuild(); return;}
 
@@ -181,15 +191,15 @@ namespace Purrington.Presentation
 
         {
 
-            if (IsPlacing) return;
+            if (IsPlacing || app.World.IsTownMode) return;
 
-            careCat=id; careTool="pet"; careDetails=false; settings=false;
+            CloseWardrobe(); careCat=id; careTool="pet"; careDetails=false; settings=false;
 
             app.World.SetCareMode(id,true); Rebuild();
 
         }
 
-        void CloseCare() { gestureInput?.Suspend(); app.World.SetCareMode(careCat,false);careCat=-1;careDetails=false;Rebuild(); }
+        void CloseCare() { gestureInput?.Suspend(); CloseWardrobe(); app.World.SetCareMode(careCat,false);careCat=-1;careDetails=false;Rebuild(); }
 
         public void SelectObject(string id)
 
@@ -267,7 +277,7 @@ namespace Purrington.Presentation
 
             if(commandAction.Length>0){PreviewCommand();return;}
 
-            var result=movingRoom.Length>0 ? app.Model.PreviewMoveRoom(movingRoom,(int)target.x,(int)target.z,rotation) : retrievingObject.Length>0 ? app.Model.PreviewRetrieveObject(retrievingObject,target.x,target.z,rotation) : movingObject.Length>0 ? app.Model.PreviewMoveObject(movingObject,target.x,target.z,rotation) : placement=="room" ? app.Model.PreviewRoom((int)target.x,(int)target.z) : app.Model.PreviewObject(placement,target.x,target.z,rotation);
+            var result=movingRoom.Length>0 ? app.Model.PreviewMoveRoom(movingRoom,(int)target.x,(int)target.z,rotation) : retrievingObject.Length>0 ? app.Model.PreviewRetrieveObject(retrievingObject,target.x,target.z,rotation,currentFloor) : movingObject.Length>0 ? app.Model.PreviewMoveObject(movingObject,target.x,target.z,rotation) : placement=="room" ? app.Model.PreviewRoom((int)target.x,(int)target.z) : app.Model.PreviewObject(placement,target.x,target.z,rotation,currentFloor);
 
             if(movingRoom.Length>0)
 
@@ -309,7 +319,7 @@ namespace Purrington.Presentation
 
             if(!hasTarget){ShowNotice("Tap an open spot in your hotel first.",false);return;}
 
-            var result=movingRoom.Length>0 ? app.Model.MoveRoom(movingRoom,(int)target.x,(int)target.z,rotation) : retrievingObject.Length>0 ? app.Model.RetrieveObject(retrievingObject,target.x,target.z,rotation) : movingObject.Length>0 ? app.Model.MoveObject(movingObject,target.x,target.z,rotation) : placement=="room" ? app.Model.PlaceRoom((int)target.x,(int)target.z) : app.Model.PlaceObject(placement,target.x,target.z,rotation);
+            var result=movingRoom.Length>0 ? app.Model.MoveRoom(movingRoom,(int)target.x,(int)target.z,rotation) : retrievingObject.Length>0 ? app.Model.RetrieveObject(retrievingObject,target.x,target.z,rotation,currentFloor) : movingObject.Length>0 ? app.Model.MoveObject(movingObject,target.x,target.z,rotation) : placement=="room" ? app.Model.PlaceRoom((int)target.x,(int)target.z) : app.Model.PlaceObject(placement,target.x,target.z,rotation,currentFloor);
 
             app.Report(result);
 
@@ -364,9 +374,13 @@ namespace Purrington.Presentation
 
             {
 
-                Navigation();
+                // Placement chrome is item/price/Rotate/Cancel/Place only — hide the dock.
+                if(!IsPlacing) Navigation();
+                else dock=null;
 
                 if(settings)SettingsPanel();
+
+                else if(tab=="Town")TownPanel();
 
                 else if(tab=="Hotel")HotelPanel();
 
@@ -390,7 +404,7 @@ namespace Purrington.Presentation
 
             if(saveError)ShowNotice(persistentSaveError,true);
 
-            app.World.SetInputBlocked(settings || careCat>=0 || (tab!="Hotel" && tab!="Build"));
+            app.World.SetInputBlocked(settings || careCat>=0 || (tab!="Hotel" && tab!="Build" && tab!="Town"));
 
             if(dialogTitle.Length>0)DialogPanel();
 
@@ -427,6 +441,8 @@ namespace Purrington.Presentation
             else
             {
                 if(dock)visible.yMin=Mathf.Max(visible.yMin,ScreenBounds(dock).yMax);
+                var overview=FindActiveRect("Hotel overview");
+                if(overview)visible.yMin=Mathf.Max(visible.yMin,ScreenBounds(overview).yMax);
                 var placementPanel=FindActiveRect("Placement");
                 if(placementPanel)visible.yMin=Mathf.Max(visible.yMin,ScreenBounds(placementPanel).yMax);
                 else if(sheet&&sheet.gameObject.activeInHierarchy)
@@ -446,23 +462,52 @@ namespace Purrington.Presentation
 
         {
 
-            var panel=Panel("Hotel status",safe,Cream);
+            // Slim cream card strip: paw-coin wallet chip, day clock chip, hotel name and gear (not a tall full-width banner).
+            float headerH=careCat>=0?56f:52f;
 
-            Pin(panel,new Vector2(0,1),Vector2.one,new Vector2(.5f,1),new Vector2(12,-86),new Vector2(-12,-10));
+            var panel=Panel("Hotel status",safe,CardTone);
 
-            if(wideLayout)Pin(panel,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(12,-86),new Vector2(442,-10));
+            Pin(panel,new Vector2(0,1),Vector2.one,new Vector2(.5f,1),new Vector2(10,-8-headerH),new Vector2(-10,-8));
 
-            var title=Text(panel,careCat>=0?"CAT TIME":"PURRINGTON",17,Ink,true);
+            if(wideLayout)Pin(panel,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(12,-8-headerH),new Vector2(420,-8));
 
-            Pin(title.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-39),new Vector2(-88,-6));
+            // Portrait canvases are ~360 units wide on every phone: size the chips from textScale and auto-size their text so balance, rate, day and time always show.
+            void Fit(TextMeshProUGUI t,float max,float min){t.enableAutoSizing=true;t.fontSizeMin=min;t.fontSizeMax=max*textScale;t.textWrappingMode=TextWrappingModes.NoWrap;}
+            float chipW=Mathf.Round(50+60*textScale);
 
-            wallet=Text(panel,"",12,Ink);
+            var chip=Panel("Wallet chip",panel,CardTone);
 
-            Pin(wallet.rectTransform,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(14,7),new Vector2(-86,34));
+            Pin(chip,new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(8,-22),new Vector2(8+chipW,22));
+            var coin=UiCoin.Create(chip,rounded,26);coin.anchorMin=coin.anchorMax=coin.pivot=new Vector2(0,.5f);coin.anchoredPosition=new Vector2(4,0);
 
-            var gear=Button(panel,careCat>=0?"Back":"Menu",careCat>=0?(Action)CloseCare:()=>{settings=!settings;Rebuild();},Mint,14);
+            wallet=Text(chip,"",13,Ink,true);Fit(wallet,13,8);
+            var ratePill=Panel("Rate pill",chip,Mint);Pin(ratePill,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(32,3),new Vector2(-6,19));walletRate=Text(ratePill,"",10,LeafText,true);Fit(walletRate,10,7);Stretch(walletRate.rectTransform,6,1,6,1);
 
-            Pin(gear,new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(textScale>1?-94:-72,-25),new Vector2(-12,25));
+            Stretch(wallet.rectTransform,34,2,8,20);
+
+            float clockW=0f;
+            if(careCat<0){bool compactClock=((RectTransform)safe).rect.width<380||textScale>1.25f;clockW=compactClock?Mathf.Round(40+28*textScale):116f;float clockH=compactClock?22f:16f;var clockPanel=Panel("Clock chip",panel,CardTone);Pin(clockPanel,new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(14+chipW,-clockH),new Vector2(14+chipW+clockW,clockH));var sunImg=Panel("Sun",clockPanel,Coin).GetComponent<UnityEngine.UI.Image>();var moonImg=Panel("Moon",clockPanel,InkSoft).GetComponent<UnityEngine.UI.Image>();foreach(var g in new[]{sunImg,moonImg}){var r=g.rectTransform;r.anchorMin=r.anchorMax=r.pivot=new Vector2(0,.5f);r.sizeDelta=new Vector2(16,16);r.anchoredPosition=new Vector2(8,0);g.raycastTarget=false;}var clockText=Text(clockPanel,"",11,Ink,true);Fit(clockText,11,7);Stretch(clockText.rectTransform,28,2,6,2);clockPanel.gameObject.AddComponent<HotelClockChip>().Bind(app.Model,clockText,sunImg,moonImg,compactClock);}
+
+            var title=Text(panel,careCat>=0?"CAT TIME":(string)app.Model.Map()["name"],14,Ink,true);title.enableAutoSizing=true;title.fontSizeMin=10*textScale;title.fontSizeMax=14*textScale;title.textWrappingMode=wideLayout?TextWrappingModes.NoWrap:TextWrappingModes.Normal;
+
+            Pin(title.rectTransform,new Vector2(0,.5f),new Vector2(1,.5f),new Vector2(0,.5f),new Vector2(20+chipW+clockW,-14),new Vector2(careCat>=0?-96:-58,14));
+            // Below ~80 units the name is only an ellipsis (360 px at 150%), so it steps aside for the wallet and clock.
+            float titleW=(wideLayout?408f:((RectTransform)safe).rect.width-20)-(careCat>=0?96:58)-(20+chipW+clockW);title.gameObject.SetActive(titleW>=80);
+
+            if(careCat>=0)
+            {
+                var back=Button(panel,"Back",CloseCare,CardTone,13);
+                float targetHalf=Mathf.Max(22f,22f/canvas.scaleFactor);
+                Pin(back,new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(textScale>1?-90:-74,-targetHalf),new Vector2(-8,targetHalf));
+            }
+            else
+            {
+                // Gear drawn from ink rects so the menu needs no icon font.
+                var gear=Button(panel,"",()=>{settings=!settings;Rebuild();},CardTone,13);gear.name="Menu";
+                Pin(gear,new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(-52,-22),new Vector2(-8,22));
+                for(int i=0;i<8;i++){float a=i*45f*Mathf.Deg2Rad;var tooth=Rect("Tooth",gear);tooth.anchorMin=tooth.anchorMax=tooth.pivot=new Vector2(.5f,.5f);tooth.sizeDelta=new Vector2(4,6);tooth.anchoredPosition=new Vector2(Mathf.Sin(a),Mathf.Cos(a))*11;tooth.localRotation=Quaternion.Euler(0,0,-i*45f);var t=tooth.gameObject.AddComponent<UnityEngine.UI.Image>();t.color=Ink;t.raycastTarget=false;}
+                foreach(var (size,color) in new[]{(16f,Ink),(7f,CardTone)}){var disc=Panel("Gear disc",gear,color);disc.anchorMin=disc.anchorMax=disc.pivot=new Vector2(.5f,.5f);disc.sizeDelta=new Vector2(size,size);disc.anchoredPosition=Vector2.zero;disc.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;}
+            }
 
         }
 
@@ -470,7 +515,7 @@ namespace Purrington.Presentation
 
         {
 
-            dock=Panel("Navigation",safe,Cream);
+            dock=Panel("Navigation",safe,CardTone);
 
             Pin(dock,Vector2.zero,new Vector2(1,0),new Vector2(.5f,0),new Vector2(10,10),new Vector2(-10,84));
 
@@ -486,11 +531,13 @@ namespace Purrington.Presentation
 
                 string dest=tabs[i];
 
-                var btn=Button(row,dest,()=>Navigate(dest),tab==dest?Mint:(dest=="Build"?Gold:Cream),12);
+                bool build=dest=="Build";
 
-                var size=btn.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();size.flexibleWidth=1;size.minWidth=48;
+                var btn=Button(row,dest,()=>Navigate(dest),tab==dest?Mint:CardTone,build?13:12);
 
-                var caption=btn.GetComponentInChildren<TextMeshProUGUI>();Stretch(caption.rectTransform,2,35,2,3);
+                var size=btn.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();size.flexibleWidth=build?1.35f:1;size.minWidth=build?64:48;
+
+                var caption=btn.GetComponentInChildren<TextMeshProUGUI>();Stretch(caption.rectTransform,2,build?32:35,2,3);
 
                 NavigationIcon(btn,dest);
 
@@ -520,7 +567,7 @@ namespace Purrington.Presentation
 
             {
 
-                Block(3,3,20,17,Ink);Block(3,18,6,6,Ink);Block(17,18,6,6,Ink);Block(7,12,3,3,Cream);Block(17,12,3,3,Cream);Block(12,6,3,3,Coral);
+                Block(3,3,20,17,Ink);Block(3,18,6,6,Ink);Block(17,18,6,6,Ink);Block(7,12,3,3,CardTone);Block(17,12,3,3,CardTone);Block(12,6,3,3,Coin);
 
             }
 
@@ -536,7 +583,7 @@ namespace Purrington.Presentation
 
             {
 
-                Block(4,2,18,17,Ink);Block(1,19,24,4,Ink);Block(10,2,6,10,Cream);Block(6,13,4,3,Gold);Block(16,13,4,3,Gold);
+                Block(4,2,18,17,Ink);Block(1,19,24,4,Ink);Block(10,2,6,10,CardTone);Block(6,13,4,3,Coin);Block(16,13,4,3,Coin);
 
             }
 
@@ -544,7 +591,7 @@ namespace Purrington.Presentation
 
             {
 
-                Block(7,3,12,8,Ink);Block(4,11,5,7,Ink);Block(10,17,6,7,Ink);Block(18,12,5,7,Ink);Block(11,7,4,3,Coral);
+                Block(7,3,12,8,Ink);Block(4,11,5,7,Ink);Block(10,17,6,7,Ink);Block(18,12,5,7,Ink);Block(11,7,4,3,Coin);
 
             }
 
@@ -552,7 +599,7 @@ namespace Purrington.Presentation
 
             {
 
-                Block(2,3,6,19,Ink);Block(10,1,6,19,Ink);Block(18,4,6,19,Ink);Block(11,10,4,4,Gold);
+                Block(2,3,6,19,Ink);Block(10,1,6,19,Ink);Block(18,4,6,19,Ink);Block(11,10,4,4,Coin);
 
             }
 
@@ -560,22 +607,51 @@ namespace Purrington.Presentation
 
         void HotelPanel()
         {
-            float h=compactObjective?62:Mathf.Lerp(165,205,(textScale-1)*2);
+            // Compact objective card is the default; expand for room/capacity details.
+            bool floorChoices=app.Model.Hotel().floors.Count>1;
+            float h=(compactObjective?58:Mathf.Lerp(165,205,(textScale-1)*2))+(floorChoices?44:0);
             var panel=Panel("Hotel overview",safe,Cream);
             Pin(panel,Vector2.zero,new Vector2(1,0),new Vector2(.5f,0),new Vector2(12,96),new Vector2(-12,96+h));
             if(wideLayout)Pin(panel,new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(-245,96),new Vector2(245,96+h));
-            var title=Text(panel,(string)app.Model.Map()["name"]+" - level "+app.Model.Hotel().level,15,Ink,true);
-            Pin(title.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-52),new Vector2(-62,-6));
-            var collapse=Button(panel,compactObjective?"+":"-",()=>{compactObjective=!compactObjective;Rebuild();},Gold,20);
-            Pin(collapse,new Vector2(1,1),Vector2.one,Vector2.one,new Vector2(-54,-51),new Vector2(-6,-3));
+            string mapName=(string)app.Model.Map()["name"];
+            string headline=compactObjective
+                ? mapName+" · Lv "+app.Model.Hotel().level+" · "+app.Model.GuestCapacity()+" guests"
+                : mapName+" - level "+app.Model.Hotel().level;
+            var title=Text(panel,headline,compactObjective?14:15,Ink,true);
+            Pin(title.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-48),new Vector2(-62,-6));
+            var collapse=Button(panel,compactObjective?"+":"-",()=>{compactObjective=!compactObjective;Rebuild();},Gold,18);
+            Pin(collapse,new Vector2(1,1),Vector2.one,Vector2.one,new Vector2(-54,-48),new Vector2(-6,-4));
+            if(app.Model.State.currentHotel==0){
+                var explore=Button(safe,"Explore Main Street",app.TownUI.Explore,Mint,14);
+                Pin(explore,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(12,-126),new Vector2(184,-78));
+            }
+            if(floorChoices){var chip=FloorChip(panel);Pin(chip,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(10,-94),new Vector2(-10,-54));}
             if(compactObjective)return;
             int ready=app.Model.State.rooms.Count(r=>app.Model.IsRoomReady(r));
-            var copy=Text(panel,ready+" ready rooms / "+app.Model.State.rooms.Count+" spaces - "+app.Model.GuestCapacity()+" guest capacity\n"+app.Model.Rate().ToString("N1")+" coins per minute",13,Ink);
-            Pin(copy.rectTransform,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(14,62),new Vector2(-14,-50));
+            int staying=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest);
+            int arriving=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest&&!a.checkedIn);
+            int capacity=app.Model.GuestCapacity();
+            string lifeLine=staying+" staying · "+capacity+" capacity · +"+Math.Round(app.Model.Rate()).ToString("N0")+" / min";
+            string arrivalLine=arriving>0
+                ? arriving+" arriving at reception · "+ready+"/"+app.Model.State.rooms.Count+" rooms ready"
+                : ready+"/"+app.Model.State.rooms.Count+" rooms ready · guests rotate in through reception";
+            var copy=Text(panel,lifeLine+"\n"+arrivalLine,13,Ink);
+            Pin(copy.rectTransform,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(14,62),new Vector2(-14,floorChoices?-94:-50));
             var actions=Rect("Hotel actions",panel);Pin(actions,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,8),new Vector2(-10,58));
             var row=Horizontal(actions,6,0);Button(row,"Build",()=>Navigate("Build"),Gold,14);Button(row,"Life",()=>Navigate("Life"),Mint,14);
             if(app.Model.State.pendingCoins>0)Button(row,"Collect "+Math.Floor(app.Model.State.pendingCoins).ToString("N0"),()=>{var result=app.Model.ClaimOffline();app.Report(result);if(result.success)app.Audio?.PlayEffect("collect");Rebuild();},Coral,13);
-            else Button(row,"Fit hotel",()=>app.World.FitHotel(),Lilac,14);
+            else if(app.World.WatchedCatId>=0)Button(row,"Stop watch",()=>{app.World.StopWatching();Rebuild();},Lilac,13);
+            else {var guest=app.Model.Actors.FirstOrDefault(a=>a.kind==ActorKind.Guest);if(guest!=null)Button(row,"Watch cat",()=>{app.World.WatchCat(guest.catId);Rebuild();},Lilac,13);else Button(row,"Fit hotel",()=>app.World.FitHotel(),Lilac,14);}
+        }
+
+        // Phone sheets/catalogues must leave ≥35% of screen height for the voxel world.
+        float CapPhoneSheetFraction(float requested)
+        {
+            float logicalH=Mathf.Max(1f,lastSafe.height/Mathf.Max(.01f,canvas.scaleFactor));
+            float headerLogical=64f;
+            float minWorldLogical=.35f*Screen.height/Mathf.Max(.01f,canvas.scaleFactor);
+            float maxFraction=1f-(minWorldLogical+headerLogical)/logicalH;
+            return Mathf.Clamp(Mathf.Min(requested,maxFraction),.32f,.55f);
         }
 
         RectTransform Sheet(string name,string title,float fraction=.61f)
@@ -588,17 +664,21 @@ namespace Purrington.Presentation
 
             if(wide)Pin(sheet,new Vector2(1,0),Vector2.one,new Vector2(1,.5f),new Vector2(-360,96),new Vector2(-12,-98));
 
-            else Pin(sheet,Vector2.zero,new Vector2(1,fraction),Vector2.zero,new Vector2(10,96),new Vector2(-10,0));
+            else
+            {
+                fraction=CapPhoneSheetFraction(fraction);
+                Pin(sheet,Vector2.zero,new Vector2(1,fraction),Vector2.zero,new Vector2(10,96),new Vector2(-10,0));
+            }
 
             var label=Text(sheet,title,18,Ink,true);
 
-            Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(18,-78),new Vector2(-76,-8));
+            Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(18,-58),new Vector2(-76,-8));
 
-            var close=Button(sheet,"Back",()=>Navigate("Hotel"),Gold,12);
+            var close=Button(sheet,"Back",()=>{if(tab=="Town")Back();else Navigate("Hotel");},Gold,12);
 
-            Pin(close,new Vector2(1,1),Vector2.one,Vector2.one,new Vector2(-66,-60),new Vector2(-10,-12));
+            Pin(close,new Vector2(1,1),Vector2.one,Vector2.one,new Vector2(-66,-56),new Vector2(-10,-8));
 
-            return Scroll(sheet,84,12);
+            return Scroll(sheet,64,12);
 
         }
 
@@ -610,35 +690,51 @@ namespace Purrington.Presentation
 
             {
 
+                // Placement chrome only: item, price, Rotate, Cancel, Place — keep ≥50% safe height for the world.
                 var tray=Panel("Placement",safe,Cream);
 
-                float logicalSafeHeight=lastSafe.height/canvas.scaleFactor;
+                float logicalSafeHeight=lastSafe.height/Mathf.Max(.01f,canvas.scaleFactor);
 
-                float trayTop=Mathf.Clamp(logicalSafeHeight*.5f-86,217,248);
+                float headerReserve=56f;
 
-                Pin(tray,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,96),new Vector2(-10,trayTop));
+                float maxTrayTop=Mathf.Max(120f,logicalSafeHeight*.5f-headerReserve);
+
+                float trayTop=Mathf.Min(128f,maxTrayTop);
+
+                Pin(tray,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,10),new Vector2(-10,trayTop));
 
                 string name=commandAction.Length>0?commandTitle:movingRoom.Length>0?"Move room + furnishings":placement=="room"?"Cozy guest room":Catalog.All.First(x=>x.id==placement).name;
 
-                var label=Text(tray,name+"  ·  tap to position",14,Ink,true);
+                double price=commandAction.Length>0?0:movingRoom.Length>0||movingObject.Length>0||retrievingObject.Length>0?0:placement=="room"?450:Catalog.All.First(x=>x.id==placement).price;
 
-                Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-58),new Vector2(-14,-6));
+                string priceBit=price>0?" · "+price.ToString("N0")+" coins":"";
 
-                var row=Horizontal(tray,6,8);row.offsetMin=new Vector2(8,8);row.offsetMax=new Vector2(-8,-65);
+                var label=Text(tray,name+priceBit+"\nTap hotel to position",13,Ink,true);
+
+                Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-52),new Vector2(-14,-6));
+
+                var row=Horizontal(tray,6,8);row.offsetMin=new Vector2(8,8);row.offsetMax=new Vector2(-8,-58);
 
                 Button(row,"Cancel",()=>CancelPlacement(),Lilac,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
 
                 if(placement!="room"||movingRoom.Length>0)Button(row,"Rotate",Rotate,Gold,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
 
-                double price=commandAction.Length>0?0:movingRoom.Length>0||movingObject.Length>0||retrievingObject.Length>0?0:placement=="room"?450:Catalog.All.First(x=>x.id==placement).price;
+                string placeLabel=commandAction.Length>0?"Confirm":(movingRoom.Length>0||movingObject.Length>0?"Move":"Place");
 
-                Button(row,commandAction.Length>0?"Confirm":(movingRoom.Length>0||movingObject.Length>0?"Move":"Place")+"\n"+price.ToString("N0"),Place,Mint,14).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
+                Button(row,placeLabel,Place,Mint,14).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
 
                 return;
 
             }
 
-            var content=Sheet("Build catalogue","Make it yours",.51f);
+            var content=Sheet("Build catalogue","Build",.55f);
+            FloorChip(content);
+
+            var tools=Button(sheet,buildToolsExpanded?"Done":"Tools",()=>{buildToolsExpanded=!buildToolsExpanded;Rebuild();},Mint,12);
+            Pin(tools,Vector2.one,Vector2.one,Vector2.one,new Vector2(textScale>1?-150:-130,-56),new Vector2(-74,-8));
+
+            if(buildToolsExpanded)
+            {
 
             var controls=Row(content,54);
 
@@ -649,6 +745,7 @@ namespace Purrington.Presentation
             Button(controls,"Play",()=>Navigate("Hotel"),Mint,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
 
             BuildExtras(content);
+            }
 
             if(selectedRoom.Length>0)
 
@@ -662,15 +759,14 @@ namespace Purrington.Presentation
 
                     string id=room.id;
 
-                    RoomExtras(content,id,room.width,room.depth);
+                    if(room.cells==null)RoomExtras(content,id,room.width,room.depth);
 
-                    Info(content,"EDIT ROOM",room.width+" × "+room.depth+" tiles · "+(app.Model.IsRoomReady(room)?"Ready for guests":"Needs reachable bed and reception")+"\nRemoving stores furniture and returns "+room.paid.ToString("N0")+" shell coins.");
+                    Info(content,"EDIT ROOM",(room.cells==null?room.width+" × "+room.depth:room.cells.Count.ToString())+" tiles · "+(app.Model.IsRoomReady(room)?"Ready for guests":"Needs reachable bed and reception")+"\n"+(room.cells==null?"Move or resize this room.":"Reshape this room with Walls.")+" Removing stores furniture and returns "+room.paid.ToString("N0")+" shell coins.");
 
                     var actions=Row(content,56);
 
-                    Button(actions,"Move",()=>BeginMoveRoom(id),Mint,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-                    Button(actions,"Rotate",()=>BeginMoveRoom(id,true),Gold,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
+                    if(room.cells==null){Button(actions,"Move",()=>BeginMoveRoom(id),Mint,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
+                    Button(actions,"Rotate",()=>BeginMoveRoom(id,true),Gold,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;}
 
                     Button(actions,"Remove",()=>{var result=app.Model.RemoveRoom(id);app.Report(result);if(result.success)selectedRoom="";Rebuild();ShowNotice(result.message,!result.success);},Coral,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
 
@@ -702,7 +798,7 @@ namespace Purrington.Presentation
 
             }
 
-            var categories=new[]{"All","Rooms","Arrangements","Land","Paths"}.Concat(Catalog.All.Select(x=>x.category).Distinct()).Concat(new[]{"Storage"}).ToArray();
+            var categories=new[]{"All","Hotel","Rooms","Arrangements","Land","Paths"}.Concat(Catalog.All.Select(x=>x.category).Distinct()).Concat(new[]{"Storage"}).ToArray();
 
             CategoryChips(content,categories);
 
@@ -738,7 +834,7 @@ namespace Purrington.Presentation
 
                     string id=stored.id;var item=Catalog.Find(stored.itemId);
 
-                    CatalogCard(content,item.name,"Ready to place",0,()=>BeginRetrieve(id),Mint,item.role);
+                    CatalogCard(content,item.name,"Ready to place",0,()=>BeginRetrieve(id),Mint,item.role,item.id);
 
                 }
 
@@ -750,7 +846,7 @@ namespace Purrington.Presentation
 
                 var chosen=item;
 
-                CatalogCard(content,item.name,item.role+" · "+(item.indoorOnly?"Indoors":"Any floor")+(item.bond>0?" · "+item.bond+" bond":""),app.Model.State.settings.godMode?0:item.price,()=>BeginPlace(chosen.id),Mint,item.role);
+                CatalogCard(content,item.name,item.role+" · "+(item.indoorOnly?"Indoors":"Any floor")+(item.bond>0?" · "+item.bond+" bond":""),app.Model.State.settings.godMode?0:item.price,()=>BeginPlace(chosen.id),Mint,item.role,chosen.id);
 
             }
 
@@ -862,6 +958,8 @@ namespace Purrington.Presentation
 
             Card(content,"Animated motion","Cat movement and little world details",state.motion?"On":"Off",()=>{app.Report(app.Model.SetSettings(state.textScale,!state.motion,state.music,state.sound));Rebuild();},Gold);
 
+            Card(content,"Assisted care","Guided actions for easier cat care",state.assistedCare?"On":"Off",()=>{app.Report(app.Model.SetAssistedCare(!state.assistedCare));Rebuild();},Mint);
+
             Card(content,"Music","Background music",state.music?"On":"Off",()=>{app.Report(app.Model.SetSettings(state.textScale,state.motion,!state.music,state.sound));Rebuild();},Lilac);
 
             Card(content,"Sound effects","Little purrs and happy moments",state.sound?"On":"Off",()=>{app.Report(app.Model.SetSettings(state.textScale,state.motion,state.music,!state.sound));Rebuild();},Lilac);
@@ -908,7 +1006,7 @@ namespace Purrington.Presentation
 
         public void ClearSaveFailure(){if(!saveError)return;saveError=false;persistentSaveError="";if(toast)toast.transform.parent.gameObject.SetActive(false);}
 
-        void Card(Transform parent,string title,string description,string action,Action callback,Color accent)
+        void Card(Transform parent,string title,string description,string action,Action callback,Color accent,bool enabled=true)
 
         {
 
@@ -920,33 +1018,51 @@ namespace Purrington.Presentation
 
             var btn=Button(card,action,callback,accent,14);
 
+            btn.GetComponent<UnityEngine.UI.Button>().interactable=enabled;
+
+            if(!enabled)btn.GetComponent<UnityEngine.UI.Image>().color=new Color(accent.r*.82f,accent.g*.82f,accent.b*.82f,.72f);
+
             Pin(btn,new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(-91,-28),new Vector2(-7,28));
 
         }
 
-        void CatalogCard(Transform parent,string title,string categoryName,double price,Action callback,Color accent,string role)
+        void CatalogCard(Transform parent,string title,string categoryName,double price,Action callback,Color accent,string role,string itemId="")
 
         {
 
-            var card=Panel(title,parent,Color.white);Height(card,Mathf.Lerp(108,152,(textScale-1)*2));
+            var card=Panel(title,parent,Color.white);Height(card,Mathf.Lerp(128,172,(textScale-1)*2));
 
             var icon=Panel("Voxel illustration",card,role=="room"?Gold:role=="bed"?Lilac:Mint);
 
-            Pin(icon,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(10,-64),new Vector2(64,-10));
+            Pin(icon,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(10,-84),new Vector2(84,-10));
 
             icon.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
 
-            VoxelIcon(icon,role);
+            string key="build-previews/"+(itemId??"").Replace('_','-');
+
+            Sprite preview=Art(key);
+
+            if(preview!=null)
+
+            {
+
+                icon.GetComponent<UnityEngine.UI.Image>().color=Cream;
+
+                var img=Image(icon,preview);Stretch(img.rectTransform,4,4,4,4);
+
+            }
+
+            else VoxelIcon(icon,role);
 
             var label=Text(card,title,16,Ink,true);
 
-            Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(74,-72),new Vector2(-10,-8));
+            Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(94,-80),new Vector2(-10,-8));
 
             var meta=Text(card,categoryName,12,Ink);
 
             Pin(meta.rectTransform,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(12,10),new Vector2(-128,48));
 
-            var add=Button(card,price==0?"Place · free":price.ToString("N0")+"  +",callback,accent,13);
+            var add=Button(card,price==0?"Place · free":price.ToString("N0")+"  +",callback,price>0?Gold:accent,13);
 
             Pin(add,new Vector2(1,0),new Vector2(1,0),new Vector2(1,0),new Vector2(-126,8),new Vector2(-8,56));
 
@@ -1010,13 +1126,13 @@ namespace Purrington.Presentation
 
         }
 
-        void Info(Transform parent,string title,string description)
+        TextMeshProUGUI Info(Transform parent,string title,string description)
 
         {
 
             var panel=Panel(title,parent,Color.white);Height(panel,120*textScale);
 
-            var label=Text(panel,title+"\n<size=80%>"+description+"</size>",17,Ink,true);Stretch(label.rectTransform,14,12,14,12);
+            var label=Text(panel,title+"\n<size=80%>"+description+"</size>",17,Ink,true);Stretch(label.rectTransform,14,12,14,12);return label;
 
         }
 
@@ -1098,7 +1214,7 @@ namespace Purrington.Presentation
 
         }
 
-        RectTransform Panel(string name,Transform parent,Color color){var r=Rect(name,parent);var img=r.gameObject.AddComponent<UnityEngine.UI.Image>();img.sprite=rounded;img.type=UnityEngine.UI.Image.Type.Sliced;img.color=color;return r;}
+        RectTransform Panel(string name,Transform parent,Color color){var r=Rect(name,parent);var img=r.gameObject.AddComponent<UnityEngine.UI.Image>();img.sprite=rounded;img.type=UnityEngine.UI.Image.Type.Sliced;img.color=color;if(parent==safe){var shadow=r.gameObject.AddComponent<UnityEngine.UI.Shadow>();shadow.effectColor=new Color(.12f,.18f,.12f,.14f);shadow.effectDistance=new Vector2(0,-3);shadow.useGraphicAlpha=true;}return r;}
 
         UnityEngine.UI.Image Image(Transform parent,Sprite sprite){var r=Rect("Illustration",parent);var img=r.gameObject.AddComponent<UnityEngine.UI.Image>();img.sprite=sprite;img.preserveAspect=true;img.raycastTarget=false;if(sprite==null)img.color=Color.clear;return img;}
 

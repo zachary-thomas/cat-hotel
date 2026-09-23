@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Purrington Hotel Unity Preview" tests="94" failures="0" errors="0" skipped="0" time="39.699">
+  <testsuite name="ClothingStoreTests" tests="3" failures="0" errors="0" skipped="0" time="5.573">
+    <testcase name="BoutiqueHasDistinctFixturesAndNoCarts" classname="ClothingStoreTests" time="1.129" />
+    <testcase name="ReloadedManagerOutfitUsesAllBindingsOutsideAndInside" classname="ClothingStoreTests" time="3.114" />
+    <testcase name="TryOnCopiesOutfitAndCancelOrLeaveRestoresCommittedManager" classname="ClothingStoreTests" time="1.329" />
+  </testsuite>
+  <testsuite name="Purrington.Tests.CareGestureRecognizerTests" tests="13" failures="0" errors="0" skipped="0" time="0.003">
+    <testcase name="BrokenContactResetsIncompleteStroke(&quot;pet&quot;)" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.001" />
+    <testcase name="BrokenContactResetsIncompleteStroke(&quot;brush&quot;)" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+    <testcase name="BrushNeedsMotionNotHold" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+    <testcase name="CancelOrToolChangeDiscardsMotion" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+    <testcase name="FeatherRequiresDrag" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+    <testcase name="OffCatTravelDoesNotCount(&quot;pet&quot;)" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.001" />
+    <testcase name="OffCatTravelDoesNotCount(&quot;brush&quot;)" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+    <testcase name="PetHoldCompletesOnce" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+    <testcase name="PetNeedsDeliberateStrokeOrHold" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+    <testcase name="PlacementAndAssistanceNeverDirectlyReward(&quot;box&quot;)" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+    <testcase name="PlacementAndAssistanceNeverDirectlyReward(&quot;cushion&quot;)" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+    <testcase name="TinyJitterDoesNotBuildBrushStroke" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+    <testcase name="YarnNeedsBothDistanceAndFastRelease" classname="Purrington.Tests.CareGestureRecognizerTests" time="0.000" />
+  </testsuite>
+  <testsuite name="Purrington.Tests.CatSpeechOverlayTests" tests="6" failures="0" errors="0" skipped="0" time="0.005">
+    <testcase name="BubbleStaysInsideAvailableWorld(360,640)" classname="Purrington.Tests.CatSpeechOverlayTests" time="0.004" />
+    <testcase name="BubbleStaysInsideAvailableWorld(390,844)" classname="Purrington.Tests.CatSpeechOverlayTests" time="0.000" />
+    <testcase name="BubbleStaysInsideAvailableWorld(430,932)" classname="Purrington.Tests.CatSpeechOverlayTests" time="0.000" />
+    <testcase name="BubbleStaysInsideAvailableWorld(1280,800)" classname="Purrington.Tests.CatSpeechOverlayTests" time="0.000" />
+    <testcase name="HidesWhenNoReadablePlacementExists" classname="Purrington.Tests.CatSpeechOverlayTests" time="0.000" />
+    <testcase name="SearchesHigherToKeepOtherCatsFacesClear" classname="Purrington.Tests.CatSpeechOverlayTests" time="0.000" />
+  </testsuite>
+  <testsuite name="Purrington.Tests.DeskVisitorTests" tests="31" failures="0" errors="0" skipped="0" time="3.999">
+    <testcase name="BlockedCustomerFrontClosesServiceRatherThanUsingRear(&quot;reception_counter&quot;,0)" classname="Purrington.Tests.DeskVisitorTests" time="0.242" />
+    <testcase name="BlockedCustomerFrontClosesServiceRatherThanUsingRear(&quot;reception_counter&quot;,1)" classname="Purrington.Tests.DeskVisitorTests" time="0.190" />
+    <testcase name="BlockedCustomerFrontClosesServiceRatherThanUsingRear(&quot;reception_counter&quot;,2)" classname="Purrington.Tests.DeskVisitorTests" time="0.167" />
+    <testcase name="BlockedCustomerFrontClosesServiceRatherThanUsingRear(&quot;reception_counter&quot;,3)" classname="Purrington.Tests.DeskVisitorTests" time="0.165" />
+    <testcase name="BlockedCustomerFrontClosesServiceRatherThanUsingRear(&quot;milkshake_counter&quot;,0)" classname="Purrington.Tests.DeskVisitorTests" time="0.189" />
+    <testcase name="BlockedCustomerFrontClosesServiceRatherThanUsingRear(&quot;milkshake_counter&quot;,1)" classname="Purrington.Tests.DeskVisitorTests" time="0.245" />
+    <testcase name="BlockedCustomerFrontClosesServiceRatherThanUsingRear(&quot;milkshake_counter&quot;,2)" classname="Purrington.Tests.DeskVisitorTests" time="0.178" />
+    <testcase name="BlockedCustomerFrontClosesServiceRatherThanUsingRear(&quot;milkshake_counter&quot;,3)" classname="Purrington.Tests.DeskVisitorTests" time="0.167" />
+    <testcase name="CareAndAssistancePreferenceRollBackWhenSaveFails" classname="Purrington.Tests.DeskVisitorTests" time="0.065" />
+    <testcase name="DayVisitorsAreCappedAndDoNotChangeGuestProgressionOrIncomeRate" classname="Purrington.Tests.DeskVisitorTests" time="0.253" />
+    <testcase name="EditingLayoutPreservesAnExtendedStreetEntrance" classname="Purrington.Tests.DeskVisitorTests" time="0.161" />
+    <testcase name="FrontAgainstWallCannotUseReachableRear(&quot;reception_counter&quot;,0)" classname="Purrington.Tests.DeskVisitorTests" time="0.128" />
+    <testcase name="FrontAgainstWallCannotUseReachableRear(&quot;reception_counter&quot;,1)" classname="Purrington.Tests.DeskVisitorTests" time="0.120" />
+    <testcase name="FrontAgainstWallCannotUseReachableRear(&quot;reception_counter&quot;,2)" classname="Purrington.Tests.DeskVisitorTests" time="0.107" />
+    <testcase name="FrontAgainstWallCannotUseReachableRear(&quot;reception_counter&quot;,3)" classname="Purrington.Tests.DeskVisitorTests" time="0.100" />
+    <testcase name="FrontAgainstWallCannotUseReachableRear(&quot;milkshake_counter&quot;,0)" classname="Purrington.Tests.DeskVisitorTests" time="0.104" />
+    <testcase name="FrontAgainstWallCannotUseReachableRear(&quot;milkshake_counter&quot;,1)" classname="Purrington.Tests.DeskVisitorTests" time="0.147" />
+    <testcase name="FrontAgainstWallCannotUseReachableRear(&quot;milkshake_counter&quot;,2)" classname="Purrington.Tests.DeskVisitorTests" time="0.105" />
+    <testcase name="FrontAgainstWallCannotUseReachableRear(&quot;milkshake_counter&quot;,3)" classname="Purrington.Tests.DeskVisitorTests" time="0.107" />
+    <testcase name="MovingOrRotatingOccupiedCounterReleasesOldSlotsAndResumesVisits(False)" classname="Purrington.Tests.DeskVisitorTests" time="0.154" />
+    <testcase name="MovingOrRotatingOccupiedCounterReleasesOldSlotsAndResumesVisits(True)" classname="Purrington.Tests.DeskVisitorTests" time="0.145" />
+    <testcase name="OldSaveDefaultsAssistedCareToDisabled" classname="Purrington.Tests.DeskVisitorTests" time="0.128" />
+    <testcase name="RemovingOccupiedCounterReleasesStaffAndVisitorsWithoutPhantomService" classname="Purrington.Tests.DeskVisitorTests" time="0.122" />
+    <testcase name="StaffAndCustomersUseOppositeAuthoredSides(&quot;reception_counter&quot;,0)" classname="Purrington.Tests.DeskVisitorTests" time="0.063" />
+    <testcase name="StaffAndCustomersUseOppositeAuthoredSides(&quot;reception_counter&quot;,1)" classname="Purrington.Tests.DeskVisitorTests" time="0.062" />
+    <testcase name="StaffAndCustomersUseOppositeAuthoredSides(&quot;reception_counter&quot;,2)" classname="Purrington.Tests.DeskVisitorTests" time="0.063" />
+    <testcase name="StaffAndCustomersUseOppositeAuthoredSides(&quot;reception_counter&quot;,3)" classname="Purrington.Tests.DeskVisitorTests" time="0.064" />
+    <testcase name="StaffAndCustomersUseOppositeAuthoredSides(&quot;milkshake_counter&quot;,0)" classname="Purrington.Tests.DeskVisitorTests" time="0.063" />
+    <testcase name="StaffAndCustomersUseOppositeAuthoredSides(&quot;milkshake_counter&quot;,1)" classname="Purrington.Tests.DeskVisitorTests" time="0.062" />
+    <testcase name="StaffAndCustomersUseOppositeAuthoredSides(&quot;milkshake_counter&quot;,2)" classname="Purrington.Tests.DeskVisitorTests" time="0.063" />
+    <testcase name="StaffAndCustomersUseOppositeAuthoredSides(&quot;milkshake_counter&quot;,3)" classname="Purrington.Tests.DeskVisitorTests" time="0.071" />
+  </testsuite>
+  <testsuite name="Purrington.Tests.JournalSaveIntegrityTests" tests="4" failures="0" errors="0" skipped="0" time="1.422">
+    <testcase name="BothCorruptSlotsBlockWritesUntilReset" classname="Purrington.Tests.JournalSaveIntegrityTests" time="0.556" />
+    <testcase name="FailedSaveKeepsProgressAndRetryMessage" classname="Purrington.Tests.JournalSaveIntegrityTests" time="0.029" />
+    <testcase name="NewerSlotSurvivesCorruptOlderSlot" classname="Purrington.Tests.JournalSaveIntegrityTests" time="0.390" />
+    <testcase name="OrphanTempFilesDoNotHideValidSlot" classname="Purrington.Tests.JournalSaveIntegrityTests" time="0.447" />
+  </testsuite>
+  <testsuite name="Purrington.Tests.MainStreetViewTests" tests="3" failures="0" errors="0" skipped="0" time="2.522">
+    <testcase name="AllCoatsAndMarkingsKeepFaceAndWearBindingsOnAnimatedRig" classname="Purrington.Tests.MainStreetViewTests" time="0.766" />
+    <testcase name="ExteriorCoversAuthoredFootprintsAndKeepsWalkingAnchorsClear" classname="Purrington.Tests.MainStreetViewTests" time="0.963" />
+    <testcase name="PavementResolvesMidLinkButRejectsGrass" classname="Purrington.Tests.MainStreetViewTests" time="0.793" />
+  </testsuite>
+  <testsuite name="Purrington.Tests.MarketDayViewTests" tests="1" failures="0" errors="0" skipped="0" time="1.142">
+    <testcase name="QuietRunningAndCompletedSquare" classname="Purrington.Tests.MarketDayViewTests" time="1.142" />
+  </testsuite>
+  <testsuite name="Purrington.Tests.MeadowEditModeTests" tests="15" failures="0" errors="0" skipped="0" time="10.013">
+    <testcase name="AuthoritativeLifeMovesSafelyAndCompletesVisits" classname="Purrington.Tests.MeadowEditModeTests" time="0.756" />
+    <testcase name="CopiedCountersDoNotMultiplyUpgradeIncome" classname="Purrington.Tests.MeadowEditModeTests" time="2.516" />
+    <testcase name="DictionarySaveRoundTripRetainsAllDestinations" classname="Purrington.Tests.MeadowEditModeTests" time="0.132" />
+    <testcase name="EveryArrangementSupportsEveryRotation" classname="Purrington.Tests.MeadowEditModeTests" time="1.060" />
+    <testcase name="ExclusiveBarStaffAndGuestSlots" classname="Purrington.Tests.MeadowEditModeTests" time="1.202" />
+    <testcase name="FavoriteCareCooldownAndUndoPreserveProgress" classname="Purrington.Tests.MeadowEditModeTests" time="0.066" />
+    <testcase name="GodModeAndOfflineClaimRollback" classname="Purrington.Tests.MeadowEditModeTests" time="1.498" />
+    <testcase name="GuestIntentReadableDuringMilkshake" classname="Purrington.Tests.MeadowEditModeTests" time="0.338" />
+    <testcase name="IncomeAndArrivalReadoutsTrackActorsAndRate" classname="Purrington.Tests.MeadowEditModeTests" time="0.318" />
+    <testcase name="OutdoorBenchOpensOnGrass" classname="Purrington.Tests.MeadowEditModeTests" time="0.290" />
+    <testcase name="QuotesAndFailedSavesAreTransactional" classname="Purrington.Tests.MeadowEditModeTests" time="0.036" />
+    <testcase name="ReceptionRemovalDropsCapacityAndReleasesReservations" classname="Purrington.Tests.MeadowEditModeTests" time="0.884" />
+    <testcase name="ReferenceContentIncludesFourMapsSixArrangementsAndAllCats" classname="Purrington.Tests.MeadowEditModeTests" time="0.297" />
+    <testcase name="SeasideTravelGateMatchesGodot" classname="Purrington.Tests.MeadowEditModeTests" time="0.019" />
+    <testcase name="TravelUnlocksSeasideAndPersists" classname="Purrington.Tests.MeadowEditModeTests" time="0.600" />
+  </testsuite>
+  <testsuite name="ShoppingCartTests" tests="4" failures="0" errors="0" skipped="0" time="3.364">
+    <testcase name="CartFollowsPawsThroughTurnsAndWheelsTrackDistance" classname="ShoppingCartTests" time="0.877" />
+    <testcase name="PurchaseRoutineParksDistinctCartsAndClothingHidesAll" classname="ShoppingCartTests" time="0.721" />
+    <testcase name="ReducedMotionKeepsStaticPawPoseAndPurchaseDestination" classname="ShoppingCartTests" time="1.023" />
+    <testcase name="ZeroTimeFreezesTravelAndNpcCartsMoveIndependently" classname="ShoppingCartTests" time="0.743" />
+  </testsuite>
+  <testsuite name="StoreInteriorTests" tests="7" failures="0" errors="0" skipped="0" time="10.221">
+    <testcase name="CashierRequiresArrivalAndBackClosesConversationFirst" classname="StoreInteriorTests" time="0.794" />
+    <testcase name="ExploreReopensSavedStoreWithoutFollowOverridingInteriorCamera(&quot;paw_mart&quot;)" classname="StoreInteriorTests" time="2.036" />
+    <testcase name="ExploreReopensSavedStoreWithoutFollowOverridingInteriorCamera(&quot;clothing&quot;)" classname="StoreInteriorTests" time="1.791" />
+    <testcase name="LeavingStoreRestoresStreetFollow(True)" classname="StoreInteriorTests" time="2.120" />
+    <testcase name="LeavingStoreRestoresStreetFollow(False)" classname="StoreInteriorTests" time="1.624" />
+    <testcase name="StoresRemainHiddenUntilEntryAndOnlyOneIsVisible" classname="StoreInteriorTests" time="0.759" />
+    <testcase name="UnknownStoreIsRejected" classname="StoreInteriorTests" time="1.096" />
+  </testsuite>
+  <testsuite name="TownCashierRefreshTests" tests="4" failures="0" errors="0" skipped="0" time="0.066">
+    <testcase name="FailedCommandKeepsCurrentSheetAndReportsFailure" classname="TownCashierRefreshTests" time="0.000" />
+    <testcase name="SuccessfulCashierCommandRefreshesFromSavedStateBeforeShowingNotice(&quot;quest&quot;)" classname="TownCashierRefreshTests" time="0.023" />
+    <testcase name="SuccessfulCashierCommandRefreshesFromSavedStateBeforeShowingNotice(&quot;grocery&quot;)" classname="TownCashierRefreshTests" time="0.021" />
+    <testcase name="SuccessfulCashierCommandRefreshesFromSavedStateBeforeShowingNotice(&quot;clothing&quot;)" classname="TownCashierRefreshTests" time="0.022" />
+  </testsuite>
+  <testsuite name="WardrobeTests" tests="3" failures="0" errors="0" skipped="0" time="1.371">
+    <testcase name="OutfitPiecesSitOnTheirAnchorsAndClearAway" classname="WardrobeTests" time="0.769" />
+    <testcase name="ReplacedAndClearedWearStopsRenderingImmediately" classname="WardrobeTests" time="0.602" />
+    <testcase name="WardrobeContentLoadsFromResources" classname="WardrobeTests" time="0.001">
+      <system-out>Saving results to: C:/Users/zach7/AppData/LocalLow/Purrington/Purrington Hotel Unity Preview\TestResults.xml</system-out>
+    </testcase>
+  </testsuite>
+</testsuites>

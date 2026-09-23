@@ -1,3 +1,4 @@
+﻿using Purrington.Domain;
 using System;
 
 using System.Linq;
@@ -24,6 +25,8 @@ namespace Purrington.Presentation
 
         bool careDetails;
 
+        string lifeFocus="";
+
         TextMeshProUGUI careBond, careHint;
 
         CareGestureInput gestureInput;
@@ -42,11 +45,11 @@ namespace Purrington.Presentation
 
         {
 
-            CancelPlacement(false);lastPathCell=null; commandAction=action;commandPayload=(JObject)payload.DeepClone();commandTitle=title;placement="command";
+            CancelPlacement(false);lastPathCell=null;roomAnchor=null; commandAction=action;commandPayload=(JObject)payload.DeepClone();if(action=="place_template")commandPayload["floor"]=currentFloor;commandTitle=title;placement="command";
 
             rotation=(int?)payload["rotation"]??0;hasTarget=action=="buy_plot"||action=="resize_room";
 
-            app.World.SetPathPainting(action=="paint_path"||action=="erase_path");Rebuild();
+            app.World.SetPathPainting(action=="paint_path"||action=="erase_path"||ShellDrawing(action));Rebuild();
 
             if(hasTarget)PreviewCommand();
 
@@ -55,6 +58,8 @@ namespace Purrington.Presentation
         void UpdateCommandTarget(Vector3 point)
 
         {
+
+            if(ShellTarget(point))return;
 
             target=new Vector3(Mathf.Round(point.x*2)/2,0,Mathf.Round(point.z*2)/2);
 
@@ -102,7 +107,7 @@ namespace Purrington.Presentation
 
         }
 
-        public void GroundDragged(Vector3 point){if(commandAction=="paint_path"||commandAction=="erase_path")UpdateCommandTarget(point);}
+        public void GroundDragged(Vector3 point){if(commandAction=="paint_path"||commandAction=="erase_path"||ShellDrawing(commandAction))UpdateCommandTarget(point);}
 
         public void SelectRoom(string id){if(tab=="Build"&&!IsPlacing)EditRoom(id);}
 
@@ -148,7 +153,9 @@ namespace Purrington.Presentation
 
         {
 
-            if(category=="All"||category=="Rooms")
+            ShellCatalogue(content);
+
+            if(category=="Rooms")
 
                 foreach(var kind in new[]{"regular","suite","cottage"})
 
@@ -158,7 +165,7 @@ namespace Purrington.Presentation
 
                     var payload=new JObject{{"kind",kind=="cottage"?"regular":kind},{"w",4},{"h",kind=="suite"?5:kind=="cottage"?4:3},{"rotation",0},{"name",name}};
 
-                    CatalogCard(content,name,"Rooms",app.Model.CatalogPrice("place_room",payload),()=>BeginCommand("place_room",payload,name),Gold,"room");
+                    CatalogCard(content,name,"Outdoor pavilion · draw indoor rooms under Hotel",app.Model.CatalogPrice("place_room",payload),()=>BeginCommand("place_room",payload,name),Gold,"room");
 
                 }
 
@@ -171,6 +178,8 @@ namespace Purrington.Presentation
                 CatalogCard(content,(string)entry["name"],"Individually editable furnishings",app.Model.CatalogPrice("place_template",payload),()=>BeginCommand("place_template",payload,(string)entry["name"]),Gold,"room");
 
             }
+
+            if(category=="Land")Card(content,"Grow straight onto land","Use Hotel → Grow: land for sale is bought as the hotel grows onto it.","Grow",()=>BeginCommand("paint_floor",new JObject{{"floor",currentFloor},{"cells",new JArray()},{"buy",true}},"Grow the hotel"),Mint);
 
             if(category=="Land")foreach(var plot in app.Model.Map()["plots"]??new JArray())
 
@@ -194,11 +203,102 @@ namespace Purrington.Presentation
 
         {
 
-            var content=Sheet("Hotel life","A hotel full of little stories",.70f);var hotel=JObject.FromObject(app.Model.Hotel());
+            var hotel=JObject.FromObject(app.Model.Hotel());
 
-            Info(content,"HOTEL LIFE",(hotel["visits"]??0)+" visits · "+(hotel["happy"]??0)+" happy guests\n"+app.Model.Rate().ToString("N1")+" coins / minute · capacity "+app.Model.GuestCapacity());
+            if(lifeFocus=="manager"){LifeManagerFocus(hotel);return;}
 
-            Info(content,"HOTEL LEVEL "+(hotel["level"]??1),"Upgrade your services to grow your hotel. Every two service upgrades increase your hotel level.");
+            if(lifeFocus=="staff"){LifeStaffFocus(hotel);return;}
+
+            var mapName=(string)app.Model.Map()["name"]??"Meadow House";
+
+            var content=Sheet("Hotel life","Life at "+mapName,.70f);
+            if(app.Model.State.currentHotel==0){var explore=Button(content,"Explore Main Street",app.TownUI.Explore,Mint,15);Height(explore,52*textScale);}
+
+            int staying=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest);
+            int arriving=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest&&!a.checkedIn);
+            int capacity=app.Model.GuestCapacity();
+            Info(content,"Little things. Happy cats.",
+                staying+" staying · "+capacity+" capacity · "+(arriving>0?arriving+" arriving":"reception ready")+"\n"+
+                "+"+Math.Round(app.Model.Rate()).ToString("N0")+" / min · "+Math.Floor(app.Model.State.coins).ToString("N0")+" coins · "+(hotel["visits"]??0)+" visits · "+(hotel["happy"]??0)+" happy");
+
+
+            if(app.Model.DayVisitorCount>0)Info(content,"Day visitors",app.Model.DayVisitorCount+" visiting the milkshake bar � no beds needed");
+
+            var guestLines=app.Model.Actors.Where(a=>a.kind==ActorKind.Guest).Select(a=>{string intent=!string.IsNullOrEmpty(a.speech)?a.speech:a.action;return string.IsNullOrEmpty(intent)||intent=="rest"?null:a.name+" · "+intent;}).Where(line=>line!=null).Take(3).ToArray();
+
+            if(guestLines.Length>0)Info(content,"Guests right now",string.Join("\n",guestLines));
+
+            Banner(content,"nap-gathering",150);
+
+            Card(content,"Great Nap Championship","Soft pillows, sleepy friends, and one shiny trophy.","Get ready >",()=>ShowNotice("The Great Nap Championship is warming up — gatherings aren't fully ready yet, but the calm is already here.",false),Mint);
+
+            string[] labels={"Garden","Manager","Staff","Scrapbook","Discoveries","Paw Mart"};
+
+            string[] arts={"garden","welcome-hotel","staff","scrapbook","reward","paw-mart"};
+
+            Action[] goes={
+
+                ()=>Navigate("Hotel"),
+
+                ()=>{lifeFocus="manager";Rebuild();},
+
+                ()=>{lifeFocus="staff";Rebuild();},
+
+                ()=>ShowNotice("Your scrapbook is waiting for little hotel memories. Pages open soon.",false),
+
+                ()=>ShowNotice("Discoveries will gather the sweet surprises guests leave behind. Coming along soon.",false),
+
+                ()=>ShowNotice("Paw Mart has no live commerce yet — shop purchases aren't available. Coming later.",false)
+
+            };
+
+            for(int r=0;r<3;r++)
+
+            {
+
+                var row=Row(content,132);
+
+                for(int c=0;c<2;c++)
+
+                {
+
+                    int i=r*2+c;LifeActivityTile(row,labels[i],arts[i],goes[i]);
+
+                }
+
+            }
+
+            Card(content,"Watch your favorite","Spend a quiet moment with someone you love.",">",()=>{var cat=app.Model.State.cats.FirstOrDefault(x=>x.known);if(cat!=null)OpenCare(cat.id);else Navigate("Cats");},Coral);
+
+            Height(Button(content,"Hotel specialty >",()=>{lifeFocus="manager";Rebuild();},Mint,14),48);
+
+        }
+
+        void LifeActivityTile(Transform parent,string label,string art,Action go)
+
+        {
+
+            var tile=Panel(label,parent,Color.white);
+
+            var button=tile.gameObject.AddComponent<UnityEngine.UI.Button>();button.targetGraphic=tile.GetComponent<UnityEngine.UI.Image>();button.onClick.AddListener(()=>{app.Audio?.PlayEffect("tap");go();});
+
+            var column=tile.gameObject.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();column.padding=new RectOffset(6,6,6,4);column.spacing=2;column.childAlignment=TextAnchor.UpperCenter;column.childControlWidth=true;column.childControlHeight=true;column.childForceExpandHeight=false;column.childForceExpandWidth=true;
+
+            Banner(tile,art,90);
+
+            var caption=Text(tile,label,13,Ink,true);caption.alignment=TextAlignmentOptions.Center;Height(caption.rectTransform,26);
+
+        }
+
+        void LifeManagerFocus(JObject hotel)
+
+        {
+
+            var content=Sheet("Hotel life","Manager desk",.70f);
+
+            Height(Button(content,"Back to Life",()=>{lifeFocus="";Rebuild();},Mint,14),52);
+
+            Info(content,"Hotel specialty","Upgrade your services to grow Meadow House. Every two service upgrades increase your hotel level.\nLevel "+(hotel["level"]??1));
 
             Card(content,"Housekeeping",(hotel["cleaned"]??0)+" rooms cleaned",(bool?)hotel["maid"]==true?"Hired":"Hire",()=>Run("hire_housekeeper"),Mint);
 
@@ -206,9 +306,21 @@ namespace Purrington.Presentation
 
             for(int i=0;i<4;i++){int index=i;var p=new JObject{{"service",i}};var q=app.Model.Quote("upgrade",p);Card(content,services[i],"Level "+(hotel["upgrades"]?[i]??0)+" · "+q.cost.ToString("N0")+" coins","Upgrade",()=>Run("upgrade",new JObject{{"service",index}}),Mint);}
 
-            for(int i=0;i<3;i++){int index=i;var staff=app.Model.Content.Staff[i];var q=app.Model.Quote("train",new JObject{{"staff",i}});Card(content,(string)staff["name"]+" · "+(string)staff["job"],"Training "+(hotel["staff"]?[i]??0)+" · "+q.cost.ToString("N0")+" coins","Train",()=>Run("train",new JObject{{"staff",index}}),Gold);}
-
             foreach(var venue in app.Model.Venues()){var v=JObject.FromObject(venue);Info(content,(string)v["name"]??"Social space",(string)v["status"]??v.ToString(Newtonsoft.Json.Formatting.None));}
+
+        }
+
+        void LifeStaffFocus(JObject hotel)
+
+        {
+
+            var content=Sheet("Hotel life","Staff training",.70f);
+
+            Height(Button(content,"Back to Life",()=>{lifeFocus="";Rebuild();},Mint,14),52);
+
+            Info(content,"Kind helpers","Train the team that keeps guests cozy.");
+
+            for(int i=0;i<3;i++){int index=i;var staff=app.Model.Content.Staff[i];var q=app.Model.Quote("train",new JObject{{"staff",i}});Card(content,(string)staff["name"]+" · "+(string)staff["job"],"Training "+(hotel["staff"]?[i]??0)+" · "+q.cost.ToString("N0")+" coins","Train",()=>Run("train",new JObject{{"staff",index}}),Gold);}
 
         }
 
@@ -224,9 +336,19 @@ namespace Purrington.Presentation
 
                 int index=i;var map=app.Model.Content.Maps[i];var gate=app.Model.CanTravel(i);
 
-                Card(content,(string)map["name"],i==app.Model.State.currentHotel?"You are here":gate.message,i==app.Model.State.currentHotel?"Here":gate.cost>0?"Unlock":"Travel",()=>{var result=app.Model.Travel(index);app.Report(result);if(result.success){app.World.FitHotel();Navigate("Hotel");}else ShowNotice(result.message,true,false);},Mint);
+                bool here=i==app.Model.State.currentHotel;
 
-                if(i>=2)Card(content,"Preview expansion","Test unlock · no real payment","Unlock",()=>{app.Report(app.Model.GrantEntitlement(index==2?"purrington.forest_lodge":"purrington.snowcap_spa"));Rebuild();},Gold);
+                string detail=here?"You are here":gate.message;
+
+                if(!here&&index==1&&!gate.success&&!app.Model.Hotel(1).owned)
+
+                    detail=gate.message+"\nMeadow level "+app.Model.Hotel(0).level+"/10 · coins "+Math.Floor(app.Model.State.coins).ToString("N0")+"/10,000";
+
+                string action=here?"Here":gate.cost>0?"Unlock · "+gate.cost.ToString("N0"):"Travel";
+
+                Card(content,(string)map["name"],detail,action,()=>{var result=app.Model.Travel(index);app.Report(result);if(result.success){app.World.FitHotel();Navigate("Hotel");}else ShowNotice(result.message,true,false);},Mint,here||gate.success);
+
+                if(i>=2&&!gate.success)Card(content,"Preview expansion","Preview expansion · no real payment","Preview unlock",()=>{app.Report(app.Model.GrantEntitlement(index==2?"purrington.forest_lodge":"purrington.snowcap_spa"));Rebuild();},Gold);
 
             }
 
@@ -243,8 +365,6 @@ namespace Purrington.Presentation
             Card(content,"God mode","Unlock all maps, land and cats. Free building and upgrades.",(bool?)s["godMode"]==true?"On":"Off",()=>{app.Report(app.Model.SetGodMode(!((bool?)s["godMode"]??false)));Rebuild();},Gold);
 
             Card(content,"Exterior walls","Show the outside of your hotel",(bool?)s["exterior"]==true?"On":"Off",()=>{app.Report(app.Model.SetViewSettings(!((bool?)s["exterior"]??false),(bool?)s["evening"]??false));app.World.SetCutaway(!app.Model.State.settings.exterior);Rebuild();},Mint);
-
-            Card(content,"Evening light","Warm lamps and night atmosphere",(bool?)s["evening"]==true?"On":"Off",()=>{app.Report(app.Model.SetViewSettings((bool?)s["exterior"]??false,!((bool?)s["evening"]??false)));app.World.SetEvening(app.Model.State.settings.evening);Rebuild();},Lilac);
 
             Card(content,"Offline earnings","Collect the coins earned while you were away.","Claim",()=>{app.Report(app.Model.ClaimOffline());Rebuild();},Gold);
 
@@ -284,27 +404,31 @@ namespace Purrington.Presentation
 
             var cat=app.Model.State.cats.First(c=>c.id==careCat);
 
-            var bondPanel=Panel("Care friendship",safe,Cream);
-            Pin(bondPanel,new Vector2(0,1),Vector2.one,Vector2.one,new Vector2(12,-146),new Vector2(-12,-94));
-            careBond=Text(bondPanel,cat.name+" · friendship "+cat.bond+" / 100",17,Ink,true);Stretch(careBond.rectTransform,12,4,12,4);
+            bool compactCare=lastSafe.height<540&&lastSafe.width>lastSafe.height;
 
-            var surface=Rect("Care gesture surface",safe);Pin(surface,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(10,250),new Vector2(-10,-148));
+            var bondPanel=Panel("Care friendship",safe,Cream);
+            Pin(bondPanel,new Vector2(0,1),Vector2.one,Vector2.one,new Vector2(12,compactCare?-114:-146),new Vector2(-12,compactCare?-74:-94));
+            careBond=Text(bondPanel,cat.name+" \u00b7 friendship "+cat.bond+" / 100",17,Ink,true);Stretch(careBond.rectTransform,12,4,12,4);
+
+            var surface=Rect("Care gesture surface",safe);Pin(surface,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(10,compactCare?166:250),new Vector2(-10,compactCare?-116:-148));
 
             surface.gameObject.AddComponent<UnityEngine.UI.Image>().color=new Color(1,1,1,.001f);
 
             gestureInput=surface.gameObject.AddComponent<CareGestureInput>();gestureInput.Initialize(app,careCat,careTool,OnCareAction);
 
-            var tray=Panel("Care tools",safe,Cream);Pin(tray,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,10),new Vector2(-10,244));
+            if(wardrobeOpen){gestureInput.Suspend();surface.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;WardrobePanel();return;}
 
-            var column=Vertical(tray,5,8);careHint=Text(column,CareGestureInput.Help(careTool),13,Ink);Height(careHint.rectTransform,40);
+            var tray=Panel("Care tools",safe,Cream);Pin(tray,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,10),new Vector2(-10,compactCare?160:244));
+            var column=Vertical(tray,5,8);careHint=Text(column,CareGestureInput.Help(careTool),13,Ink);Height(careHint.rectTransform,compactCare?24:40);
 
             string[] tools={"pet","brush","wand","yarn","cushion","box"};
 
             var choices=new System.Collections.Generic.Dictionary<string,UnityEngine.UI.Image>();
 
-            for(int r=0;r<2;r++){var row=Row(column,48);for(int c=0;c<3;c++){string tool=tools[r*3+c];var button=Button(row,tool=="wand"?"Feather":char.ToUpper(tool[0])+tool.Substring(1),()=>{careTool=tool;gestureInput.SetTool(tool);careHint.text=CareGestureInput.Help(tool);foreach(var entry in choices)entry.Value.color=entry.Key==tool?Gold:Lilac;},careTool==tool?Gold:Lilac,13);choices[tool]=button.GetComponent<UnityEngine.UI.Image>();}}
+            int columns=compactCare?6:3;
+            for(int r=0;r<6/columns;r++){var row=Row(column,48);for(int c=0;c<columns;c++){string tool=tools[r*columns+c];var button=Button(row,tool=="wand"?"Feather":char.ToUpper(tool[0])+tool.Substring(1),()=>{careTool=tool;gestureInput.SetTool(tool);careHint.text=CareGestureInput.Help(tool);foreach(var entry in choices)entry.Value.color=entry.Key==tool?Gold:Lilac;},careTool==tool?Gold:Lilac,13);choices[tool]=button.GetComponent<UnityEngine.UI.Image>();}}
 
-            var footer=Row(column,50);Button(footer,"Use tool",()=>gestureInput.UseSelectedTool(),Mint,13);Button(footer,"About & friends",()=>{careDetails=true;Rebuild();},Gold,13);
+            var footer=Row(column,compactCare?48:50);if(app.Model.State.settings.assistedCare)Button(footer,"Help me use this tool",()=>gestureInput.UseSelectedTool(),Mint,13);Button(footer,"Wardrobe",OpenWardrobe,Mint,13);Button(footer,"About & friends",()=>{careDetails=true;Rebuild();},Gold,13);
 
             if(careDetails)
 
@@ -326,7 +450,7 @@ namespace Purrington.Presentation
 
             var result=app.Model.Care(careCat,tool);if(!result.success||result.progressChanged)app.Report(result);
 
-            var cat=app.Model.State.cats.First(c=>c.id==careCat);if(careBond)careBond.text=cat.name+" · friendship "+cat.bond+" / 100";
+            var cat=app.Model.State.cats.First(c=>c.id==careCat);if(careBond)careBond.text=cat.name+" \u00b7 friendship "+cat.bond+" / 100";
 
             if(result.success&&result.progressChanged)app.Audio?.PlayEffect(tool=="pet"||tool=="brush"?"purr":"toy");
 

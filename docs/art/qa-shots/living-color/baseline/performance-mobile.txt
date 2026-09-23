@@ -1,0 +1,1 @@
+quality=none; 390x844; frames=180; averageMs=16.65; worstMs=17.0

@@ -1,0 +1,496 @@
+{
+  "status": "completed",
+  "duration": 21.36,
+  "summary": {
+    "total": 69,
+    "passed": 69,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.BrokenContactResetsIncompleteStroke(\"pet\")",
+      "Status": "Passed",
+      "Duration": 0.0100904,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.BrokenContactResetsIncompleteStroke(\"brush\")",
+      "Status": "Passed",
+      "Duration": 9.11E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.BrushNeedsMotionNotHold",
+      "Status": "Passed",
+      "Duration": 0.0004152,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.CancelOrToolChangeDiscardsMotion",
+      "Status": "Passed",
+      "Duration": 0.000142,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.FeatherRequiresDrag",
+      "Status": "Passed",
+      "Duration": 0.0002184,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.OffCatTravelDoesNotCount(\"pet\")",
+      "Status": "Passed",
+      "Duration": 0.0099633,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.OffCatTravelDoesNotCount(\"brush\")",
+      "Status": "Passed",
+      "Duration": 5.63E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.PetHoldCompletesOnce",
+      "Status": "Passed",
+      "Duration": 0.0001719,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.PetNeedsDeliberateStrokeOrHold",
+      "Status": "Passed",
+      "Duration": 0.0001237,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.PlacementAndAssistanceNeverDirectlyReward(\"box\")",
+      "Status": "Passed",
+      "Duration": 0.0001432,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.PlacementAndAssistanceNeverDirectlyReward(\"cushion\")",
+      "Status": "Passed",
+      "Duration": 3.49E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.TinyJitterDoesNotBuildBrushStroke",
+      "Status": "Passed",
+      "Duration": 0.0001362,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CareGestureRecognizerTests.YarnNeedsBothDistanceAndFastRelease",
+      "Status": "Passed",
+      "Duration": 0.0001833,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CatSpeechOverlayTests.BubbleStaysInsideAvailableWorld(360,640)",
+      "Status": "Passed",
+      "Duration": 0.0058826,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CatSpeechOverlayTests.BubbleStaysInsideAvailableWorld(390,844)",
+      "Status": "Passed",
+      "Duration": 7.05E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CatSpeechOverlayTests.BubbleStaysInsideAvailableWorld(430,932)",
+      "Status": "Passed",
+      "Duration": 4.46E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CatSpeechOverlayTests.BubbleStaysInsideAvailableWorld(1280,800)",
+      "Status": "Passed",
+      "Duration": 3.92E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CatSpeechOverlayTests.HidesWhenNoReadablePlacementExists",
+      "Status": "Passed",
+      "Duration": 0.0005988,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.CatSpeechOverlayTests.SearchesHigherToKeepOtherCatsFacesClear",
+      "Status": "Passed",
+      "Duration": 0.0002738,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.BlockedCustomerFrontClosesServiceRatherThanUsingRear(\"reception_counter\",0)",
+      "Status": "Passed",
+      "Duration": 0.3271995,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.BlockedCustomerFrontClosesServiceRatherThanUsingRear(\"reception_counter\",1)",
+      "Status": "Passed",
+      "Duration": 0.2880565,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.BlockedCustomerFrontClosesServiceRatherThanUsingRear(\"reception_counter\",2)",
+      "Status": "Passed",
+      "Duration": 0.2869164,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.BlockedCustomerFrontClosesServiceRatherThanUsingRear(\"reception_counter\",3)",
+      "Status": "Passed",
+      "Duration": 0.4451499,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.BlockedCustomerFrontClosesServiceRatherThanUsingRear(\"milkshake_counter\",0)",
+      "Status": "Passed",
+      "Duration": 0.3032562,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.BlockedCustomerFrontClosesServiceRatherThanUsingRear(\"milkshake_counter\",1)",
+      "Status": "Passed",
+      "Duration": 0.2883802,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.BlockedCustomerFrontClosesServiceRatherThanUsingRear(\"milkshake_counter\",2)",
+      "Status": "Passed",
+      "Duration": 0.319118,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.BlockedCustomerFrontClosesServiceRatherThanUsingRear(\"milkshake_counter\",3)",
+      "Status": "Passed",
+      "Duration": 0.3016628,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.CareAndAssistancePreferenceRollBackWhenSaveFails",
+      "Status": "Passed",
+      "Duration": 0.1004427,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.DayVisitorsAreCappedAndDoNotChangeGuestProgressionOrIncomeRate",
+      "Status": "Passed",
+      "Duration": 0.3886457,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.EditingLayoutPreservesAnExtendedStreetEntrance",
+      "Status": "Passed",
+      "Duration": 0.2325926,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.FrontAgainstWallCannotUseReachableRear(\"reception_counter\",0)",
+      "Status": "Passed",
+      "Duration": 0.2051107,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.FrontAgainstWallCannotUseReachableRear(\"reception_counter\",1)",
+      "Status": "Passed",
+      "Duration": 0.3294618,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.FrontAgainstWallCannotUseReachableRear(\"reception_counter\",2)",
+      "Status": "Passed",
+      "Duration": 0.186901,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.FrontAgainstWallCannotUseReachableRear(\"reception_counter\",3)",
+      "Status": "Passed",
+      "Duration": 0.1714348,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.FrontAgainstWallCannotUseReachableRear(\"milkshake_counter\",0)",
+      "Status": "Passed",
+      "Duration": 0.1695473,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.FrontAgainstWallCannotUseReachableRear(\"milkshake_counter\",1)",
+      "Status": "Passed",
+      "Duration": 0.1778527,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.FrontAgainstWallCannotUseReachableRear(\"milkshake_counter\",2)",
+      "Status": "Passed",
+      "Duration": 0.1969573,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.FrontAgainstWallCannotUseReachableRear(\"milkshake_counter\",3)",
+      "Status": "Passed",
+      "Duration": 0.177504,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.MovingOrRotatingOccupiedCounterReleasesOldSlotsAndResumesVisits(False)",
+      "Status": "Passed",
+      "Duration": 0.1885105,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.MovingOrRotatingOccupiedCounterReleasesOldSlotsAndResumesVisits(True)",
+      "Status": "Passed",
+      "Duration": 0.2719302,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.OldSaveDefaultsAssistedCareToDisabled",
+      "Status": "Passed",
+      "Duration": 0.0739954,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.RemovingOccupiedCounterReleasesStaffAndVisitorsWithoutPhantomService",
+      "Status": "Passed",
+      "Duration": 0.3842129,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.StaffAndCustomersUseOppositeAuthoredSides(\"reception_counter\",0)",
+      "Status": "Passed",
+      "Duration": 0.1261886,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.StaffAndCustomersUseOppositeAuthoredSides(\"reception_counter\",1)",
+      "Status": "Passed",
+      "Duration": 0.1280428,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.StaffAndCustomersUseOppositeAuthoredSides(\"reception_counter\",2)",
+      "Status": "Passed",
+      "Duration": 0.1371757,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.StaffAndCustomersUseOppositeAuthoredSides(\"reception_counter\",3)",
+      "Status": "Passed",
+      "Duration": 0.1420979,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.StaffAndCustomersUseOppositeAuthoredSides(\"milkshake_counter\",0)",
+      "Status": "Passed",
+      "Duration": 0.1396284,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.StaffAndCustomersUseOppositeAuthoredSides(\"milkshake_counter\",1)",
+      "Status": "Passed",
+      "Duration": 0.1226638,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.StaffAndCustomersUseOppositeAuthoredSides(\"milkshake_counter\",2)",
+      "Status": "Passed",
+      "Duration": 0.1270371,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.DeskVisitorTests.StaffAndCustomersUseOppositeAuthoredSides(\"milkshake_counter\",3)",
+      "Status": "Passed",
+      "Duration": 0.1238278,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.JournalSaveIntegrityTests.BothCorruptSlotsBlockWritesUntilReset",
+      "Status": "Passed",
+      "Duration": 0.2022599,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.JournalSaveIntegrityTests.FailedSaveKeepsProgressAndRetryMessage",
+      "Status": "Passed",
+      "Duration": 0.0220573,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.JournalSaveIntegrityTests.NewerSlotSurvivesCorruptOlderSlot",
+      "Status": "Passed",
+      "Duration": 0.0832738,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.JournalSaveIntegrityTests.OrphanTempFilesDoNotHideValidSlot",
+      "Status": "Passed",
+      "Duration": 0.1393514,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.AuthoritativeLifeMovesSafelyAndCompletesVisits",
+      "Status": "Passed",
+      "Duration": 1.3717023,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.CopiedCountersDoNotMultiplyUpgradeIncome",
+      "Status": "Passed",
+      "Duration": 2.7991995,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.DictionarySaveRoundTripRetainsAllDestinations",
+      "Status": "Passed",
+      "Duration": 0.0572694,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.EveryArrangementSupportsEveryRotation",
+      "Status": "Passed",
+      "Duration": 1.7633545,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.ExclusiveBarStaffAndGuestSlots",
+      "Status": "Passed",
+      "Duration": 1.6591876,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.FavoriteCareCooldownAndUndoPreserveProgress",
+      "Status": "Passed",
+      "Duration": 0.1210514,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.GodModeAndOfflineClaimRollback",
+      "Status": "Passed",
+      "Duration": 1.9101077,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.GuestIntentReadableDuringMilkshake",
+      "Status": "Passed",
+      "Duration": 0.5788446,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.IncomeAndArrivalReadoutsTrackActorsAndRate",
+      "Status": "Passed",
+      "Duration": 0.5212585,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.OutdoorBenchOpensOnGrass",
+      "Status": "Passed",
+      "Duration": 0.5598304,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.QuotesAndFailedSavesAreTransactional",
+      "Status": "Passed",
+      "Duration": 0.0671193,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.ReceptionRemovalDropsCapacityAndReleasesReservations",
+      "Status": "Passed",
+      "Duration": 1.2675054,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.ReferenceContentIncludesFourMapsSixArrangementsAndAllCats",
+      "Status": "Passed",
+      "Duration": 0.4834948,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.SeasideTravelGateMatchesGodot",
+      "Status": "Passed",
+      "Duration": 0.0349794,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Purrington.Tests.MeadowEditModeTests.TravelUnlocksSeasideAndPersists",
+      "Status": "Passed",
+      "Duration": 0.1484146,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

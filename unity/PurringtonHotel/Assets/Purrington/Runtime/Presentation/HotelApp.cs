@@ -34,6 +34,8 @@ namespace Purrington.Presentation
 
   public HotelModel Model{get;private set;}public VoxelWorld World{get;private set;}public HotelUI UI{get;private set;}public HotelAudio Audio{get;private set;}
 
+  public HotelTownUI TownUI{get;private set;}
+
   public string LastMessage{get;private set;}="Welcome to your little corner of Purrington.";public event Action<string> Notice;
 
   float autosave;string saveRoot,initializationError="";bool allowQuit;
@@ -63,20 +65,26 @@ namespace Purrington.Presentation
    {
 
     var manifest=Resources.Load<TextAsset>("Content/GodotReference");if(manifest==null)throw new InvalidOperationException("The complete hotel content is missing.");
+    var townManifest=Resources.Load<TextAsset>("Content/MainStreet");if(townManifest==null)throw new InvalidOperationException("The Main Street content is missing.");
+    TownContent.LoadJson(townManifest.text);
 
-    var content=ParityContent.LoadJson(manifest.text);Model=new HotelModel(new JournalSaveStore(Path.Combine(profile,"hotel"),new NewtonsoftSaveCodec()),content);var loaded=Model.LoadOrCreate();
+    var wardrobeAsset=Resources.Load<TextAsset>("Content/Wardrobe");if(wardrobeAsset==null)throw new InvalidOperationException("The wardrobe content is missing.");
+    Wardrobe.LoadJson(wardrobeAsset.text);
+
+    var content=ParityContent.LoadJson(manifest.text);var wardrobe=Resources.Load<TextAsset>("Content/Wardrobe");if(wardrobe==null)throw new InvalidOperationException("The wardrobe content is missing.");Wardrobe.LoadJson(wardrobe.text);Model=new HotelModel(new JournalSaveStore(Path.Combine(profile,"hotel"),new NewtonsoftSaveCodec()),content);var loaded=Model.LoadOrCreate();
 
     World=new GameObject("Voxel Hotel").AddComponent<VoxelWorld>();World.Initialize(Model);
 
-    UI=new GameObject("Mobile Interface").AddComponent<HotelUI>();UI.Initialize(this);World.CatSelected+=UI.OpenCare;World.GroundClicked+=UI.GroundClicked;World.ObjectSelected+=UI.SelectObject;World.RoomSelected+=UI.SelectRoom;World.GroundDragged+=UI.GroundDragged;
+    TownUI=new HotelTownUI(this);
+    UI=new GameObject("Mobile Interface").AddComponent<HotelUI>();UI.Initialize(this);World.CatSelected+=UI.OpenCare;World.GroundClicked+=UI.GroundClicked;World.ObjectSelected+=UI.SelectObject;World.RoomSelected+=UI.SelectRoom;World.GroundDragged+=UI.GroundDragged;World.GroundDragEnded+=UI.GroundDragEnded;World.StoreSelected+=TownUI.SelectStore;World.CashierSelected+=UI.CashierArrived;World.StoreEntered+=UI.StoreArrived;World.TownMessage+=message=>UI.ShowNotice(message,false);World.TownCommand+=result=>Report(result);
 
     Audio=GetComponent<HotelAudio>()??gameObject.AddComponent<HotelAudio>();
 
-    World.SetCutaway(!Model.State.settings.exterior);World.SetEvening(Model.State.settings.evening);Report(loaded);if(loaded.success)Report(Model.Reconcile(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),false);initializationError="";
+    World.SetCutaway(!Model.State.settings.exterior);Report(loaded);if(loaded.success)Report(Model.Reconcile(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),false);initializationError="";
 
    }
 
-   catch(Exception ex){initializationError="Couldn't open the hotel safely. "+ex.Message;if(UI){UI.gameObject.SetActive(false);Destroy(UI.gameObject);}if(World){World.gameObject.SetActive(false);Destroy(World.gameObject);}UI=null;World=null;Model=null;}
+   catch(Exception ex){Debug.LogException(ex);initializationError="Couldn't open the hotel safely. "+ex.Message;if(UI){UI.gameObject.SetActive(false);Destroy(UI.gameObject);}if(World){World.gameObject.SetActive(false);Destroy(World.gameObject);}UI=null;World=null;Model=null;}
 
   }
 
