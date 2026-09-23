@@ -37,13 +37,13 @@ namespace Purrington.Domain
             // Room and shell literals: wainscot panels, per-destination roofs, window frame and panes, hedges.
             new Row("738448","8FD7A8",false), new Row("7e8c65","9ADCB2",false), new Row("87936e","86D2A0",false), new Row("697f59","7ECB98",false),
             new Row("a87868","6DBB6A",false), new Row("82a9a2","5C9EE0",false), new Row("7c8e6d","B0703F",false), new Row("d9e1d7","F1F5FA",false),
-            new Row("90bfc0","A9DDF6",false), new Row("b5ddcf","C8EBFA",false), new Row("88ab72","6CC06A",false), new Row("6e9b62","5FB35C",false),
+            new Row("90bfc0","A9DDF6",false), new Row("b5ddcf","C8EBFA",false), new Row("88ab72","6CC06A",false), new Row("6e9b62","5FB35C",false), new Row("a9bccd","B4DCF2",false),
         };
 
         public const string Ink = "244335", InkSoft = "4E6555", Card = "FBF6E9", CardEdge = "E6DCC4", Sage = "DCE5C5";
         public const string Leaf = "4E7F3A", LeafText = "2E6B2C", Coin = "E9B43A", CoinRim = "B9832A";
 
-        static readonly string[] glass = { "90bfc0", "b5ddcf" };
+        static readonly string[] glass = { "90bfc0", "b5ddcf", "a9bccd" };
         static Dictionary<string, string> map;
 
         public static bool TryMap(string hex6, out string target)
@@ -72,6 +72,21 @@ namespace Purrington.Domain
             if (variant == 1) { r = Mix(r * 1.04, 1.00, .03); g = Mix(g * 1.04, .886, .03); b = Mix(b * 1.04, .690, .03); }
             else if (variant == 2) { r = Mix(r * .96, .722, .03); g = Mix(g * .96, .784, .03); b = Mix(b * .96, .910, .03); }
             return Hex(r, g, b);
+        }
+
+        // Fallback for colors without a row: keep the hue, lift toward high-key and add a little color.
+        // Dark and near-gray colors (ink, black fur, stone, white plaster) are returned unchanged.
+        public static string Pastelize(string hex6)
+        {
+            Rgb(hex6, out var r, out var g, out var b);
+            double v = Math.Max(r, Math.Max(g, b)), c = v - Math.Min(r, Math.Min(g, b)), s = v <= 0 ? 0 : c / v;
+            if (v < .35 || s < .08) return Hex(r, g, b);
+            double s2 = Math.Min(.62, Math.Max(s, s * 1.3 + .04)), v2 = v + (1 - v) * .3;
+            double h = Hue(hex6) / 60, c2 = v2 * s2, x = c2 * (1 - Math.Abs(h % 2 - 1)), m = v2 - c2;
+            double r2, g2, b2;
+            if (h < 1) { r2 = c2; g2 = x; b2 = 0; } else if (h < 2) { r2 = x; g2 = c2; b2 = 0; } else if (h < 3) { r2 = 0; g2 = c2; b2 = x; }
+            else if (h < 4) { r2 = 0; g2 = x; b2 = c2; } else if (h < 5) { r2 = x; g2 = 0; b2 = c2; } else { r2 = c2; g2 = 0; b2 = x; }
+            return Hex(r2 + m, g2 + m, b2 + m);
         }
 
         public static double Chroma(string hex) { Rgb(hex, out var r, out var g, out var b); return Math.Max(r, Math.Max(g, b)) - Math.Min(r, Math.Min(g, b)); }

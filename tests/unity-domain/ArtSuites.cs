@@ -57,6 +57,14 @@ static class ArtSuites
 			Check(SurfacePalette.Value(SurfacePalette.Tone(r.target,1))>=SurfacePalette.Value(r.target)-.001&&SurfacePalette.Value(SurfacePalette.Tone(r.target,2))<=SurfacePalette.Value(r.target)+.001,"palette: light and dark tones for "+r.target);
 			foreach(int v in new[]{1,2}){double d=Math.Abs(SurfacePalette.Hue(r.target)-SurfacePalette.Hue(SurfacePalette.Tone(r.target,v)));d=Math.Min(d,360-d);Check(SurfacePalette.Chroma(r.target)<.13||d<=12,"palette: tone "+v+" keeps the hue of "+r.target);}
 		}
+		foreach(var hex in new[]{"79a770","e8d19a","f2e4ca","a28b6c","bd936f","e9bdb2","739f67","cfae87"})
+		{
+			string p=SurfacePalette.Pastelize(hex);double d=Math.Abs(SurfacePalette.Hue(hex)-SurfacePalette.Hue(p));d=Math.Min(d,360-d);
+			Check(d<=3,"pastel: "+hex+" keeps its hue");
+			Check(SurfacePalette.Value(p)>=SurfacePalette.Value(hex)&&SurfacePalette.Chroma(p)>=SurfacePalette.Chroma(hex)-.005,"pastel: "+hex+" gets lighter and no duller");
+		}
+		foreach(var hex in new[]{"1e1e1e","3a3431","f4f4f2","c8c8c6","53635b"})Check(SurfacePalette.Pastelize(hex)==hex.ToUpperInvariant()||SurfacePalette.Value(hex)>=.35&&SurfacePalette.Chroma(hex)/SurfacePalette.Value(hex)>=.08,"pastel: dark and neutral "+hex+" stay as authored");
+		Check(SurfacePalette.Pastelize("1e1e1e")=="1E1E1E"&&SurfacePalette.Pastelize("f4f4f2")=="F4F4F2","pastel: black fur and white plaster untouched");
 	}
 
 	public static void RunDayCycle(Action<bool,string> Check)

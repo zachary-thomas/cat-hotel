@@ -44,7 +44,7 @@ namespace Purrington.Presentation
             if (adjust != null) adjust.postExposure.Override(l.exposure);
             if (balance != null) balance.temperature.Override(l.temperature);
             Glow = l.glow;
-            geometry?.SetGlow(Glow * 2.2f);
+            geometry?.SetGlow(Glow * 3.2f);
         }
 
         public static void ApplyTo(Light sun, Camera cam, DayLight l)

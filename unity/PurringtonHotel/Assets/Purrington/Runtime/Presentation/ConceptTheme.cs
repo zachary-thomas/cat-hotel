@@ -43,8 +43,9 @@ namespace Purrington.Presentation
         {
             string key=(authored??"ffffffff").TrimStart('#');
             ColorUtility.TryParseHtmlString("#"+key,out var original);
-            if(key.Length>=6&&SurfacePalette.TryMap(key.Substring(0,6),out var replacement)){var mapped=ColorOf(replacement);mapped.a=original.a;return mapped;}
-            return original;
+            if(key.Length<6)return original;
+            var target=SurfacePalette.TryMap(key.Substring(0,6),out var replacement)?replacement:SurfacePalette.Pastelize(key.Substring(0,6));
+            var mapped=ColorOf(target);mapped.a=original.a;return mapped;
         }
     }
 }

@@ -484,7 +484,7 @@ namespace Purrington.Presentation
             float clockW=0f;
             if(careCat<0){bool compactClock=((RectTransform)safe).rect.width<380||textScale>1.25f;clockW=compactClock?68f:116f;var clockPanel=Panel("Clock chip",panel,CardTone);Pin(clockPanel,new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(0,.5f),new Vector2(14+chipW,-16),new Vector2(14+chipW+clockW,16));var sunImg=Panel("Sun",clockPanel,Coin).GetComponent<UnityEngine.UI.Image>();var moonImg=Panel("Moon",clockPanel,InkSoft).GetComponent<UnityEngine.UI.Image>();foreach(var g in new[]{sunImg,moonImg}){var r=g.rectTransform;r.anchorMin=r.anchorMax=r.pivot=new Vector2(0,.5f);r.sizeDelta=new Vector2(16,16);r.anchoredPosition=new Vector2(8,0);g.raycastTarget=false;}var clockText=Text(clockPanel,"",11,Ink,true);Stretch(clockText.rectTransform,28,2,6,2);clockPanel.gameObject.AddComponent<HotelClockChip>().Bind(app.Model,clockText,sunImg,moonImg,compactClock);}
 
-            var title=Text(panel,careCat>=0?"CAT TIME":(string)app.Model.Map()["name"],14,Ink,true);title.enableAutoSizing=true;title.fontSizeMin=10*textScale;title.fontSizeMax=14*textScale;
+            var title=Text(panel,careCat>=0?"CAT TIME":(string)app.Model.Map()["name"],14,Ink,true);title.enableAutoSizing=true;title.fontSizeMin=10*textScale;title.fontSizeMax=14*textScale;title.textWrappingMode=TextWrappingModes.NoWrap;
 
             Pin(title.rectTransform,new Vector2(0,.5f),new Vector2(1,.5f),new Vector2(0,.5f),new Vector2(20+chipW+clockW,-14),new Vector2(careCat>=0?-96:-58,14));
 
