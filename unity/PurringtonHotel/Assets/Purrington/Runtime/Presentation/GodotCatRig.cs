@@ -9,7 +9,18 @@ public sealed class GodotCatRig {
  readonly Transform body,head,tail,mouth; readonly List<Transform> legs=new List<Transform>(),eyes=new List<Transform>(),ears=new List<Transform>();
  readonly TextMesh thought; readonly int seed; float phase; public string Reaction="";public float ReactionTime,ReactionDuration=4; public Vector2 Stroke;
  public GodotCatRig(GodotGeometry geometry,Transform parent,string collection,string id,int seed):this(geometry,parent,geometry.Recipe(collection,id),seed) {}
- public GodotCatRig(GodotGeometry geometry,Transform parent,Newtonsoft.Json.Linq.JObject recipe,int seed) {this.seed=seed;Root=geometry.Build(parent,recipe,Bindings);body=Get("body");head=Get("head");tail=Get("tail");mouth=Get("mouth");for(int i=0;i<4;i++)legs.Add(Get("legs."+i));for(int i=0;i<2;i++){eyes.Add(Get("eyes."+i));ears.Add(Get("ears."+i));}foreach(var t in Bindings.Values)scales[t]=t.localScale;phase=seed*1.71f;thought=Root.GetComponentInChildren<TextMesh>(true);if(thought)thought.text="";}
+ public GodotCatRig(GodotGeometry geometry,Transform parent,Newtonsoft.Json.Linq.JObject recipe,int seed) {this.seed=seed;Root=geometry.Build(parent,recipe,Bindings);body=Get("body");head=Get("head");tail=Get("tail");mouth=Get("mouth");for(int i=0;i<4;i++)legs.Add(Get("legs."+i));for(int i=0;i<2;i++){eyes.Add(Get("eyes."+i));ears.Add(Get("ears."+i));}Blush(geometry);foreach(var t in Bindings.Values)scales[t]=t.localScale;phase=seed*1.71f;thought=Root.GetComponentInChildren<TextMesh>(true);if(thought)thought.text="";}
+ // Rosy cheeks just below and outside each eye, built in the head's space so they follow every head pose.
+ void Blush(GodotGeometry geometry){
+  var headAt=Root.InverseTransformPoint(head.position);
+  var rel=new Vector3(Mathf.Abs(head.lossyScale.x/Root.lossyScale.x),Mathf.Abs(head.lossyScale.y/Root.lossyScale.y),Mathf.Abs(head.lossyScale.z/Root.lossyScale.z));
+  for(int i=0;i<eyes.Count;i++){
+   var eye=Root.InverseTransformPoint(eyes[i].position);float outward=Mathf.Sign(eye.x-headAt.x);if(outward==0)outward=i==0?-1:1;
+   var at=head.InverseTransformPoint(Root.TransformPoint(eye+new Vector3(outward*.05f,-.075f,.012f)));
+   var size=new Vector3(.08f/rel.x,.035f/rel.y,.02f/rel.z);
+   var cheek=geometry.Build(head,ManagerCatArt.Node("Blush",at,size,"F2A7B5"));cheek.name="Blush";
+  }
+ }
  Transform Get(string name){if(!Bindings.TryGetValue(name,out var t))throw new InvalidOperationException("Authored cat is missing rig binding "+name);return t;}
  static float S(float x)=>Mathf.Sin(x);static void Rot(Transform t,float x=0,float y=0,float z=0){t.localRotation=Quaternion.Euler(new Vector3(x,y,z)*Mathf.Rad2Deg);}static void Y(Transform t,float v){var p=t.localPosition;p.y=v;t.localPosition=p;}static void ScaleY(Transform t,float v){var s=t.localScale;s.y=v;t.localScale=s;}
  void Close(){foreach(var e in eyes)ScaleY(e,.012f);}
