@@ -2,6 +2,19 @@
 
 All boxes start unchecked. Mark a check only with observed evidence; distinguish implemented, tested, blocked, and deferred work. Godot regression results are reference evidence, not proof of Unity behavior.
 
+## Main Street integrated acceptance — 2026-09-22
+
+This checkpoint applies to the isolated `codex/main-street` integration, including shared wardrobe Tasks 1–3. Earlier checkpoints below describe earlier builds.
+
+- [x] Full domain harness: **676,240 checks passed**, including legacy v3 defaults, invalid saves, manager travel, shopping/reward rollback, shared wardrobe, event persistence, and checkpoint cadence.
+- [x] Actual Unity **6000.3.24f1 EditMode: 94 tests, zero failures/errors/skips**. Tests include store reopening, all outfit bindings, responsive shop framing, and restoration of Follow on Leave.
+- [x] Windows development build and `tools/unity.ps1 QA` smoke passed. Starter Meadow measured 60.0 FPS across 180 frames at 1280×800 (16.8 ms worst); this is a short Windows sample.
+- [x] Main Street pointer matrix: 409 checks, zero failures/errors across four viewports at 100/150% text; legacy v3 journey 56/56; art 124/124 checks with 122 nonblank captures. Consult the [detailed acceptance record](../art/qa-shots/main-street/README.md) for the observed result and limitations.
+- [ ] Physical Android and iOS: **not run**. Windows queued touch, window dimensions, and offscreen renders do not satisfy device release sign-off. iOS build/signing still requires macOS/Xcode.
+
+Controls: Hotel/Life → Explore Main Street; scene path/sign taps or destination buttons; Skip walk, Follow, Fit street, Fit hotel. Manager opens rename/coats/markings. Both shops open after arrival, with a cashier approach followed by Talk / Quest / Buy / Leave. Back closes choices before conversation/store. Thread & Paw shares the care wardrobe; First Look supplies the additional free ribbon. Market Day is optional, consumes an 80-coin bundle, and runs for 90 active seconds without reducing hotel income.
+
+Regression findings fixed during this checkpoint: prior Follow state was lost on Leave; fixed interior zoom cropped portrait shops; two clothing separators were corrupted; EditMode world cleanup used delayed destruction; two test fixtures depended on prior global initialization or invalid EditMode message dispatch. Market Day wrote the full journal every frame; measured ~31.8 ms frames prompted one-second timer checkpoints, with immediate explicit-save/pause/completion persistence. An abrupt crash can replay less than one second. Completion remains a single durable token.
 ## Current evidence checkpoint
 
 - Zoom/layout regression: one normalized mouse-wheel notch changes orthographic size by 15%; an opposite notch restores it. Runtime checks verify every visible top-level UI panel stays inside the screen, including 640×480, 800×760, and 320×480. One shared portrait/landscape breakpoint and scaling against both safe-area dimensions replace the inconsistent sizing rules.

@@ -1,0 +1,839 @@
+{
+  "status": "completed",
+  "cases": [
+    {
+      "case": "360x640-text100",
+      "checks": [
+        {
+          "name": "nonblank render: exterior-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-push",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-park",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-outfit",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "setup": "Programmatic art fixtures; same world and UI; URP offscreen render for hidden-window reliability",
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text100-exterior-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text100-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text100-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text100-cart-push.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text100-cart-park.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text100-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text100-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text100-boutique-outfit.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text100-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text100-market-ended.png"
+      ]
+    },
+    {
+      "case": "360x640-text150",
+      "checks": [
+        {
+          "name": "nonblank render: exterior-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-push",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-park",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-outfit",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "setup": "Programmatic art fixtures; same world and UI; URP offscreen render for hidden-window reliability",
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text150-exterior-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text150-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text150-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text150-cart-push.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text150-cart-park.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text150-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text150-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text150-boutique-outfit.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text150-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\360x640-text150-market-ended.png"
+      ]
+    },
+    {
+      "case": "390x844-text100",
+      "checks": [
+        {
+          "name": "nonblank render: exterior-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-push",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-park",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-outfit",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "setup": "Programmatic art fixtures; same world and UI; URP offscreen render for hidden-window reliability",
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text100-exterior-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text100-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text100-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text100-cart-push.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text100-cart-park.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text100-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text100-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text100-boutique-outfit.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text100-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text100-market-ended.png"
+      ]
+    },
+    {
+      "case": "390x844-text150",
+      "checks": [
+        {
+          "name": "nonblank render: exterior-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-push",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-park",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-outfit",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "setup": "Programmatic art fixtures; same world and UI; URP offscreen render for hidden-window reliability",
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text150-exterior-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text150-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text150-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text150-cart-push.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text150-cart-park.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text150-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text150-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text150-boutique-outfit.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text150-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\390x844-text150-market-ended.png"
+      ]
+    },
+    {
+      "case": "430x932-text100",
+      "checks": [
+        {
+          "name": "nonblank render: exterior-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-push",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-park",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-outfit",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "setup": "Programmatic art fixtures; same world and UI; URP offscreen render for hidden-window reliability",
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text100-exterior-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text100-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text100-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text100-cart-push.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text100-cart-park.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text100-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text100-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text100-boutique-outfit.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text100-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text100-market-ended.png"
+      ]
+    },
+    {
+      "case": "430x932-text150",
+      "checks": [
+        {
+          "name": "nonblank render: exterior-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-push",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-park",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-outfit",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "setup": "Programmatic art fixtures; same world and UI; URP offscreen render for hidden-window reliability",
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text150-exterior-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text150-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text150-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text150-cart-push.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text150-cart-park.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text150-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text150-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text150-boutique-outfit.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text150-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\430x932-text150-market-ended.png"
+      ]
+    },
+    {
+      "case": "1280x800-text100",
+      "checks": [
+        {
+          "name": "nonblank render: exterior-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-push",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-park",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-outfit",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "setup": "Programmatic art fixtures; same world and UI; URP offscreen render for hidden-window reliability",
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text100-exterior-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text100-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text100-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text100-cart-push.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text100-cart-park.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text100-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text100-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text100-boutique-outfit.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text100-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text100-market-ended.png"
+      ]
+    },
+    {
+      "case": "1280x800-text150",
+      "checks": [
+        {
+          "name": "nonblank render: exterior-quiet",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: paw-mart-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-push",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: cart-park",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-entry",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-cashier",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: boutique-outfit",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-running",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: market-ended",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "setup": "Programmatic art fixtures; same world and UI; URP offscreen render for hidden-window reliability",
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text150-exterior-quiet.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text150-paw-mart-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text150-paw-mart-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text150-cart-push.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text150-cart-park.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text150-boutique-entry.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text150-boutique-cashier.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text150-boutique-outfit.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text150-market-running.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\1280x800-text150-market-ended.png"
+      ]
+    },
+    {
+      "case": "wardrobe-390x844",
+      "checks": [
+        {
+          "name": "nonblank render: sample0-cat1-store_ribbon",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-sun_hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-beanie",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-flower_crown",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-sailor_cap",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-tiny_crown",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-bow_tie",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-bandana",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-bell_collar",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-knit_scarf",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-sweater",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-raincoat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample0-cat1-hero_cape",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-store_ribbon",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-sun_hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-beanie",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-flower_crown",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-sailor_cap",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-tiny_crown",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-bow_tie",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-bandana",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-bell_collar",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-knit_scarf",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-sweater",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-raincoat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample1-cat0-hero_cape",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-store_ribbon",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-sun_hat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-beanie",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-flower_crown",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-sailor_cap",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-tiny_crown",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-bow_tie",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-bandana",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-bell_collar",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-knit_scarf",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-sweater",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-raincoat",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: sample2-cat2-hero_cape",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "dressed roster saved",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "dressed roster reload",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: care-outfit",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "catIds": [
+        1,
+        0,
+        2
+      ],
+      "sizeFixtures": [
+        0.75,
+        1.0,
+        1.25
+      ],
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-store_ribbon.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-sun_hat.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-beanie.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-flower_crown.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-sailor_cap.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-tiny_crown.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-bow_tie.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-bandana.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-bell_collar.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-knit_scarf.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-sweater.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-raincoat.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample0-cat1-hero_cape.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-store_ribbon.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-sun_hat.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-beanie.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-flower_crown.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-sailor_cap.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-tiny_crown.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-bow_tie.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-bandana.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-bell_collar.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-knit_scarf.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-sweater.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-raincoat.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample1-cat0-hero_cape.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-store_ribbon.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-sun_hat.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-beanie.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-flower_crown.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-sailor_cap.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-tiny_crown.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-bow_tie.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-bandana.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-bell_collar.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-knit_scarf.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-sweater.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-raincoat.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-sample2-cat2-hero_cape.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-390x844-care-outfit.png"
+      ]
+    },
+    {
+      "case": "wardrobe-1280x800",
+      "checks": [
+        {
+          "name": "nonblank render: care-outfit",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "name": "nonblank render: roaming",
+          "passed": true,
+          "detail": ""
+        }
+      ],
+      "screenshots": [
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-1280x800-care-outfit.png",
+        "C:\\Users\\zach7\\.codex\\worktrees\\main-street\\cat-hotel\\builds\\unity\\main-street\\art-reviewed\\wardrobe-1280x800-roaming.png"
+      ]
+    }
+  ],
+  "failedChecks": 0,
+  "runtimeErrors": [],
+  "inputMethod": "programmatic art fixtures; input acceptance recorded separately",
+  "layoutSetup": "Viewport, simulated safe insets and text scale configured before each case; opt-in care fixtures reset bonds to 20 and clear cooldown before gesture assertions"
+}

@@ -37,6 +37,17 @@ The interface includes safe-area handling, 100%/125%/150% text settings, music/e
 
 Save recovery preserves the in-memory hotel when Retry follows an initial save-write failure. The domain regression harness also covers construction, maps, dense hotel routines and God mode.
 
+## Main Street at Meadow House
+
+Choose **Explore Main Street** from Hotel or Life. Tap pavement, a shop sign or a door to walk, or use **Square**, **Paw Mart**, and **Clothing**. **Skip walk** finishes a valid route. Drag/pinch to pan/zoom; **Follow**, **Fit street**, and **Fit hotel** restore framing. **Back to Hotel** restores the hotel view and construction controls.
+
+**Manager** lets you rename the manager, choose six coats and four markings, and preview/save the appearance. In each shop, tap the cashier or **Meet Miso / Meet Clover**; the manager walks to the counter before **Talk**, **Quest**, **Buy**, and **Leave** become available. Back closes the current choice, then the conversation, then the shop. Leave restores the previous street camera and Follow mode.
+
+Paw Mart offers a 30-coin Welcome Basket and an 80-coin Market Day bundle. Welcome Picnic invites Biscuit; an already-known Biscuit instead yields a one-time 40-coin reward. The manager and shoppers push carts during grocery routines. Thread & Paw shares the hotel wardrobe: try items on the manager or known cats, turn the preview, buy eligible pieces, and equip owned clothes. First Look grants a free store ribbon; equipping it completes the quest. Friendship gifts remain gifts.
+
+The optional **Start Market Day** button consumes a bundle and runs the square event for 90 seconds of active game time. Ordinary hotel income continues. Save/reload resumes the timer. Timer checkpoints occur once per second, while explicit save/pause and event completion save immediately; abrupt termination can replay less than one second. Failed purchases and rewards preserve coins and progress and expose Retry.
+
+Main Street is Meadow-only. Other streets and the restaurant are later phases. See the [Main Street acceptance and capture record](../../docs/art/qa-shots/main-street/README.md) for actual Windows checks and open gates. Physical Android/iOS sign-off remains outstanding.
 ## Concept-inspired Meadow update
 
 The original `docs/concept-art` hotel screenshots now guide materials, lighting, timber floors, moss wall panels, and UI. The later pastel palette is no longer the world target.
