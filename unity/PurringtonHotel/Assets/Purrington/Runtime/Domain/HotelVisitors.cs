@@ -32,6 +32,7 @@ namespace Purrington.Domain
   void TickVisitors(float seconds)
   {
    if (State.currentHotel != 0) return;
+   if (VisitorsResting) return;
    visitorClock += seconds;
    float interval=7+(visitorCursor*7%6);
    if (visitorClock < interval || DayVisitorCount >= 3) return;

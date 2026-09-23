@@ -78,4 +78,30 @@ static class ArtSuites
 			catch(FormatException e){Check(e.Message.Contains("DayCycle.json")&&e.Message.Contains(why),"day cycle: error names file and "+why);}
 		}
 	}
+
+	public static void RunNight(Action<bool,string> Check,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();
+		Check(m.Venues().Any(v=>v.open&&v.role=="bed"),"night: starter hotel has an open bed");
+		m.State.elapsed=14*60; // 22:00
+		Check(m.Clock.phase==DayPhase.Night,"night: setup at 22:00");
+		bool napped=false;
+		for(int t=0;t<600;t++)
+		{
+			m.Tick(.5f);
+			foreach(var a in m.Actors)
+			{
+				Check(a.kind!=ActorKind.DayVisitor,"night: no day visitor arrives at night");
+				var v=m.Venues().FirstOrDefault(x=>x.id==a.venueId);
+				if(v!=null&&v.role=="sun")Check(!(a.phase=="activity"||a.phase.StartsWith("walk")),"night: nobody heads for a sunny spot");
+				if(a.phase=="activity"&&a.action=="sleep"&&m.Clock.phase==DayPhase.Night){napped=true;Check(a.intent=="napping","night: nap intent");Check(a.activityDuration>=90&&a.activityDuration<=150,"night: naps last 90-150 s");}
+			}
+		}
+		Check(napped,"night: at least one guest naps in a bed");
+		var day=new HotelModel(new MemoryStore(),content);day.LoadOrCreate();day.State.elapsed=2*60; // 10:00
+		bool visitor=false,shortSleep=true;
+		for(int t=0;t<400;t++){day.Tick(.5f);foreach(var a in day.Actors){if(a.kind==ActorKind.DayVisitor)visitor=true;if(a.phase=="activity"&&a.action=="sleep"&&a.activityDuration>11.01f)shortSleep=false;}}
+		if(day.Venues().Any(v=>v.open&&v.role=="bar"))Check(visitor,"night: day visitors still arrive by day");
+		Check(shortSleep,"night: daytime sleep keeps its 11 s duration");
+	}
 }
