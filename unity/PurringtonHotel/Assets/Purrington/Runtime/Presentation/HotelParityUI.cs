@@ -417,6 +417,8 @@ namespace Purrington.Presentation
 
             gestureInput=surface.gameObject.AddComponent<CareGestureInput>();gestureInput.Initialize(app,careCat,careTool,OnCareAction);
 
+            if(wardrobeOpen){gestureInput.Suspend();surface.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;WardrobePanel();return;}
+
             var tray=Panel("Care tools",safe,Cream);Pin(tray,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,10),new Vector2(-10,compactCare?160:244));
 
             var column=Vertical(tray,5,8);careHint=Text(column,CareGestureInput.Help(careTool),13,Ink);Height(careHint.rectTransform,compactCare?24:40);
@@ -428,7 +430,7 @@ namespace Purrington.Presentation
             int columns=compactCare?6:3;
             for(int r=0;r<6/columns;r++){var row=Row(column,48);for(int c=0;c<columns;c++){string tool=tools[r*columns+c];var button=Button(row,tool=="wand"?"Feather":char.ToUpper(tool[0])+tool.Substring(1),()=>{careTool=tool;gestureInput.SetTool(tool);careHint.text=CareGestureInput.Help(tool);foreach(var entry in choices)entry.Value.color=entry.Key==tool?Gold:Lilac;},careTool==tool?Gold:Lilac,13);choices[tool]=button.GetComponent<UnityEngine.UI.Image>();}}
 
-            var footer=Row(column,compactCare?48:50);if(app.Model.State.settings.assistedCare)Button(footer,"Help me use this tool",()=>gestureInput.UseSelectedTool(),Mint,13);Button(footer,"About & friends",()=>{careDetails=true;Rebuild();},Gold,13);
+            var footer=Row(column,compactCare?48:50);if(app.Model.State.settings.assistedCare)Button(footer,"Help me use this tool",()=>gestureInput.UseSelectedTool(),Mint,13);Button(footer,"Wardrobe",OpenWardrobe,Mint,13);Button(footer,"About & friends",()=>{careDetails=true;Rebuild();},Gold,13);
 
             if(careDetails)
 

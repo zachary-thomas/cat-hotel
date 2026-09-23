@@ -151,6 +151,7 @@ namespace Purrington.Presentation
 
         {
 
+            CloseWardrobe();
             if (careCat >= 0) app.World.SetCareMode(careCat,false);
 
             careCat = -1; settings=false; tab=destination; CancelPlacement(false); Rebuild();
@@ -162,6 +163,7 @@ namespace Purrington.Presentation
 
         {
 
+            CloseWardrobe();
             if(careCat>=0)app.World.SetCareMode(careCat,false);
 
             careCat=-1;CancelPlacement(false);settings=true;Rebuild();
@@ -174,7 +176,7 @@ namespace Purrington.Presentation
 
             if (IsPlacing) { CancelPlacement(); return; }
 
-            if (careCat>=0) { if(careDetails){careDetails=false;Rebuild();}else CloseCare(); return; }
+            if (careCat>=0) { if(wardrobeOpen){CloseWardrobe();Rebuild();}else if(careDetails){careDetails=false;Rebuild();}else CloseCare(); return; }
 
             if (settings) {settings=false; Rebuild(); return;}
 
@@ -188,13 +190,15 @@ namespace Purrington.Presentation
 
             if (IsPlacing) return;
 
+            CloseWardrobe();
+
             careCat=id; careTool="pet"; careDetails=false; settings=false;
 
             app.World.SetCareMode(id,true); Rebuild();
 
         }
 
-        void CloseCare() { gestureInput?.Suspend(); app.World.SetCareMode(careCat,false);careCat=-1;careDetails=false;Rebuild(); }
+        void CloseCare() { CloseWardrobe();gestureInput?.Suspend(); app.World.SetCareMode(careCat,false);careCat=-1;careDetails=false;Rebuild(); }
 
         public void SelectObject(string id)
 
