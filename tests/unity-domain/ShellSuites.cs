@@ -323,6 +323,7 @@ static class ShellSuites
 		Check(HotelModel.Floor(m.Hotel(),-1)?.cells.Count==6,"floors: the basement starts under its stairs");
 		var outside=m.Quote("paint_floor",PaintOn(-1,x+9,z,1,1));Check(!outside.success&&outside.message.Contains("under the hotel"),"floors: the basement stays under the hotel");
 		var stair=m.Hotel().rooms.First(r=>r.kind=="stairs"&&r.floor==0);int stairCells=HotelModel.Floor(m.Hotel(),1).cells.Count;coins=m.State.coins;
+		Check(!m.Quote("remove_room",new JObject{{"id",stair.id}}).success,"floors: occupied upstairs room keeps its last stairwell");
 		foreach(var action in new[]{"move_room","resize_room","copy_room"}){
 			var edit=action=="resize_room"?new JObject{{"id",stair.id},{"w",3},{"h",3}}:new JObject{{"id",stair.id},{"x",x+2},{"y",z+1}};
 			var result=m.Quote(action,edit);Check(!result.success&&result.message.Contains("stairs"),"floors: "+action+" refuses unsupported stair edits ("+result.message+")");
@@ -331,5 +332,38 @@ static class ShellSuites
 		Check(HotelModel.Valid(m.State),"floors: the saved multilevel hotel is valid");
 		var reopened=new HotelModel(new MemoryStore{state=HotelModel.Copy(m.State)},content);Check(reopened.LoadOrCreate().success&&HotelModel.Floor(reopened.Hotel(),1)?.cells.Count==stairCells&&HotelModel.Floor(reopened.Hotel(),-1)?.cells.Count==6,"floors: stairs and landings survive a save reload");
 		Console.WriteLine("Shell floors suite passed");
+	}
+	public static void RunStairSafety(Action<bool,string> Check,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;var h=m.Hotel();h.rooms.Clear();h.floors.Clear();h.objects.Clear();h.paths.Clear();h.level=7;
+		Check(FindClear(m,10,8,out int x,out int z),"stairs: clear land");
+		Check(m.Execute("paint_floor",Paint(x,z,8,6)).success,"stairs: ground shell");
+		Check(m.Execute("draw_room",RoomOn(0,x+1,z+1,2,3,0,"stairs")).success,"stairs: first upper stair");
+		var first=h.rooms.Last();string internalEdge="v:"+(x+2)+","+(z+2);
+		foreach(int level in new[]{0,1})foreach(string kind in new[]{"wall","window"}){
+			var blocked=m.Quote("set_edge",new JObject{{"floor",level},{"kind",kind},{"edges",new JArray(internalEdge)}});
+			Check(!blocked.success,"stairs: "+kind+" cannot block stair interior on floor "+level);
+		}
+		Check(m.Execute("set_edge",new JObject{{"floor",1},{"kind","door"},{"edges",new JArray(internalEdge)}}).success,"stairs: passable landing edge allowed");
+		Check(m.Execute("set_edge",new JObject{{"floor",0},{"kind","door"},{"edges",new JArray(internalEdge)}}).success,"stairs: passable lower stair edge allowed");
+		var blockedSave=HotelModel.Copy(m.State);HotelModel.Floor(blockedSave.hotels[0],1).edges[internalEdge]=new EdgeState{kind="wall"};Check(!HotelModel.Valid(blockedSave),"stairs: blocked saved landing rejected");
+		blockedSave=HotelModel.Copy(m.State);HotelModel.Floor(blockedSave.hotels[0],0).edges[internalEdge]=new EdgeState{kind="window"};Check(!HotelModel.Valid(blockedSave),"stairs: blocked saved lower flight rejected");
+		var orphan=HotelModel.Copy(m.State);orphan.hotels[0].rooms.RemoveAll(r=>r.id==first.id);Check(!HotelModel.Valid(orphan),"stairs: orphan upper floor rejected on reload");
+		Check(m.Execute("paint_floor",PaintOn(1,x+3,z+1,1,1)).success,"stairs: expanded upper floor");
+		Check(!m.Quote("remove_room",new JObject{{"id",first.id}}).success,"stairs: last stair cannot strand paid upper floor");
+		Check(m.Execute("draw_room",RoomOn(0,x+5,z+1,2,3,0,"stairs")).success,"stairs: alternative upper stair");
+		Check(m.Execute("remove_room",new JObject{{"id",first.id}}).success&&HotelModel.Floor(m.Hotel(),1).cells.Count>6,"stairs: alternative route allows removal and retains paid floor");
+		var lone=new HotelModel(new MemoryStore(),content);lone.LoadOrCreate();lone.State.coins=100000;lone.Hotel().rooms.Clear();lone.Hotel().floors.Clear();lone.Hotel().objects.Clear();lone.Hotel().paths.Clear();lone.Hotel().level=7;
+		Check(FindClear(lone,6,5,out int lx,out int lz),"stairs: clear land for safe removal");
+		Check(lone.Execute("paint_floor",Paint(lx,lz,6,5)).success,"stairs: second ground shell");
+		Check(lone.Execute("draw_room",RoomOn(0,lx+1,lz+1,2,3,0,"stairs")).success,"stairs: lone upper stair");
+		var upper=lone.Hotel().rooms.Last();double before=lone.State.coins;
+		Check(lone.Execute("remove_room",new JObject{{"id",upper.id}}).success&&HotelModel.Floor(lone.Hotel(),1)==null&&Math.Abs(lone.State.coins-before-188)<.01,"stairs: empty upper landing removed and refunded");
+		Check(lone.Execute("draw_room",RoomOn(-1,lx+3,lz+1,2,3,0,"stairs")).success,"stairs: lone basement stair");
+		var lower=lone.Hotel().rooms.Last();before=lone.State.coins;
+		orphan=HotelModel.Copy(lone.State);orphan.hotels[0].rooms.RemoveAll(r=>r.id==lower.id);Check(!HotelModel.Valid(orphan),"stairs: orphan basement floor rejected on reload");
+		Check(lone.Execute("remove_room",new JObject{{"id",lower.id}}).success&&HotelModel.Floor(lone.Hotel(),-1)==null&&Math.Abs(lone.State.coins-before-188)<.01,"stairs: empty basement floor removed and refunded");
+		Check(HotelModel.Valid(m.State)&&HotelModel.Valid(lone.State),"stairs: edited hotels remain loadable");
+		Console.WriteLine("Shell stair safety suite passed");
 	}
 }
