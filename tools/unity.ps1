@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('Open','Configure','Test','Windows','Android','iOS','Play','QA')][string]$Action='Open'
+    [ValidateSet('Open','Configure','Rendering','Test','Windows','Android','iOS','Play','QA')][string]$Action='Open'
 )
 $ErrorActionPreference='Stop'
 $unityRepo=Split-Path -Parent $PSScriptRoot
@@ -38,6 +38,7 @@ if ($Action -eq 'Test') {
 }
 $unityMethod=switch ($Action) {
     'Configure' { 'Purrington.Editor.ProjectSetup.Configure' }
+    'Rendering' { 'Purrington.Editor.ProjectSetup.ConfigureRendering' }
     'Windows' { 'Purrington.Editor.ProjectSetup.BuildWindows' }
     'Android' { 'Purrington.Editor.ProjectSetup.BuildAndroid' }
     'iOS' { 'Purrington.Editor.ProjectSetup.BuildIOS' }

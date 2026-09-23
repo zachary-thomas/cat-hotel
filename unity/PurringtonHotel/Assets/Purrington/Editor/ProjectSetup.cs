@@ -124,15 +124,45 @@ namespace Purrington.Editor
                 Set(data,"m_Settings.Downsample",false);data.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(feature);
             }
+            AddMobileSsao(renderer);
             const string path="Assets/Resources/ParityGrading.asset";
             var profile=AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
             if(profile==null){profile=ScriptableObject.CreateInstance<VolumeProfile>();AssetDatabase.CreateAsset(profile,path);}
-            if(!profile.TryGet<ColorAdjustments>(out var colors)){colors=profile.Add<ColorAdjustments>(true);AssetDatabase.AddObjectToAsset(colors,profile);}
-            colors.contrast.Override(4);colors.saturation.Override(5);colors.postExposure.Override(0);
-            if(!profile.TryGet<Tonemapping>(out var tone)){tone=profile.Add<Tonemapping>(true);AssetDatabase.AddObjectToAsset(tone,profile);}
-            tone.mode.Override(TonemappingMode.Neutral);
-            EditorUtility.SetDirty(colors);EditorUtility.SetDirty(tone);EditorUtility.SetDirty(profile);
+            T Get<T>() where T:VolumeComponent{if(!profile.TryGet<T>(out var c)){c=profile.Add<T>(true);AssetDatabase.AddObjectToAsset(c,profile);}c.active=true;EditorUtility.SetDirty(c);return c;}
+            var colors=Get<ColorAdjustments>();colors.contrast.Override(6);colors.saturation.Override(20);colors.postExposure.Override(.1f);
+            Get<Tonemapping>().mode.Override(TonemappingMode.Neutral);
+            var bloom=Get<Bloom>();bloom.threshold.Override(1f);bloom.intensity.Override(.4f);bloom.scatter.Override(.7f);bloom.tint.Override(new Color(1f,.89f,.69f));bloom.highQualityFiltering.Override(false);
+            var split=Get<SplitToning>();split.highlights.Override(new Color(1f,.85f,.63f));split.shadows.Override(new Color(.72f,.66f,.85f));split.balance.Override(20);
+            Get<LiftGammaGain>().lift.Override(new Vector4(1f,.99f,.96f,.04f));
+            var balance=Get<WhiteBalance>();balance.temperature.Override(0);balance.tint.Override(0);
+            if(profile.TryGet<Vignette>(out var vignette)){profile.Remove<Vignette>();UnityEngine.Object.DestroyImmediate(vignette,true);}
+            EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();
+        }
+        // Mobile gets its own SSAO copy of the desktop feature: downsampled, low samples, soft contact shading.
+        static void AddMobileSsao(UniversalRendererData desktop)
+        {
+            var mobile=AssetDatabase.LoadAssetAtPath<UniversalRendererData>("Assets/Settings/Mobile_Renderer.asset");
+            if(mobile==null)throw new FileNotFoundException("Missing Mobile_Renderer");
+            var feature=mobile.rendererFeatures.FirstOrDefault(f=>f!=null&&f.GetType().Name=="ScreenSpaceAmbientOcclusion");
+            if(feature==null)
+            {
+                var source=desktop.rendererFeatures.First(f=>f!=null&&f.GetType().Name=="ScreenSpaceAmbientOcclusion");
+                feature=UnityEngine.Object.Instantiate(source);feature.name=source.name;
+                AssetDatabase.AddObjectToAsset(feature,mobile);
+                var data=new SerializedObject(mobile);
+                var list=data.FindProperty("m_RendererFeatures");list.arraySize++;list.GetArrayElementAtIndex(list.arraySize-1).objectReferenceValue=feature;
+                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(feature,out string _,out long id);
+                var ids=data.FindProperty("m_RendererFeatureMap");ids.arraySize++;ids.GetArrayElementAtIndex(ids.arraySize-1).longValue=id;
+                data.ApplyModifiedPropertiesWithoutUndo();
+            }
+            feature.SetActive(true);
+            var settings=new SerializedObject(feature);
+            Set(settings,"m_Settings.Intensity",.4f);Set(settings,"m_Settings.Radius",.25f);Set(settings,"m_Settings.DirectLightingStrength",.15f);
+            Set(settings,"m_Settings.Downsample",true);
+            var samples=settings.FindProperty("m_Settings.Samples");if(samples!=null)samples.enumValueIndex=samples.enumNames.Length-1; // lowest sample count
+            settings.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(feature);EditorUtility.SetDirty(mobile);
         }
         static UniversalRenderPipelineAsset ConfigurePipeline(string name,int resolution,float distance,int cascades)
         {
