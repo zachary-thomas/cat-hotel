@@ -65,9 +65,11 @@ namespace Purrington.Presentation {
     shoppers[i].Root.name=i==0?"Olive shopper":"Bean shopper";shoppers[i].Root.localScale=Vector3.one*.83f;
     carts[i+1]=new ShoppingCartRig(geometry,pawMartRoot,shoppers[i].Root.name);carts[i+1].SetContents(i==0?"welcome_basket":"market_bundle");
    }
-   pawOwner=Owner(pawMartRoot,"Miso","ginger","tuxedo",new Vector3(200*VoxelWorld.Unit+2.8f,.2f,3.3f),"Grocery apron","738448");
+   Furnish(pawMartRoot,200*VoxelWorld.Unit,"Cashier step",new Vector3(2.8f,.325f,3.3f),new Vector3(1,.65f,.85f),"B3824C");
+   Furnish(clothingRoot,240*VoxelWorld.Unit,"Cashier step",new Vector3(2,.325f,3.3f),new Vector3(1,.65f,.85f),"B3824C");
+   pawOwner=Owner(pawMartRoot,"Miso","ginger","tuxedo",new Vector3(200*VoxelWorld.Unit+2.8f,.85f,3.3f),"Grocery apron","738448");
    pawOwner.Root.localRotation=Quaternion.Euler(0,180,0);
-   clothingOwner=Owner(clothingRoot,"Clover","gray","patchwork",new Vector3(240*VoxelWorld.Unit+2,.2f,3.3f),"Boutique scarf","BF7958");
+   clothingOwner=Owner(clothingRoot,"Clover","gray","patchwork",new Vector3(240*VoxelWorld.Unit+2,.85f,3.3f),"Boutique scarf","BF7958");
    clothingOwner.Root.localRotation=Quaternion.Euler(0,180,0);
    manager=new GodotCatRig(geometry,parent,ManagerCatArt.Recipe("honey","solid"),91);
    managerRoot=manager.Root;managerRoot.name="Interior manager";managerRoot.localScale=Vector3.one*.83f;managerRoot.gameObject.SetActive(false);
@@ -93,9 +95,10 @@ namespace Purrington.Presentation {
   void Furnish(Transform parent,float x,string name,Vector3 at,Vector3 size,string color){Box(parent,name,at+new Vector3(x,0,0),size,color);}
   void Base(Transform parent,float x,string wall){
    Furnish(parent,x,"Floor",new Vector3(0,-.05f,0),new Vector3(9,.2f,8),"CAC4B2");
+   // The interior camera looks from authored +x/-z; keep only its near side cut away.
    Furnish(parent,x,"Back wall",new Vector3(0,1.6f,4),new Vector3(9,3.2f,.3f),wall);
    Furnish(parent,x,"Left wall",new Vector3(-4.5f,1.6f,0),new Vector3(.3f,3.2f,8),wall);
-   Furnish(parent,x,"Right wall",new Vector3(4.5f,1.6f,0),new Vector3(.3f,3.2f,8),wall);
+   Furnish(parent,x,"Right wall",new Vector3(4.5f,.16f,0),new Vector3(.3f,.32f,8),wall);
   }
   void BuildPawMart(Transform root,float x){
    Base(root,x,"EFE2C9");
