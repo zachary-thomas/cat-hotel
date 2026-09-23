@@ -735,15 +735,14 @@ namespace Purrington.Presentation
 
                     string id=room.id;
 
-                    RoomExtras(content,id,room.width,room.depth);
+                    if(room.cells==null)RoomExtras(content,id,room.width,room.depth);
 
-                    Info(content,"EDIT ROOM",room.width+" × "+room.depth+" tiles · "+(app.Model.IsRoomReady(room)?"Ready for guests":"Needs reachable bed and reception")+"\nRemoving stores furniture and returns "+room.paid.ToString("N0")+" shell coins.");
+                    Info(content,"EDIT ROOM",(room.cells==null?room.width+" × "+room.depth:room.cells.Count.ToString())+" tiles · "+(app.Model.IsRoomReady(room)?"Ready for guests":"Needs reachable bed and reception")+"\n"+(room.cells==null?"Move or resize this room.":"Reshape this room with Walls.")+" Removing stores furniture and returns "+room.paid.ToString("N0")+" shell coins.");
 
                     var actions=Row(content,56);
 
-                    Button(actions,"Move",()=>BeginMoveRoom(id),Mint,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-                    Button(actions,"Rotate",()=>BeginMoveRoom(id,true),Gold,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
+                    if(room.cells==null){Button(actions,"Move",()=>BeginMoveRoom(id),Mint,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
+                    Button(actions,"Rotate",()=>BeginMoveRoom(id,true),Gold,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;}
 
                     Button(actions,"Remove",()=>{var result=app.Model.RemoveRoom(id);app.Report(result);if(result.success)selectedRoom="";Rebuild();ShowNotice(result.message,!result.success);},Coral,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
 

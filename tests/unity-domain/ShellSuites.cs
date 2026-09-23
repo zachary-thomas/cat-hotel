@@ -491,4 +491,42 @@ static class ShellSuites
 		Check(HotelModel.Valid(m.State)&&HotelModel.Valid(lone.State),"stairs: edited hotels remain loadable");
 		Console.WriteLine("Shell stair safety suite passed");
 	}
+static JObject Wall(int x0,int z0,int x1,int z1){return new JObject{{"floor",0},{"from",new JArray(x0,z0)},{"to",new JArray(x1,z1)}};}
+	static JObject Claim(int x,int z,string kind){return new JObject{{"floor",0},{"x",x},{"y",z},{"kind",kind},{"name","Corner "+kind}};}
+	public static void RunWallTool(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
+	{
+		var m=new HotelModel(new MemoryStore(),content);m.LoadOrCreate();m.State.coins=100000;var lot=m.Hotel();lot.rooms.Clear();lot.floors.Clear();lot.objects.Clear();lot.paths.Clear();
+		Check(FindClear(m,8,7,out int x,out int z),"walls: clear land");
+		Check(m.Execute("paint_floor",Paint(x,z,6,5)).success,"walls: open-plan floor");
+		double coins=m.State.coins;var wall=m.Execute("draw_wall",Wall(x+6,z+2,x+3,z+5));
+		Check(wall.success&&Math.Abs(coins-m.State.coins-30)<.01,"walls: an L-shaped wall of 6 edges costs 30 ("+wall.message+")");
+		Check(HotelModel.WallPath(x+6,z+2,x+3,z+5).Count==6,"walls: the UI preview path matches the built walls");
+		var floor=HotelModel.Floor(m.Hotel(),0);
+		Check(ShellGrid.WallAt(floor,"h:"+(x+4)+","+(z+2))=="wall"&&ShellGrid.WallAt(floor,"v:"+(x+3)+","+(z+3))=="wall","walls: the bend runs along x, then z");
+		var doorless=m.Quote("claim_room",Claim(x,z,"suite"));Check(!doorless.success&&doorless.message.Contains("door"),"walls: a space needs a door first ("+doorless.message+")");
+		Check(m.Execute("set_edge",EdgePayload("door","v:"+x+","+(z+1))).success,"walls: front door");
+		coins=m.State.coins;var suite=m.Execute("claim_room",Claim(x,z,"suite"));Check(suite.success,"walls: claim the L-shaped space as a suite ("+suite.message+")");
+		var room=m.Hotel().rooms.Last();
+		Check(room.cells!=null&&room.cells.Count==21&&room.width==6&&room.depth==5&&HotelModel.Interior(m.Hotel(),room),"walls: the suite keeps its 21 L-shaped cells");
+		Check(Math.Abs(coins-m.State.coins-Math.Round(1225*.45,MidpointRounding.AwayFromZero))<.01,"walls: an L suite costs 45% of a 21-cell suite");
+		Check(HotelModel.RoomHas(room,x+1.5f,z+3.5f)&&!HotelModel.RoomHas(room,x+4.5f,z+3.5f),"walls: membership follows the L, not its bounding box");
+		var small=m.Quote("claim_room",Claim(x+4,z+3,"regular"));Check(!small.success,"walls: 9 cells is too small for a bedroom ("+small.message+")");
+		Check(m.Execute("set_edge",EdgePayload("door","v:"+(x+3)+","+(z+3))).success,"walls: door between the two spaces");
+		var lounge=m.Execute("claim_room",Claim(x+4,z+3,"shared"));Check(lounge.success,"walls: the small space becomes a lounge ("+lounge.message+")");
+		Check(!m.Quote("claim_room",Claim(x+1,z+1,"regular")).success,"walls: claimed space can't be claimed twice");
+		var plant=Catalog.All.First(i=>i.surfaces.Contains("indoor")&&i.width<=1&&i.depth<=1&&i.bond==0);
+		Check(m.PlaceObject(plant.id,x+1,z+3).success&&m.Hotel().objects.Last().room==room.id,"walls: furniture in the L's arm belongs to the suite");
+		Check(!m.Quote("set_edge",EdgePayload("none","h:"+(x+4)+","+(z+2))).success,"walls: walls that enclose rooms stay");
+		Check(!m.Quote("move_room",new JObject{{"id",room.id},{"x",x},{"y",z},{"rotation",0}}).success,"walls: wall-tool rooms reshape by walls, not moving");
+		Check(m.Route(new LotPoint(x-1.5f,z+1.5f),new LotPoint(x+4.5f,z+3.5f),false).Count>0,"walls: cats walk through the suite into the lounge");
+		var codec=new NewtonsoftSaveCodec();var restored=codec.Deserialize(codec.Serialize(m.State));
+		Check(HotelModel.Valid(restored)&&restored.hotels[restored.currentHotel].rooms.Last().cells.Count==9,"walls: room shapes survive a save");
+		var bad=JObject.Parse(codec.Serialize(m.State));var badRoom=(JArray)bad["hotels"][m.State.currentHotel]["rooms"];badRoom[badRoom.Count-1]["cells"]=new JArray("nope");
+		var other=new HotelModel(new MemoryStore(),content);other.LoadOrCreate();Check(!other.RestoreJson(bad.ToString()),"walls: corrupt room cells are rejected");
+		Check(!JObject.Parse(codec.Serialize(other.State))["hotels"][0]["rooms"][0].ToString().Contains("cells"),"walls: rectangle rooms don't store cells");
+		Check(m.Execute("remove_room",P("{\"id\":\""+room.id+"\"}")).success&&ShellGrid.WallAt(HotelModel.Floor(m.Hotel(),0),"h:"+(x+4)+","+(z+2))=="wall","walls: removing the room keeps the walls");
+		Check(m.Undo().success&&m.Hotel().rooms.Any(r=>r.id==room.id),"walls: undo restores the claimed room");
+		Console.WriteLine("Wall tool suite passed");
+	}
+
 }

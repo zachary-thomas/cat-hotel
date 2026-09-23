@@ -13,7 +13,7 @@ namespace Purrington.Domain {
 }
 [Serializable] public sealed class HotelData { public bool owned,maid; public List<string> plots=new List<string>(); public List<RoomState> rooms=new List<RoomState>(); public List<FloorState> floors=new List<FloorState>(); public List<ObjectState> objects=new List<ObjectState>(); public Dictionary<string,PathState> paths=new Dictionary<string,PathState>(); public int level=1,visits,happy,cleaned,purchases,dirtCursor; public float dirtClock; public int[] upgrades={1,0,0,1},staff={0,0,0}; public Dictionary<string,bool> dirty=new Dictionary<string,bool>(); }
 [Serializable] public sealed class PathState {public string style="earth";public double paid;}
-[Serializable] public sealed class RoomState { public string id,name="New room",kind="regular"; public int x,z,width,depth,rotation,floor,door=-1; public double paid; }
+[Serializable] public sealed class RoomState { public string id,name="New room",kind="regular"; public int x,z,width,depth,rotation,floor,door=-1; public double paid; [JsonProperty(NullValueHandling=NullValueHandling.Ignore)] public List<string> cells; }
 [Serializable] public sealed class ObjectState {public string id,itemId,room="";public float x,z;public int rotation,floor;public double paid;}
 [Serializable] public sealed class CatState {public int id,bond,friend=-1;public string name,preference,favoriteAction;public Dictionary<string,string> outfit=new Dictionary<string,string>();public bool known=true;public float lastCare=-100;}
 [Serializable] public sealed class SettingsState {public float textScale=1; public bool motion=true,music=true,sound=true,exterior,evening,godMode,assistedCare;}
