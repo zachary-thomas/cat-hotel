@@ -976,7 +976,7 @@ git commit -m "feat(domain): guests, staff and visitors live on every floor"
 
 **Files:** `HotelNavigation.cs`, `tests/unity-domain/ShellSuites.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 In `RunFloorLife`, insert this block directly before `Console.WriteLine("Shell floor life suite passed");`:
 
@@ -990,12 +990,12 @@ In `RunFloorLife`, insert this block directly before `Console.WriteLine("Shell f
 		}
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `System.Exception: floor life: a ready sunroom adds income`, because the sunroom isn't ready without the themed-room status rule.
 
-- [ ] **Step 3: Apply the edits**
+- [x] **Step 3: Apply the edits**
 
 **1. `…/Domain/HotelNavigation.cs`** · replace exactly once:
 
@@ -1021,12 +1021,12 @@ with:
 total+=h.staff.Sum()*2;total+=h.rooms.Where(r=>Themed(r.kind)&&RoomStatus(r.id,i).ready).Select(r=>r.kind).Distinct().Sum(k=>k=="sunroom"?15:k=="garden"?20:25);}
 ```
 
-- [ ] **Step 4: Run to verify it passes, then run the Unity gate**
+- [x] **Step 4: Run to verify it passes, then run the Unity gate**
 
 Run: `dotnet run --project tests/unity-domain`. Expected: `PASS <n> checks` (676079 during planning).
 Run: `.\tools\unity.ps1 Test`. Expected: exit 0. Presentation code that builds `LotPoint`, `VenueSlot` or `ActorSnapshot` still compiles, because the new fields have defaults. If Unity reports a compile error in `Presentation/`, fix only that call site by passing the floor through.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
