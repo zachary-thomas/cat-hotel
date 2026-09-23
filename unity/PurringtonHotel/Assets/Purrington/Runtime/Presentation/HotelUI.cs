@@ -276,7 +276,7 @@ namespace Purrington.Presentation
 
             if(commandAction.Length>0){PreviewCommand();return;}
 
-            var result=movingRoom.Length>0 ? app.Model.PreviewMoveRoom(movingRoom,(int)target.x,(int)target.z,rotation) : retrievingObject.Length>0 ? app.Model.PreviewRetrieveObject(retrievingObject,target.x,target.z,rotation) : movingObject.Length>0 ? app.Model.PreviewMoveObject(movingObject,target.x,target.z,rotation) : placement=="room" ? app.Model.PreviewRoom((int)target.x,(int)target.z) : app.Model.PreviewObject(placement,target.x,target.z,rotation);
+            var result=movingRoom.Length>0 ? app.Model.PreviewMoveRoom(movingRoom,(int)target.x,(int)target.z,rotation) : retrievingObject.Length>0 ? app.Model.PreviewRetrieveObject(retrievingObject,target.x,target.z,rotation,currentFloor) : movingObject.Length>0 ? app.Model.PreviewMoveObject(movingObject,target.x,target.z,rotation) : placement=="room" ? app.Model.PreviewRoom((int)target.x,(int)target.z) : app.Model.PreviewObject(placement,target.x,target.z,rotation,currentFloor);
 
             if(movingRoom.Length>0)
 
@@ -318,7 +318,7 @@ namespace Purrington.Presentation
 
             if(!hasTarget){ShowNotice("Tap an open spot in your hotel first.",false);return;}
 
-            var result=movingRoom.Length>0 ? app.Model.MoveRoom(movingRoom,(int)target.x,(int)target.z,rotation) : retrievingObject.Length>0 ? app.Model.RetrieveObject(retrievingObject,target.x,target.z,rotation) : movingObject.Length>0 ? app.Model.MoveObject(movingObject,target.x,target.z,rotation) : placement=="room" ? app.Model.PlaceRoom((int)target.x,(int)target.z) : app.Model.PlaceObject(placement,target.x,target.z,rotation);
+            var result=movingRoom.Length>0 ? app.Model.MoveRoom(movingRoom,(int)target.x,(int)target.z,rotation) : retrievingObject.Length>0 ? app.Model.RetrieveObject(retrievingObject,target.x,target.z,rotation,currentFloor) : movingObject.Length>0 ? app.Model.MoveObject(movingObject,target.x,target.z,rotation) : placement=="room" ? app.Model.PlaceRoom((int)target.x,(int)target.z) : app.Model.PlaceObject(placement,target.x,target.z,rotation,currentFloor);
 
             app.Report(result);
 
@@ -588,7 +588,8 @@ namespace Purrington.Presentation
         void HotelPanel()
         {
             // Compact objective card is the default; expand for room/capacity details.
-            float h=compactObjective?58:Mathf.Lerp(165,205,(textScale-1)*2);
+            bool floorChoices=app.Model.Hotel().floors.Count>1;
+            float h=(compactObjective?58:Mathf.Lerp(165,205,(textScale-1)*2))+(floorChoices?44:0);
             var panel=Panel("Hotel overview",safe,Cream);
             Pin(panel,Vector2.zero,new Vector2(1,0),new Vector2(.5f,0),new Vector2(12,96),new Vector2(-12,96+h));
             if(wideLayout)Pin(panel,new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(-245,96),new Vector2(245,96+h));
@@ -600,6 +601,7 @@ namespace Purrington.Presentation
             Pin(title.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-48),new Vector2(-62,-6));
             var collapse=Button(panel,compactObjective?"+":"-",()=>{compactObjective=!compactObjective;Rebuild();},Gold,18);
             Pin(collapse,new Vector2(1,1),Vector2.one,Vector2.one,new Vector2(-54,-48),new Vector2(-6,-4));
+            if(floorChoices){var chip=FloorChip(panel);Pin(chip,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(10,-94),new Vector2(-10,-54));}
             if(compactObjective)return;
             int ready=app.Model.State.rooms.Count(r=>app.Model.IsRoomReady(r));
             int staying=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest);
@@ -610,11 +612,12 @@ namespace Purrington.Presentation
                 ? arriving+" arriving at reception · "+ready+"/"+app.Model.State.rooms.Count+" rooms ready"
                 : ready+"/"+app.Model.State.rooms.Count+" rooms ready · guests rotate in through reception";
             var copy=Text(panel,lifeLine+"\n"+arrivalLine,13,Ink);
-            Pin(copy.rectTransform,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(14,62),new Vector2(-14,-50));
+            Pin(copy.rectTransform,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(14,62),new Vector2(-14,floorChoices?-94:-50));
             var actions=Rect("Hotel actions",panel);Pin(actions,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,8),new Vector2(-10,58));
             var row=Horizontal(actions,6,0);Button(row,"Build",()=>Navigate("Build"),Gold,14);Button(row,"Life",()=>Navigate("Life"),Mint,14);
             if(app.Model.State.pendingCoins>0)Button(row,"Collect "+Math.Floor(app.Model.State.pendingCoins).ToString("N0"),()=>{var result=app.Model.ClaimOffline();app.Report(result);if(result.success)app.Audio?.PlayEffect("collect");Rebuild();},Coral,13);
-            else Button(row,"Fit hotel",()=>app.World.FitHotel(),Lilac,14);
+            else if(app.World.WatchedCatId>=0)Button(row,"Stop watch",()=>{app.World.StopWatching();Rebuild();},Lilac,13);
+            else {var guest=app.Model.Actors.FirstOrDefault(a=>a.kind==ActorKind.Guest);if(guest!=null)Button(row,"Watch cat",()=>{app.World.WatchCat(guest.catId);Rebuild();},Lilac,13);else Button(row,"Fit hotel",()=>app.World.FitHotel(),Lilac,14);}
         }
 
         // Phone sheets/catalogues must leave ≥35% of screen height for the voxel world.
@@ -701,6 +704,7 @@ namespace Purrington.Presentation
             }
 
             var content=Sheet("Build catalogue","Build",.55f);
+            FloorChip(content);
 
             var tools=Button(sheet,buildToolsExpanded?"Done":"Tools",()=>{buildToolsExpanded=!buildToolsExpanded;Rebuild();},Mint,12);
             Pin(tools,Vector2.one,Vector2.one,Vector2.one,new Vector2(textScale>1?-150:-130,-56),new Vector2(-74,-8));
