@@ -45,6 +45,7 @@ namespace Purrington.Presentation
 
         Vector3 target;
 
+        CountUp walletCounter;string lastSheetName="";
         bool hasTarget, settings, welcome, welcomeCameraHidden, compactObjective=true, saveError;
 
         Vector2 lastSize;
@@ -159,9 +160,8 @@ namespace Purrington.Presentation
             RefreshMarketStatus();
             if (wallet == null) return;
             double rate = app.Model.Rate();
-            wallet.text = Math.Floor(app.Model.State.coins).ToString("N0");
-            if (walletRate != null) walletRate.text = "+" + Math.Round(rate).ToString("N0") + " / min";
-            else wallet.text += " · +" + Math.Round(rate).ToString("N0") + " / min";
+            if (walletRate != null && walletCounter != null) { walletCounter.Set(app.Model.State.coins); walletRate.text = "+" + Math.Round(rate).ToString("N0") + " / min"; }
+            else { wallet.text = Math.Floor(app.Model.State.coins).ToString("N0"); if (walletRate != null) walletRate.text = "+" + Math.Round(rate).ToString("N0") + " / min"; else wallet.text += " · +" + Math.Round(rate).ToString("N0") + " / min"; }
 
         }
 
@@ -736,6 +736,7 @@ namespace Purrington.Presentation
             var coin=UiCoin.Create(chip,rounded,26);coin.anchorMin=coin.anchorMax=coin.pivot=new Vector2(0,.5f);coin.anchoredPosition=new Vector2(4,0);
 
             wallet=Text(chip,"",13,Ink,true);Fit(wallet,13,8);
+            walletCounter=wallet.gameObject.AddComponent<CountUp>();walletCounter.Label=wallet;walletCounter.Coin=coin;
             var ratePill=Panel("Rate pill",chip,Mint);Pin(ratePill,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(32,3),new Vector2(-6,19));walletRate=Text(ratePill,"",10,LeafText,true);Fit(walletRate,10,7);Stretch(walletRate.rectTransform,6,1,6,1);
 
             Stretch(wallet.rectTransform,34,2,8,20);
@@ -862,6 +863,7 @@ namespace Purrington.Presentation
 
         void HotelPanel()
         {
+            lastSheetName="";
             // Compact objective card is the default; expand for room/capacity details.
             bool floorChoices=app.Model.Hotel().floors.Count>1;
             float h=(compactObjective?58:Mathf.Lerp(165,205,(textScale-1)*2))+(floorChoices?44:0);
@@ -925,6 +927,7 @@ namespace Purrington.Presentation
                 Pin(sheet,Vector2.zero,new Vector2(1,fraction),Vector2.zero,new Vector2(10,welcome?10:96),new Vector2(-10,0));
             }
 
+            if(name!=lastSheetName)UiMotion.SlideIn(sheet);lastSheetName=name;
             var label=Text(sheet,title,18,Ink,true);
 
             Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(18,-58),new Vector2(-76,-8));
@@ -1463,7 +1466,7 @@ namespace Purrington.Presentation
 
         {
 
-            var r=Panel(label,parent,color);var button=r.gameObject.AddComponent<UnityEngine.UI.Button>();button.targetGraphic=r.GetComponent<UnityEngine.UI.Image>();button.onClick.AddListener(()=>{app.Audio?.PlayEffect("tap");action();});
+            var r=Panel(label,parent,color);var button=r.gameObject.AddComponent<UnityEngine.UI.Button>();button.targetGraphic=r.GetComponent<UnityEngine.UI.Image>();button.onClick.AddListener(()=>{app.Audio?.PlayEffect("tap");action();});r.gameObject.AddComponent<PressBounce>();
 
             var colors=button.colors;colors.highlightedColor=new Color(1.04f,1.04f,1.04f);colors.pressedColor=new Color(.86f,.9f,.88f);button.colors=colors;
 

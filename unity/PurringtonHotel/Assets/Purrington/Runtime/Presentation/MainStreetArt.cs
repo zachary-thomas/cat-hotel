@@ -37,7 +37,7 @@ namespace Purrington.Presentation {
     float bx=(q.x+side*5.5f)*U,bz=(q.z+3.6f)*U;
     var bench=Group(Root,"Timber bench");Box(bench,"Seat",new Vector3(bx,.65f,bz),new Vector3(2,.2f,.7f),"B3824C");Box(bench,"Back",new Vector3(bx,1,bz+.3f),new Vector3(2,.7f,.14f),"D2AD77");
     foreach(float leg in new[]{-.7f,.7f})Box(bench,"Leg",new Vector3(bx+leg,.34f,bz),new Vector3(.18f,.6f,.55f),"425C35");
-    foreach(float lz in new[]{q.z-4.4f,q.z+4.4f}){var lamp=Group(Root,"Square lamp");float lx=(q.x+side*7.4f)*U;Box(lamp,"Post",new Vector3(lx,1.65f,lz*U),new Vector3(.18f,3.1f,.18f),"425C35");Box(lamp,"Lantern",new Vector3(lx,3.2f,lz*U),new Vector3(.48f,.6f,.48f),"D7AE55");}
+    foreach(float lz in new[]{q.z-4.4f,q.z+4.4f}){var lamp=Group(Root,"Square lamp");float lx=(q.x+side*7.4f)*U;Box(lamp,"Post",new Vector3(lx,1.65f,lz*U),new Vector3(.18f,3.1f,.18f),"425C35");LampAnchor.Mark(Box(lamp,"Lantern",new Vector3(lx,3.2f,lz*U),new Vector3(.48f,.6f,.48f),SurfacePalette.LanternGlow),4.5f);}
     float px=(q.x+side*2.6f)*U,pz=(q.z+4.3f)*U;Box(Root,"Stone planter",new Vector3(px,.45f,pz),new Vector3(.9f,.7f,.9f),"BF7958");Box(Root,"Foliage",new Vector3(px,.9f,pz),new Vector3(1.1f,.5f,1.1f),"738448");
    }
    Decorate(q);
@@ -124,7 +124,7 @@ namespace Purrington.Presentation {
     for(float px=run.a+.1f;px<=run.b;px+=.32f)Box(yard,"Picket",new Vector3(px,.38f,fence),new Vector3(.12f,.6f,.07f),"F4F1E8");
     foreach(float px in new[]{run.a,run.b})Box(yard,"Fence post",new Vector3(px,.42f,fence),new Vector3(.16f,.74f,.16f),"E4DCCB");
    }
-   foreach(float side in new[]{-1.05f,1.05f}){var lamp=Group(yard,"Garden lamp");Box(lamp,"Post",new Vector3(door+side,1.05f,fence-.25f),new Vector3(.14f,1.9f,.14f),"425C35");Box(lamp,"Lantern",new Vector3(door+side,2.1f,fence-.25f),new Vector3(.36f,.46f,.36f),"D7AE55");}
+   foreach(float side in new[]{-1.05f,1.05f}){var lamp=Group(yard,"Garden lamp");Box(lamp,"Post",new Vector3(door+side,1.05f,fence-.25f),new Vector3(.14f,1.9f,.14f),"425C35");LampAnchor.Mark(Box(lamp,"Lantern",new Vector3(door+side,2.1f,fence-.25f),new Vector3(.36f,.46f,.36f),SurfacePalette.LanternGlow),3.4f,.8f);}
    // The notch beside the set-back wing becomes a patio: a café corner for Paw Mart, a garden nook for the boutique.
    var wing=System.Array.Find(plan.Rooms,r=>r.rect.yMin>plan.Bounds.yMin+.01f&&r.rect.yMin<0).rect;
    float px0=cx-wing.xMax-T/2,px1=cx-wing.xMin+T/2,nz0=cz-wing.yMin+T/2,nz1=front;

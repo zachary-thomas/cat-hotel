@@ -55,6 +55,12 @@ namespace Purrington.Domain
 
         public static bool IsGlass(string hex6) => hex6 != null && Array.Exists(glass, g => g.Equals(hex6, StringComparison.OrdinalIgnoreCase));
 
+        // Lantern and lamp-shade swatches glow with the windows at dusk and night.
+        public const string LanternGlow = "FFE6A8";
+        static readonly string[] lamps = { "ffe6a8", "f5da83" };
+        public static bool IsLamp(string hex6) => hex6 != null && Array.Exists(lamps, g => g.Equals(hex6, StringComparison.OrdinalIgnoreCase));
+        public static bool Glows(string hex6) => IsGlass(hex6) || IsLamp(hex6);
+
         // Stable per-voxel tone pick from a rounded position; never UnityEngine.Random, so captures repeat.
         public static int Variant(float x, float y, float z)
         {
