@@ -85,6 +85,13 @@ namespace Purrington.Presentation
             while(frames<180){yield return null;frames++;worst=Mathf.Max(worst,Time.unscaledDeltaTime);}
             float sampleTime=Time.realtimeSinceStartup-sampleStart;
             File.WriteAllText(Path.Combine(output,"performance.txt"),"Windows development preview, 1280x800, starter Meadow; "+frames+" frames / "+sampleTime.ToString("F2")+" s; average "+(frames/sampleTime).ToString("F1")+" FPS; worst frame "+(worst*1000).ToString("F1")+" ms. Target cap: "+Application.targetFrameRate+" FPS. This is not mobile-device performance.");
+            int previousQuality=QualitySettings.GetQualityLevel();int mobileQuality=System.Array.FindIndex(QualitySettings.names,n=>n.IndexOf("Mobile",System.StringComparison.OrdinalIgnoreCase)>=0);
+            if(mobileQuality>=0)QualitySettings.SetQualityLevel(mobileQuality,true);
+            Screen.SetResolution(390,844,FullScreenMode.Windowed);yield return new WaitForSecondsRealtime(1);app.UI.Navigate("Hotel");
+            sampleStart=Time.realtimeSinceStartup;frames=0;worst=0;while(frames<180){yield return null;frames++;worst=Mathf.Max(worst,Time.unscaledDeltaTime);}
+            sampleTime=Time.realtimeSinceStartup-sampleStart;
+            File.WriteAllText(Path.Combine(output,"performance-mobile.txt"),"quality="+(mobileQuality>=0?QualitySettings.names[mobileQuality]:"none")+"; 390x844; frames="+frames+"; averageMs="+(sampleTime/frames*1000).ToString("F2",System.Globalization.CultureInfo.InvariantCulture)+"; worstMs="+(worst*1000).ToString("F1",System.Globalization.CultureInfo.InvariantCulture));
+            QualitySettings.SetQualityLevel(previousQuality,true);
             var save=app.Model.Save();
             bool passed=save.success&&!failed;
             File.WriteAllText(Path.Combine(output,"result.txt"),passed?"PASS: startup, orthographic camera, navigation, care stage, panel bounds, wheel zoom, layouts, save. Screenshots require visual review.":"FAIL: inspect player.log; "+save.message);
