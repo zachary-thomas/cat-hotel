@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 namespace Purrington.Domain {
 [Serializable] public sealed class HotelState {
  public int version=3; public double coins=1000; public float elapsed; public int nextId=1,currentHotel; public long lastSeen; public double pendingCoins;
- public List<HotelData> hotels=new List<HotelData>(); public List<ObjectState> storage=new List<ObjectState>(); public List<CatState> cats=new List<CatState>(); public List<string> entitlements=new List<string>(); public SettingsState settings=new SettingsState();
+ public List<HotelData> hotels=new List<HotelData>(); public List<ObjectState> storage=new List<ObjectState>(); public List<CatState> cats=new List<CatState>(); public List<string> entitlements=new List<string>(); public List<string> wardrobe=new List<string>(); public SettingsState settings=new SettingsState();
  [JsonIgnore] public List<RoomState> rooms {get{return hotels.Count>currentHotel?hotels[currentHotel].rooms:legacyRooms;}set{if(hotels.Count>currentHotel)hotels[currentHotel].rooms=value;else legacyRooms=value;}}
  [JsonIgnore] public List<ObjectState> objects {get{return hotels.Count>currentHotel?hotels[currentHotel].objects:legacyObjects;}set{if(hotels.Count>currentHotel)hotels[currentHotel].objects=value;else legacyObjects=value;}}
  [JsonIgnore] List<RoomState> legacyRooms=new List<RoomState>(); [JsonIgnore] List<ObjectState> legacyObjects=new List<ObjectState>();
@@ -15,7 +15,7 @@ namespace Purrington.Domain {
 [Serializable] public sealed class PathState {public string style="earth";public double paid;}
 [Serializable] public sealed class RoomState { public string id,name="New room",kind="regular"; public int x,z,width,depth,rotation,floor,door=-1; public double paid; }
 [Serializable] public sealed class ObjectState {public string id,itemId,room="";public float x,z;public int rotation,floor;public double paid;}
-[Serializable] public sealed class CatState {public int id,bond,friend=-1;public string name,preference,favoriteAction;public bool known=true;public float lastCare=-100;}
+[Serializable] public sealed class CatState {public int id,bond,friend=-1;public string name,preference,favoriteAction;public Dictionary<string,string> outfit=new Dictionary<string,string>();public bool known=true;public float lastCare=-100;}
 [Serializable] public sealed class SettingsState {public float textScale=1; public bool motion=true,music=true,sound=true,exterior,evening,godMode,assistedCare;}
 public sealed class CommandResult {public bool success,progressChanged;public string message;public double cost;public List<string> displaced=new List<string>();public static CommandResult Ok(string message,double cost=0){return new CommandResult{success=true,message=message,cost=cost};}public static CommandResult Fail(string message,double cost=0){return new CommandResult{message=message,cost=cost};}}
 public interface IResettableSaveStore {bool Reset(HotelState state);} public interface ISaveStore {HotelState Load();bool Save(HotelState state);} public interface ISaveStatus {bool HasExistingSave{get;}string LoadError{get;}} public interface ISaveCodec {string Serialize(HotelState state);HotelState Deserialize(string json);}
