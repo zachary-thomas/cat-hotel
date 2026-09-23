@@ -99,6 +99,8 @@ public sealed class StoreInteriorTests {
    var screen=camera.WorldToViewportPoint(new Vector3(stage.x,stage.y,-stage.z));
    Assert.That(screen.x,Is.InRange(.1f,.9f));
    Assert.That(screen.y,Is.InRange(.1f,.9f));
+   // In an interactive Editor, Screen is the focused panel rather than the camera's target, so the pixel check only means something when they match (batch runs).
+   if(camera.pixelWidth!=Screen.width||camera.pixelHeight!=Screen.height)return;
    // A portrait sheet leaves only the upper half for the shop: fit every floor corner.
    var viewport=new Rect(0,Screen.height*.5f,Screen.width,Screen.height*.5f);world.SetWorldRect(viewport);
    var half=ShopPlan.For(id).Size/2;

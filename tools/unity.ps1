@@ -11,6 +11,12 @@ if (-not (Test-Path -LiteralPath $unityCli)) {
     $unityCli=$unityCommand.Source
 }
 if ($Action -eq 'Open') { & $unityCli open $unityProject; exit $LASTEXITCODE }
+# With the Editor already open, Test and Windows run inside it through the bridge instead of a second Unity instance.
+$bridgeAlive=Join-Path $unityProject 'Temp/ClaudeBridge/alive'
+if (($Action -eq 'Test' -or $Action -eq 'Windows') -and (Test-Path -LiteralPath $bridgeAlive) -and ((Get-Date).ToUniversalTime()-[datetime]::Parse((Get-Content -LiteralPath $bridgeAlive -Raw).Trim()).ToUniversalTime()).TotalSeconds -le 20) {
+    & (Join-Path $PSScriptRoot 'unity-bridge.ps1') -Action ($(if ($Action -eq 'Test') { 'test' } else { 'build' }))
+    exit $LASTEXITCODE
+}
 if ($Action -eq 'Play') {
     $unityPreview=Join-Path $unityRepo 'builds/unity/Windows/PurringtonHotel.exe'
     if (-not (Test-Path -LiteralPath $unityPreview)) { throw 'Build the Windows preview first: tools/unity.ps1 Windows' }
