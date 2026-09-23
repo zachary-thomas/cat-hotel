@@ -153,6 +153,9 @@ static class ShellSuites
 		ground.edges[ShellGrid.Edge('v',x,z+1)].kind="window";Check(m.Save().success,"nav: save window");
 		var glazed=new HotelModel(store,content);glazed.LoadOrCreate();
 		Check(glazed.Route(outside,inside,false).Count==0,"nav: windows block like walls");
+		ground.edges[ShellGrid.Edge('v',x,z+1)].kind="open";Check(m.Save().success,"nav: save exterior archway");
+		var arched=new HotelModel(store,content);arched.LoadOrCreate();
+		Check(arched.Route(outside,inside,false).Count>0,"nav: archway passes through the same exterior edge blocked by the window");
 		Check(glazed.GuestCapacity(0)==4&&glazed.Rate(0)==64,"nav: Meadow capacity/rate unchanged with shell walls");
 		Console.WriteLine("Shell navigation suite passed");
 	}
@@ -317,6 +320,12 @@ static class ShellSuites
 		Check(room.floor==1&&HotelModel.Interior(m.Hotel(),room),"floors: upstairs bedroom is interior");
 		var garden=m.Quote("draw_room",RoomOn(1,x+3,z+3,3,3,0,"garden"));Check(!garden.success&&garden.message.Contains("Upstairs holds"),"floors: gardens belong on the roof ("+garden.message+")");
 		var roof=m.Quote("draw_room",RoomOn(1,x+3,z,2,3,0,"stairs"));Check(!roof.success&&roof.message.Contains("level 5"),"floors: the rooftop opens at hotel level 5 ("+roof.message+")");
+		var path=m.Route(new LotPoint(x-1.5f,z+3.5f),new LotPoint(x+5.5f,z+1.5f,1),false);
+		Check(path.Count>0&&path[0].floor==0&&path[path.Count-1].floor==1,"floors: cats reach the upstairs bedroom");
+		Check(path.Any(p=>p.floor==1&&p.x<x+3),"floors: the route climbs the stairwell");
+		var climbs=path.Zip(path.Skip(1),(a,b)=>(a,b)).Where(v=>v.a.floor!=v.b.floor).ToArray();
+		Check(climbs.Length==1&&Math.Abs(climbs[0].a.x-climbs[0].b.x)<.001&&Math.Abs(climbs[0].a.z-climbs[0].b.z)<.001&&climbs[0].a.x>=x+1&&climbs[0].a.x<x+3&&climbs[0].a.z>=z+1&&climbs[0].a.z<z+4,"floors: the only cross-floor link is directly over the stairwell");
+		Check(!m.MovementSegmentClear(new LotPoint(x+5.25f,z+1.25f),new LotPoint(x+5.25f,z+1.25f,1),false),"floors: cats cannot jump between floors outside stairs");
 		Check(!m.Quote("draw_room",RoomOn(0,x+4,z+4,3,3,0,"spa")).success,"floors: no spas on the ground floor");
 		m.Hotel().level=7;
 		var down=m.Execute("draw_room",RoomOn(-1,x+5,z+4,2,3,0,"stairs"));Check(down.success,"floors: basement stairs open the basement ("+down.message+")");
@@ -332,6 +341,32 @@ static class ShellSuites
 		Check(HotelModel.Valid(m.State),"floors: the saved multilevel hotel is valid");
 		var reopened=new HotelModel(new MemoryStore{state=HotelModel.Copy(m.State)},content);Check(reopened.LoadOrCreate().success&&HotelModel.Floor(reopened.Hotel(),1)?.cells.Count==stairCells&&HotelModel.Floor(reopened.Hotel(),-1)?.cells.Count==6,"floors: stairs and landings survive a save reload");
 		Console.WriteLine("Shell floors suite passed");
+	}
+	public static void RunMigratedDenseNavigation(Action<bool,string> Check,ParityContent content,HotelState denseSeed)
+	{
+		var seed=HotelModel.Copy(denseSeed);seed.version=2;
+		var m=new HotelModel(new MemoryStore{state=seed},content);
+		Check(m.LoadOrCreate().success,"dense migration: 24-room hotel loads with shell walls");
+		var h=m.Hotel();var ground=HotelModel.Floor(h,0);
+		Check(ground!=null&&ground.cells.Count>=24*12&&ground.edges.Count>=24,"dense migration: room floors and door edges survive ("+ground?.cells.Count+" cells, "+ground?.edges.Count+" stored edges)");
+		int wallEdges=ShellGrid.Edges(ground).Count(e=>{var kind=ShellGrid.WallAt(ground,e);return kind=="wall"||kind=="window";});
+		int wallRuns=ShellDraw.Runs(ground).Count(r=>r.kind=="wall"||r.kind=="window");
+		Check(wallRuns<wallEdges/2,"dense migration: contiguous walls collapse into runs ("+wallRuns+" runs / "+wallEdges+" edges)");
+		Check(m.GuestCapacity()==48,"dense migration: all bedrooms stay reachable");
+		var paths=new Dictionary<string,PathState>(h.paths);h.paths.Clear();
+		bool found=FindClear(m,2,3,out int x,out int z);
+		foreach(var path in paths)h.paths[path.Key]=path.Value;
+		Check(found,"dense migration: clear space for a connected stairwell");
+		Check(m.Execute("paint_floor",Paint(x,z,2,3)).success,"dense migration: ground floor for stairs");
+		Check(m.Execute("set_edge",new JObject{{"floor",0},{"kind","door"},{"edges",new JArray("v:"+x+","+(z+1))}}).success,"dense migration: stairs entrance");
+		Check(m.Execute("draw_room",RoomOn(0,x,z,2,3,2,"stairs")).success,"dense migration: stairwell and upper landing");
+		var route=m.Route(new LotPoint(x-.25f,z+1.25f),new LotPoint(x+.75f,z+1.25f,1),false);
+		Check(route.Count>0&&route.Any(p=>p.floor==1),"dense migration: path climbs to the landing through retained walls");
+		var timer=System.Diagnostics.Stopwatch.StartNew();int maxGuests=0;
+		for(int tick=0;tick<3000;tick++){m.Tick(.2f);var actors=m.Actors;maxGuests=Math.Max(maxGuests,actors.Count(a=>a.catId<1000));foreach(var actor in actors)Check(m.CanWalk(actor.x,actor.z),"dense migration: actor walks within the retained shell "+actor.id);}
+		timer.Stop();
+		Check(maxGuests==18&&m.Hotel().visits>0,"dense migration: 600 seconds of visits complete with the shell retained");
+		Console.WriteLine("Dense migrated 600s: "+wallRuns+" wall runs / "+wallEdges+" edges, "+m.Hotel().visits+" visits, "+maxGuests+" guests, "+timer.ElapsedMilliseconds+"ms CPU");
 	}
 	public static void RunStairSafety(Action<bool,string> Check,ParityContent content)
 	{
