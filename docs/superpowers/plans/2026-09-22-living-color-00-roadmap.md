@@ -10,7 +10,7 @@ September 22, 2026 · Unity only
 
 | Phase | Plan | Status | Depends on |
 |---|---|---|---|
-| **A: Living color and day/night** | [01-phase-a](2026-09-22-living-color-01-phase-a.md) | Plan written; ready to execute | nothing (touches few shared files) |
+| **A: Living color and day/night** | [01-phase-a](2026-09-22-living-color-01-phase-a.md) | Done on `feat/living-color-phase-a` (e9038e6..9f6746d); QA reviewed. Open polish: noon slightly hazy, night dim; bottom objective card truncates at 360@150% | nothing (touches few shared files) |
 | **B: Light and life** | to be written after A lands | Not started | A (`HotelModel.Clock`, `WorldLighting.Glow`, `ConceptTheme.Ui`) |
 | **C: Detail kits** | shared with [playable hotel world art](2026-09-22-playable-hotel-polish-01-world-art.md) Tasks 2–3 | Not started | A (palette table, tone variants, glow); hotel-growth roadmap and Main Street, per that plan |
 | **D: Playability loop** | to be written after A; needs its own spec (save schema) | Not started | A (clock, UI tokens, reserved title sub-pill); B's tween helper for income pops |
