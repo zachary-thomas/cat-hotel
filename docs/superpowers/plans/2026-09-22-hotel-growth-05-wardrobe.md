@@ -352,7 +352,7 @@ git commit -m "feat(world): cats wear their outfits in the hotel and care view"
 - Create: `unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/WardrobePanel.cs`
 - Modify: the care panel (`HotelUI.CarePanel` → `GestureCarePanel`; find it with `grep -n "void GestureCarePanel" unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation/*.cs`)
 
-- [ ] **Step 1: Create `WardrobePanel.cs`**
+- [x] **Step 1: Create `WardrobePanel.cs`**
 
 ```csharp
 using System.Collections.Generic;
@@ -392,11 +392,11 @@ namespace Purrington.Presentation {
 
 This uses the existing `HotelUI` helpers `Row`, `Button`, `Card`, `ShowNotice`, `Rebuild`, `app.Report`, the colors `Gold`/`Mint`, and `careCat`. If one of them has a different signature, match the existing callers in `HotelParityUI.cs`.
 
-- [ ] **Step 2: Open it from the care panel**
+- [x] **Step 2: Open it from the care panel**
 
 In `GestureCarePanel`, add a **Wardrobe** button to the care action row that sets `wardrobeOpen=!wardrobeOpen;Rebuild();`. When `wardrobeOpen` is true, render `WardrobePanel(content)` in place of the care tool grid. Call `CloseWardrobe()` from `CloseCare`, so an unbought try-on never sticks.
 
-- [ ] **Step 3: Run the tests and play-check**
+- [x] **Step 3: Run the tests and play-check**
 
 Run: `.\tools\unity.ps1 Test` (exit 0). In Play mode:
 1. Open Miso and tap Wardrobe → Head → Straw sun hat. It previews on Miso and coins are unchanged.
@@ -405,7 +405,7 @@ Run: `.\tools\unity.ps1 Test` (exit 0). In Play mode:
 4. Tiny crown shows "Gift from Miso at friendship 50".
 5. Close care mid-try-on and reopen. The hat you didn't buy is gone.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Presentation
