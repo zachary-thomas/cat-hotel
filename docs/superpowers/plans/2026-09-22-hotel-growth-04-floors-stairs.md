@@ -434,7 +434,7 @@ git commit -m "feat(domain): upper floors, rooftop and basement with stairwells"
 
 **Files:** `HotelState.cs`, `HotelNavigation.cs`, `tests/unity-domain/ShellSuites.cs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 In `RunFloors`, insert these three lines directly before the line containing `"floors: no spas on the ground floor"`:
 
@@ -444,12 +444,12 @@ In `RunFloors`, insert these three lines directly before the line containing `"f
 		Check(path.Any(p=>p.floor==1&&p.x<x+3),"floors: the route climbs the stairwell");
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: build error `'LotPoint' does not contain a constructor that takes 3 arguments`.
 
-- [ ] **Step 3: Apply the edits**
+- [x] **Step 3: Apply the edits**
 
 **1. `…/Domain/HotelState.cs`** · replace exactly once:
 
@@ -696,12 +696,12 @@ with:
 +p.z.ToString("F2",System.Globalization.CultureInfo.InvariantCulture)+(p.floor!=0?"@"+p.floor:"");}
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `dotnet run --project tests/unity-domain`
 Expected: `Shell floors suite passed`. The oracle, `Life visits` and `Dense 600s` sections still pass. `PASS <n> checks` (676064 during planning).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add unity/PurringtonHotel/Assets/Purrington/Runtime/Domain tests/unity-domain
