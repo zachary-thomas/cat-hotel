@@ -67,16 +67,19 @@ namespace Purrington.Presentation
     var manifest=Resources.Load<TextAsset>("Content/GodotReference");if(manifest==null)throw new InvalidOperationException("The complete hotel content is missing.");
     var townManifest=Resources.Load<TextAsset>("Content/MainStreet");if(townManifest==null)throw new InvalidOperationException("The Main Street content is missing.");
     TownContent.LoadJson(townManifest.text);
+    var chatter=Resources.Load<TextAsset>("Content/Chatter");if(chatter==null)throw new InvalidOperationException("The chatter content is missing.");
+    ChatterContent.LoadJson(chatter.text);
+    var neighbors=Resources.Load<TextAsset>("Content/Neighbors");if(neighbors==null)throw new InvalidOperationException("The neighbor content is missing.");NeighborContent.LoadJson(neighbors.text);var quests=Resources.Load<TextAsset>("Content/Quests");if(quests==null)throw new InvalidOperationException("The quest content is missing.");
 
     var wardrobeAsset=Resources.Load<TextAsset>("Content/Wardrobe");if(wardrobeAsset==null)throw new InvalidOperationException("The wardrobe content is missing.");
     Wardrobe.LoadJson(wardrobeAsset.text);
 
-    var content=ParityContent.LoadJson(manifest.text);var wardrobe=Resources.Load<TextAsset>("Content/Wardrobe");if(wardrobe==null)throw new InvalidOperationException("The wardrobe content is missing.");Wardrobe.LoadJson(wardrobe.text);Model=new HotelModel(new JournalSaveStore(Path.Combine(profile,"hotel"),new NewtonsoftSaveCodec()),content);var loaded=Model.LoadOrCreate();
+    var content=ParityContent.LoadJson(manifest.text);QuestContent.LoadJson(quests.text);var events=Resources.Load<TextAsset>("Content/Events");if(events==null)throw new InvalidOperationException("The event content is missing.");PlazaContent.LoadJson(events.text);var wardrobe=Resources.Load<TextAsset>("Content/Wardrobe");if(wardrobe==null)throw new InvalidOperationException("The wardrobe content is missing.");Wardrobe.LoadJson(wardrobe.text);Model=new HotelModel(new JournalSaveStore(Path.Combine(profile,"hotel"),new NewtonsoftSaveCodec()),content);var loaded=Model.LoadOrCreate();
 
     World=new GameObject("Voxel Hotel").AddComponent<VoxelWorld>();World.Initialize(Model);
 
     TownUI=new HotelTownUI(this);
-    UI=new GameObject("Mobile Interface").AddComponent<HotelUI>();UI.Initialize(this);World.CatSelected+=UI.OpenCare;World.GroundClicked+=UI.GroundClicked;World.ObjectSelected+=UI.SelectObject;World.RoomSelected+=UI.SelectRoom;World.GroundDragged+=UI.GroundDragged;World.GroundDragEnded+=UI.GroundDragEnded;World.StoreSelected+=TownUI.SelectStore;World.CashierSelected+=UI.CashierArrived;World.StoreEntered+=UI.StoreArrived;World.TownMessage+=message=>UI.ShowNotice(message,false);World.TownCommand+=result=>Report(result);
+    UI=new GameObject("Mobile Interface").AddComponent<HotelUI>();UI.Initialize(this);World.CatSelected+=UI.OpenCare;World.CatTapped+=UI.LifeCatTapped;World.NeighborTapped+=UI.LifeNeighborTapped;Model.ManagerFound+=UI.ShowFound;Model.PlazaEventEnded+=UI.ShowFound;World.ManagerTapped+=UI.LifeManagerTapped;World.LifeCommand+=r=>{if(!r.success)UI.ShowNotice(r.message,false);};Model.ManagerReachedCat+=UI.ManagerReachedCat;Model.ManagerOrderFailed+=m=>UI.ShowNotice(m,false);World.GroundClicked+=UI.GroundClicked;World.GrabStart=UI.BuildGrabStart;World.GrabMoved+=UI.BuildGrabMoved;World.GrabEnded+=UI.BuildGrabEnded;World.ObjectSelected+=UI.SelectObject;World.RoomSelected+=UI.SelectRoom;World.GroundDragged+=UI.GroundDragged;World.GroundDragEnded+=UI.GroundDragEnded;World.StoreSelected+=TownUI.SelectStore;World.CashierSelected+=UI.CashierArrived;World.StoreEntered+=UI.StoreArrived;World.TownMessage+=message=>UI.ShowNotice(message,false);World.TownCommand+=result=>Report(result);
 
     if(!TryGetComponent<HotelAudio>(out var audio))audio=gameObject.AddComponent<HotelAudio>();Audio=audio;
 

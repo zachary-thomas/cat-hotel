@@ -33,6 +33,49 @@ namespace Purrington.Presentation {
    var redo=Button(sheet,"Redo",()=>{app.Report(app.Model.Redo());Rebuild();},Lilac,12);Pin(redo,Vector2.one,Vector2.one,Vector2.one,new Vector2(-126,-56),new Vector2(-70,-8));
   }
 
+  // ---- Walls: up, cut away (the default) or down, like The Sims --------------------------------------------------------
+  static string WallLabel(string mode)=>"Walls: "+(mode==VoxelWorld.WallsUp?"Up":mode==VoxelWorld.WallsDown?"Down":"Cutaway");
+  void CycleWalls(){var mode=app.World.WallMode;app.World.SetWallMode(mode==VoxelWorld.WallsCut?VoxelWorld.WallsDown:mode==VoxelWorld.WallsDown?VoxelWorld.WallsUp:VoxelWorld.WallsCut);Rebuild();}
+
+  // ---- Grab and carry: press a furnishing and drag it; let go on open floor to drop it there --------------------------
+  string grabCandidate="";bool grabbedMove;Vector3 grabOffset;
+  bool GrabAllowed=>tab=="Build"&&!settings&&careCat<0&&!welcome;
+  public bool BuildGrabStart(Vector2 screen){
+   grabCandidate="";grabbedMove=false;
+   if(!GrabAllowed)return false;
+   var ground=app.World.ScreenToGround(screen);
+   if(IsPlacing){
+    // The ghost follows the finger. Once it is down, only a press on the ghost carries it; elsewhere the camera pans.
+    if(commandAction.Length>0||placement=="room")return false;
+    var size=GrabSize(placement);
+    if(!hasTarget){grabOffset=new Vector3(-size.x/2,0,-size.y/2);return true;}
+    var center=new Vector3(target.x+size.x/2,0,target.z+size.y/2);
+    if(new Vector2(ground.x-center.x,ground.z-center.z).magnitude>Mathf.Max(1.6f,Mathf.Max(size.x,size.y)*.7f))return false;
+    grabOffset=target-new Vector3(ground.x,0,ground.z);return true;
+   }
+   var pick=app.World.PickAt(screen);
+   if(pick.catId>=0||string.IsNullOrEmpty(pick.objectId)||pick.objectId.StartsWith("room:"))return false;
+   var item=app.Model.State.objects.FirstOrDefault(o=>o.id==pick.objectId);
+   if(item==null)return false;
+   grabCandidate=item.id;grabOffset=new Vector3(item.x-ground.x,0,item.z-ground.z);return true;
+  }
+  Vector2 GrabSize(string itemId){var def=Catalog.Find(itemId);if(def==null)return Vector2.one;bool swap=rotation%2!=0;return new Vector2(swap?def.depth:def.width,swap?def.width:def.depth);}
+  public void BuildGrabMoved(Vector3 ground){
+   if(!GrabAllowed)return;
+   if(grabCandidate.Length>0&&!IsPlacing){BeginMove(grabCandidate);grabbedMove=true;grabCandidate="";}
+   if(!IsPlacing||commandAction.Length>0)return;
+   var corner=new Vector3(ground.x,0,ground.z)+grabOffset;
+   var next=new Vector3(Mathf.Round(corner.x*2)/2,0,Mathf.Round(corner.z*2)/2);
+   if(hasTarget&&next==target)return;
+   target=next;hasTarget=true;Preview();
+  }
+  public void BuildGrabEnded(Vector3 ground){
+   BuildGrabMoved(ground);
+   // A carried furnishing drops where it is let go. New purchases still wait for Place, so nothing is bought by accident.
+   if(grabbedMove&&movingObject.Length>0){if(toolValid)Place();else ShowNotice(toolMessage+" · drag it somewhere open, or Cancel.",false);}
+   grabCandidate="";grabbedMove=false;
+  }
+
   void ModeTabs(RectTransform content){
    var row=Row(content,48);row.name="Build modes";
    int stored=app.Model.State.storage.Count;
@@ -61,6 +104,7 @@ namespace Purrington.Presentation {
    RectTransform rail;
    if(overlay){
     rail=Panel("Floor rail",parent,CardTone);Pin(rail,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(10,-186-4*62-44),new Vector2(10+132,-186));
+    var walls=Button(parent,WallLabel(app.World.WallMode),CycleWalls,Color.white,12);walls.name="Walls toggle";Pin(walls,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(10,-186-4*62-44-54),new Vector2(10+132,-186-4*62-44-8));
     var title=Text(rail,"Floors",12,InkSoft,true);Pin(title.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(10,-34),new Vector2(-6,-6));
     var list=Rect("Levels",rail);Stretch(list,6,38,6,6);var v=list.gameObject.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();v.spacing=4;v.childControlWidth=v.childControlHeight=true;v.childForceExpandWidth=true;v.childForceExpandHeight=true;
     rail=list;
@@ -73,6 +117,7 @@ namespace Purrington.Presentation {
     b.name=FloorName(level);if(!overlay)b.gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
     if(lockCopy!=null&&!built)b.GetComponentInChildren<TextMeshProUGUI>().color=InkSoft;
    }
+   if(!overlay){var walls=Button(rail,WallLabel(app.World.WallMode),CycleWalls,Color.white,11);walls.name="Walls toggle";walls.gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1.3f;}
   }
   // A floor opens through stairs on its neighbour: upstairs from the ground, the rooftop from upstairs, the basement
   // with stairs down from the ground.
@@ -113,6 +158,7 @@ namespace Purrington.Presentation {
    Group(tools,"WALLS & DOORS");
    Tile("Walls","Drag along the grid · "+ShellGrid.WallPrice.ToString("N0")+" an edge","walls",Mint,()=>BeginCommand("draw_wall",new JObject{{"floor",currentFloor}},"Walls"));
    Tile("Doors & windows","Tap a wall to change it","door",Mint,()=>BeginCommand("set_edge",new JObject{{"floor",currentFloor},{"kind","door"},{"edges",new JArray()}},"Doors & windows"));
+   Tile("Paint & style","Walls, floors and furnishings","paint",Gold,BeginPaint);
    EndGroup();
    if(currentFloor==0){
     Group(tools,"OUTSIDE");
@@ -132,7 +178,7 @@ namespace Purrington.Presentation {
    var rooms=app.Model.State.rooms.Where(r=>r.floor==currentFloor).ToList();
    if(rooms.Count>0){
     Group(tools,"YOUR ROOMS");int number=0;
-    foreach(var room in rooms){string id=room.id;number++;var status=app.Model.RoomStatus(id);Tile(RoomLabel(room,number),status.status,room.kind=="stairs"?"stairs":"room",Color.white,()=>{selectedRoom=id;selectedObject="";app.World.FocusRoom(id);Rebuild();});}
+    foreach(var room in rooms){string id=room.id;number++;var status=app.Model.RoomStatus(id);Tile(RoomLabel(room,number),room.kind=="stairs"?status.status:app.Model.Vibe(id).Label+" · "+status.status,room.kind=="stairs"?"stairs":"room",Color.white,()=>{selectedRoom=id;selectedObject="";app.World.FocusRoom(id);Rebuild();});}
     EndGroup();
    }
   }
@@ -168,6 +214,7 @@ namespace Purrington.Presentation {
     case "erase":B(9,17,20,5,ink);B(12,12,14,3,Coral);B(12,24,14,3,Coral);break;
     case "door":B(7,8,5,22,ink);B(26,8,5,22,ink);B(7,26,24,4,ink);B(14,8,10,15,light);break;
     case "path":for(int i=0;i<4;i++)B(6+i*7,8+i*5,8,6,i%2==0?ink:light);break;
+    case "paint":B(8,22,22,8,ink);B(10,24,18,4,Gold);B(28,14,3,10,ink);B(17,6,4,10,ink);B(17,14,14,3,ink);break;
     case "land":B(6,8,26,5,ink);B(10,13,4,10,ink);B(8,21,8,6,Mint);B(22,13,3,7,ink);break;
     default:B(10,10,18,18,ink);break;
    }
@@ -180,6 +227,7 @@ namespace Purrington.Presentation {
    CategoryChips(content,filters);
    if(selectedObject.Length>0||selectedRoom.Length>0){selectedObject="";selectedRoom="";}
    if(category=="Sets"){
+    DesignCards(content);
     foreach(var entry in app.Model.Content.Templates){var payload=new JObject{{"template",(string)entry["id"]},{"rotation",0}};CatalogCard(content,(string)entry["name"],"A furnished set · each piece stays editable",app.Model.CatalogPrice("place_template",payload),()=>BeginCommand("place_template",payload,(string)entry["name"]),Gold,"room");}
     return;
    }
@@ -206,7 +254,7 @@ namespace Purrington.Presentation {
    UiMotion.SlideIn(bar,20);
    string title,detail;
    if(room!=null){var status=app.Model.RoomStatus(room.id);title=room.kind=="stairs"?"Stairs":(string.IsNullOrEmpty(room.name)?KindName(room.kind):room.name);
-    detail=(room.cells==null?room.width+" × "+room.depth:room.cells.Count+" tiles")+" · "+status.status+(room.kind=="stairs"?" · remove to move them":room.cells!=null?" · reshape it with Walls":"");}
+    detail=(room.cells==null?room.width+" × "+room.depth:room.cells.Count+" tiles")+" · "+status.status+(room.kind=="stairs"?" · remove to move them":room.cells!=null?" · reshape it with Walls":"");if(room.kind!="stairs")detail=app.Model.Vibe(room.id).Line+" · "+detail;}
    else{var def=Catalog.Find(item.itemId);title=def.name;detail=def.role+" · move it, or keep it in Storage";}
    var head=Text(bar,title,15,Ink,true);Pin(head.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-34),new Vector2(-14,-8));
    var sub=Text(bar,detail,12,InkSoft);sub.enableAutoSizing=true;sub.fontSizeMin=9;sub.fontSizeMax=12;Pin(sub.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-58),new Vector2(-14,-34));
@@ -216,6 +264,7 @@ namespace Purrington.Presentation {
    if(room!=null){
     string id=room.id;
     if(room.cells==null&&room.kind!="stairs"){Act(row,"Move",()=>BeginMoveRoom(id),Mint);Act(row,"Rotate",()=>BeginMoveRoom(id,true),Gold);Act(row,"Copy",()=>BeginCommand("copy_room",new JObject{{"id",id},{"w",room.width},{"h",room.depth},{"rotation",0}},"Copy room"),Gold);}
+    if(room.kind!="stairs")Act(row,"Save",()=>{var saved=app.Model.SaveBlueprint(id);app.Report(saved);ShowNotice(saved.message,!saved.success);},Mint);
     Act(row,"Remove",()=>{var result=app.Model.RemoveRoom(id);app.Report(result);if(result.success)selectedRoom="";Rebuild();ShowNotice(result.message,!result.success);},Coral);
     Act(row,"Done",()=>{selectedRoom="";Rebuild();},Lilac);
     if(resizable){var sizes=Row(actions,52);foreach(var (label,w,d) in new[]{("Narrower",-1,0),("Wider",1,0),("Shorter",0,-1),("Deeper",0,1)}){int nw=Math.Max(2,room.width+w),nd=Math.Max(2,room.depth+d);Act(sizes,label,()=>BeginCommand("resize_room",new JObject{{"id",id},{"w",nw},{"h",nd}},"Resize room"),Lilac);}}
@@ -230,7 +279,7 @@ namespace Purrington.Presentation {
   }
 
   // ---- Tool guide ---------------------------------------------------------------------------------------------------
-  bool ToolRotates=>commandAction.Length==0?(placement!="room"||movingRoom.Length>0):commandAction=="place_room"||commandAction=="place_template"||commandAction=="copy_room"||commandAction=="draw_room"&&(string)commandPayload?["kind"]=="stairs";
+  bool ToolRotates=>commandAction.Length==0?(placement!="room"||movingRoom.Length>0):commandAction=="place_room"||commandAction=="place_template"||commandAction=="place_blueprint"||commandAction=="copy_room"||commandAction=="draw_room"&&(string)commandPayload?["kind"]=="stairs";
   string ToolTitle(){
    if(commandAction.Length>0)return commandTitle;
    if(movingRoom.Length>0)return "Move room";
@@ -246,6 +295,7 @@ namespace Purrington.Presentation {
     case "paint_floor":return "Drag across land to add hotel floor. Land for sale is bought as you go.";
     case "erase_floor":return "Drag across empty hotel floor to remove it. Tiles are refunded.";
     case "draw_wall":return "Drag along the grid lines to build a wall. One bend per drag.";
+    case "paint":return "Tap a room to paint it, or a furnishing to restyle it. Each tap saves; Undo takes it back.";
     case "set_edge":return "Tap a wall to cycle wall → door → window → archway. Each tap saves.";
     case "paint_path":return "Drag across the lawn to paint a path. Pick a style below.";
     case "erase_path":return "Drag across a path to remove it.";
@@ -261,7 +311,7 @@ namespace Purrington.Presentation {
    float scale=Mathf.Max(.01f,canvas.scaleFactor),logicalHeight=lastSafe.height/scale;
    bool roomy=logicalHeight>=620&&textScale<1.4f;
    var options=ToolOptions();
-   float head=roomy?84:50,height=head+(options.Count>0?54:0)+58+16;
+   float head=roomy?84:50,height=head+(options.Count>0?54:0)+(IsPainting?50:0)+58+16;
    var tray=Panel("Placement",safe,Cream);
    if(wideLayout)Pin(tray,new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(-280,10),new Vector2(280,10+height));
    else Pin(tray,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,10),new Vector2(-10,10+height));
@@ -272,21 +322,24 @@ namespace Purrington.Presentation {
    Pin(toolStatus.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-head),new Vector2(-14,-head+22));
    var stack=Rect("Tool actions",tray);Stretch(stack,8,head+4,8,8);var v=stack.gameObject.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();v.spacing=6;v.childControlWidth=v.childControlHeight=true;v.childForceExpandWidth=true;v.childForceExpandHeight=false;v.childAlignment=TextAnchor.LowerCenter;
    if(options.Count>0){var chips=Row(stack,48);chips.name="Tool options";foreach(var (label,on,act) in options)Button(chips,label,act,on?Gold:Color.white,12).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;}
+   if(IsPainting)PaintSwatches(stack);
    var row=Row(stack,58);
    Button(row,"Cancel",()=>CancelPlacement(),Lilac,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
    if(ToolRotates)Button(row,"Rotate",Rotate,Gold,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-   bool instant=commandAction=="set_edge";
+   bool instant=commandAction=="set_edge"||IsPainting;
    string confirm=instant?"Done":commandAction.Length>0?"Confirm":movingRoom.Length>0||movingObject.Length>0?"Move":"Place";
    var place=Button(row,confirm,instant?()=>CancelPlacement():(Action)Place,Mint,14);place.gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1.3f;
    toolConfirm=instant?null:place.GetComponent<UnityEngine.UI.Button>();
    // Before anything is chosen the status line carries the step hint, so compact screens still say what to do.
-   ApplyToolStatus(hasTarget?toolMessage:roomy?"Nothing chosen yet.":ToolHint(),hasTarget&&toolValid);
+   if(IsPainting)ApplyToolStatus(hasTarget&&!eyedropper?toolMessage:PaintHint(),hasTarget&&toolValid);
+   else ApplyToolStatus(hasTarget?toolMessage:roomy?"Nothing chosen yet.":ToolHint(),hasTarget&&toolValid);
   }
   List<(string label,bool on,Action act)> ToolOptions(){
    var list=new List<(string,bool,Action)>();
    if(commandAction=="claim_room"||commandAction=="draw_room"&&(string)commandPayload["kind"]!="stairs"){
     foreach(var kind in RoomKinds(currentFloor)){string chosen=kind;list.Add((KindName(kind),(string)commandPayload["kind"]==kind,()=>{commandPayload["kind"]=chosen;commandPayload["name"]=KindName(chosen);if(commandAction=="draw_room")commandTitle=KindName(chosen);if(hasTarget&&commandAction=="claim_room")PreviewCommand();Rebuild();}));}
    }
+   if(IsPainting)PaintOptions(list);
    if(commandAction=="paint_path")foreach(var style in new[]{"earth","gravel","brick"}){string chosen=style;list.Add((char.ToUpper(style[0])+style.Substring(1),(string)commandPayload["style"]==style,()=>{commandPayload["style"]=chosen;if(hasTarget)PreviewCommand();Rebuild();}));}
    return list;
   }

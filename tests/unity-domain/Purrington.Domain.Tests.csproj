@@ -11,7 +11,7 @@
     <Compile Include="WardrobeSuites.cs" />
     <Compile Include="ShellSuites.cs" />
     <Compile Include="ArtSuites.cs" />
-    <Compile Include="TownSuites.cs" /><Compile Include="TownCommerceSuites.cs" /><Compile Include="TownEventSuites.cs" />
+    <Compile Include="TownSuites.cs" /><Compile Include="TownCommerceSuites.cs" /><Compile Include="TownEventSuites.cs" /><Compile Include="ManagerSuites.cs" /><Compile Include="NeighborSuites.cs" /><Compile Include="QuestSuites.cs" /><Compile Include="PlazaSuites.cs" /><Compile Include="BuildSuites.cs" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>

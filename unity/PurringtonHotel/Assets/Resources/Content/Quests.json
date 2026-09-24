@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "note": "Neighbor requests and rumors for Meadow. Spots are Main Street node ids behind the plaza. {gift}, {cat}, {item}, {spot} and {manager} are filled in by the game.",
+  "spots": [
+    { "id": "lily_pond", "name": "Lily Pond" },
+    { "id": "old_oak", "name": "Old Oak" },
+    { "id": "hilltop", "name": "Hilltop Lookout" }
+  ],
+  "treasures": ["cat_statue", "garden_lamp", "flower_bed", "sun_cushion", "scratch"],
+  "rumors": [
+    { "spot": "old_oak", "find": "kitten", "text": "Heard a kitten mewing by the Old Oak. Probably nothing. Probably a kitten." },
+    { "spot": "old_oak", "find": "lost_item", "text": "Somebody dropped their coin purse under the Old Oak. Finders keepers?" },
+    { "spot": "old_oak", "find": "treasure", "text": "The Old Oak has a hollow. Squirrels hide things there. Big things." },
+    { "spot": "lily_pond", "find": "kitten", "text": "A tiny cat is sulking by the Lily Pond. Apparently the frog was rude." },
+    { "spot": "lily_pond", "find": "lost_item", "text": "Something shiny is stuck in the reeds at Lily Pond. Not a fish. Shinier." },
+    { "spot": "lily_pond", "find": "treasure", "text": "Something washed up at Lily Pond. The ducks are guarding it badly." },
+    { "spot": "hilltop", "find": "kitten", "text": "There's a kitten on Hilltop Lookout counting clouds. It's lost count." },
+    { "spot": "hilltop", "find": "lost_item", "text": "A picnic basket blew up to Hilltop Lookout. The sandwiches didn't make it." },
+    { "spot": "hilltop", "find": "treasure", "text": "Somebody buried something on Hilltop Lookout. The X was very obvious." }
+  ],
+  "found": {
+    "kitten": "Found a kitten! It's {cat}, and {cat} is checking in at the hotel.",
+    "kittenKnown": "Found a kitten! It already knows the way to your hotel. Here's a tip: 100 coins.",
+    "lost_item": "Found a coin purse! No name inside. 80 Cat Coins, finders keepers.",
+    "treasure": "Found a {item}! It's in storage now."
+  },
+  "fetch": [
+    "Could you bring me a {gift}? Paw Mart has them. I'd go, but... effort.",
+    "I need a {gift}. Don't ask why. It's a whole story.",
+    "Would you fetch me a {gift}? I'll owe you. Emotionally."
+  ],
+  "builds": [
+    { "id": "green_thumb", "items": ["plant", "garden_planter", "shrub", "flower_bed", "tree", "flowers"], "count": 2, "text": "Your hotel needs more green! Two new plants, please." },
+    { "id": "cozy_glow", "items": ["lamp", "garden_lamp"], "count": 2, "text": "Your hotel's dark at night. Two more lanterns? For the moths." },
+    { "id": "sit_down", "items": ["bench", "lounge_sofa", "cafe_stool", "cloud_sofa"], "count": 2, "text": "My feet hurt just looking at your garden. Two more seats?" },
+    { "id": "play_time", "items": ["tunnel", "tower", "scratch", "playpen", "adventure_tree"], "count": 1, "text": "Your guests look bored. One new toy would fix that." },
+    { "id": "splash", "items": ["fountain", "pool"], "count": 1, "text": "A fountain would be lovely. Or a pool. Wet things, basically." },
+    { "id": "comfy", "items": ["sun_cushion", "cave", "heated", "canopy_bed", "rug"], "count": 1, "text": "Every cat deserves something soft. Add one more cozy thing?" }
+  ],
+  "reminder": "Still hoping for this: {request}",
+  "thanks": [
+    "You did it! You're the best manager on Main Street!",
+    "Perfect! I owe you one. Here, take this before I change my mind.",
+    "Wonderful! I'm telling everyone. Loudly. From the square."
+  ]
+}

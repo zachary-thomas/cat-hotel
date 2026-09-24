@@ -144,6 +144,8 @@ namespace Purrington.Editor
                         }
                         r.filter = "clicked"; r.since = EditorApplication.timeSinceStartup; Save(r); return;
                     }
+                    // capture -Filter life:chat poses the Life play view (see LifeAcceptance) and waits for the line to type out.
+                    if (r.filter.StartsWith("life:")) { var posed = UnityEngine.Object.FindFirstObjectByType<HotelApp>(); Debug.Log("Bridge: " + (posed != null ? LifeAcceptance.Pose(posed, r.filter.Substring(5)) : "no app")); r.filter = "posed"; r.since = EditorApplication.timeSinceStartup + 2.4; Save(r); return; }
                     if (r.filter == "pop") { UnityEngine.Object.FindFirstObjectByType<HotelApp>()?.World?.PopIncome(42); r.filter = "popped"; r.since = EditorApplication.timeSinceStartup + .3; Save(r); return; }
                     var file = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../builds/unity/editor-captures", DateTime.Now.ToString("yyyyMMdd-HHmmss") + (string.IsNullOrEmpty(r.tab) ? "" : "-" + r.tab) + ".png"));
                     Directory.CreateDirectory(Path.GetDirectoryName(file));

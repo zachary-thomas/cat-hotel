@@ -44,6 +44,29 @@
     {"id": "raincoat", "name": "Raincoat", "slot": "back", "price": 190, "parts": [
       {"box": [-0.55, -0.82, -0.72, 1.10, 0.85, 1.44], "color": "D7AE55"}]},
     {"id": "hero_cape", "name": "Hero cape", "slot": "back", "price": 0, "giftCat": 2, "giftBond": 50, "parts": [
-      {"box": [-0.53, -0.84, -0.79, 1.06, 0.87, 0.16], "color": "789B58"}]}
+      {"box": [-0.53, -0.84, -0.79, 1.06, 0.87, 0.16], "color": "789B58"}]},
+    {"id": "baker_hat", "name": "Baker's hat", "slot": "head", "price": 0, "giftNeighbor": "marmalade", "parts": [
+      {"box": [-0.42, 0.00, -0.42, 0.84, 0.10, 0.84], "color": "E4DCCB"},
+      {"box": [-0.36, 0.10, -0.36, 0.72, 0.42, 0.72], "color": "F8F3E3"},
+      {"box": [-0.42, 0.46, -0.42, 0.84, 0.16, 0.84], "color": "F8F3E3"}]},
+    {"id": "opera_cravat", "name": "Opera cravat", "slot": "neck", "price": 0, "giftNeighbor": "reginald", "parts": [
+      {"box": [-0.30, -0.20, -0.05, 0.60, 0.18, 0.10], "color": "7A2E3B"},
+      {"box": [-0.12, -0.46, -0.03, 0.24, 0.28, 0.08], "color": "7A2E3B"},
+      {"box": [-0.05, -0.22, -0.09, 0.10, 0.10, 0.05], "color": "D7AE55"}]},
+    {"id": "sweatband", "name": "Lucky sweatband", "slot": "head", "price": 0, "giftNeighbor": "pickles", "parts": [
+      {"box": [-0.46, 0.00, -0.46, 0.92, 0.14, 0.92], "color": "BF7958"},
+      {"box": [-0.47, 0.05, -0.47, 0.94, 0.04, 0.94], "color": "F8F3E3"}]},
+    {"id": "fisher_cap", "name": "Fisher's bucket hat", "slot": "head", "price": 0, "giftNeighbor": "tom", "parts": [
+      {"box": [-0.62, 0.00, -0.62, 1.24, 0.07, 1.24], "color": "D7AE55"},
+      {"box": [-0.40, 0.07, -0.40, 0.80, 0.28, 0.80], "color": "D7AE55"},
+      {"box": [-0.41, 0.10, -0.41, 0.82, 0.06, 0.82], "color": "738448"}]},
+    {"id": "star_cloak", "name": "Star cloak", "slot": "back", "price": 0, "giftNeighbor": "juniper", "parts": [
+      {"box": [-0.55, -0.84, -0.79, 1.10, 0.87, 0.16], "color": "3B4A6B"},
+      {"box": [-0.25, -0.35, -0.83, 0.12, 0.12, 0.05], "color": "F4EAD5"},
+      {"box": [0.18, -0.60, -0.83, 0.10, 0.10, 0.05], "color": "F4EAD5"},
+      {"box": [0.05, -0.20, -0.83, 0.08, 0.08, 0.05], "color": "D7AE55"}]},
+    {"id": "library_lanyard", "name": "Library lanyard", "slot": "neck", "price": 0, "giftNeighbor": "dot", "parts": [
+      {"box": [-0.44, -0.14, -0.35, 0.88, 0.10, 0.38], "color": "425C35"},
+      {"box": [-0.11, -0.48, 0.00, 0.22, 0.28, 0.06], "color": "F4EAD5"}]}
   ]
 }

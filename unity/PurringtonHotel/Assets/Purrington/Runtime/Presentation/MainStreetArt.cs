@@ -16,7 +16,7 @@ namespace Purrington.Presentation {
   // Lot-unit areas Main Street owns (plaza across the road, both shop lots); neighbor houses and lawn trees inside them are not built.
   // Shop lots sit beyond the hotel's buyable east and west plots (x ±12..20) so the hotel can still grow.
   static readonly Rect[] Cleared={Rect.MinMaxRect(-13,18,17,34),Rect.MinMaxRect(21,-1,35,12.6f),Rect.MinMaxRect(-35,-1,-21,12.6f)};
-  public static bool KeepScenery(Vector3 godot){var p=new Vector2(godot.x/U,godot.z/U);foreach(var r in Cleared)if(r.Contains(p))return false;return true;}
+  public static bool KeepScenery(Vector3 godot){var p=new Vector2(godot.x/U,godot.z/U);foreach(var r in Cleared)if(r.Contains(p))return false;foreach(var r in OutskirtsArt.Cleared)if(r.Contains(p))return false;return true;}
   public MainStreetArt(GodotGeometry geometry,Transform parent,TownContent content){
    this.geometry=geometry;this.content=content;Root=Group(parent,"Meadow Main Street");
    var q=content.Point("square");SquareBounds=new Bounds(new Vector3(q.x*U,0,q.z*U),new Vector3(16*U,1,10*U));

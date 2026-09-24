@@ -45,7 +45,7 @@ namespace Purrington.Presentation
 
         {
 
-            CancelPlacement(false);lastPathCell=null;roomAnchor=null; commandAction=action;commandPayload=(JObject)payload.DeepClone();if(action=="place_template")commandPayload["floor"]=currentFloor;commandTitle=title;placement="command";
+            CancelPlacement(false);lastPathCell=null;roomAnchor=null; commandAction=action;commandPayload=(JObject)payload.DeepClone();if(action=="place_template"||action=="place_blueprint")commandPayload["floor"]=currentFloor;commandTitle=title;placement="command";
 
             rotation=(int?)payload["rotation"]??0;hasTarget=action=="buy_plot"||action=="resize_room";
 
@@ -59,6 +59,7 @@ namespace Purrington.Presentation
 
         {
 
+            if(IsPainting)return;
             if(ShellTarget(point))return;
 
             target=new Vector3(Mathf.Round(point.x*2)/2,0,Mathf.Round(point.z*2)/2);
@@ -77,7 +78,7 @@ namespace Purrington.Presentation
 
             }
 
-            else {commandPayload["x"]=(commandAction.Contains("room")||commandAction=="place_template")?Mathf.Round(point.x):target.x;commandPayload["y"]=(commandAction.Contains("room")||commandAction=="place_template")?Mathf.Round(point.z):target.z;}
+            else {commandPayload["x"]=(commandAction.Contains("room")||commandAction=="place_template"||commandAction=="place_blueprint")?Mathf.Round(point.x):target.x;commandPayload["y"]=(commandAction.Contains("room")||commandAction=="place_template"||commandAction=="place_blueprint")?Mathf.Round(point.z):target.z;}
 
             hasTarget=true;PreviewCommand();
 
@@ -110,7 +111,7 @@ namespace Purrington.Presentation
 
         public void GroundDragged(Vector3 point){if(commandAction=="paint_path"||commandAction=="erase_path"||ShellDrawing(commandAction))UpdateCommandTarget(point);}
 
-        public void SelectRoom(string id){if(tab=="Build"&&!IsPlacing){buildMode="Build";EditRoom(id);}}
+        public void SelectRoom(string id){if(PaintRoomTap(id))return;if(tab=="Build"&&!IsPlacing){buildMode="Build";EditRoom(id);}}
 
         void ParityLifePanel()
 

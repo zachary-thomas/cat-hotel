@@ -9,6 +9,16 @@ namespace Purrington.Domain
  {
   public float x=0,z=12.75f,eventRemaining;
   public int marketCompletionSerial,marketWelcomeDelivered;
+  // Building floor while the manager is inside the hotel; always 0 on the street.
+  public int floor;
+  // The rumor going around (Meadow only): where to look, what's there, and who told you.
+  public string rumorSpot="",rumorFind="",rumorGiver="";
+  public int rumorDay,rumorsFound;
+  // The plaza event on now (Meadow only), who came, and how it's going.
+  public string plazaEvent="",plazaResult="";
+  public float plazaRemaining;
+  public int plazaBuzz,plazaDay,plazaSerial;
+  public List<string> plazaAttendees=new List<string>();
   public bool basketWelcomeDelivered;
   public float welcomeRemaining=6;
   public string welcomeKind="";
@@ -25,9 +35,8 @@ namespace Purrington.Domain
    var empty=new List<LotPoint>();
    var town=TownContent.Current;
    if(State.currentHotel!=0||town==null||!town.IsStreetTarget(targetId))return empty;
-   var state=Hotel(0).town;var position=new LotPoint(state.x,state.z);
-   var gate=town.Point("hotel_gate");var bounds=Map(0)["base"];
-   var exit=new LotPoint((float)Math.Floor(gate.x*2)*.5f+.25f,(float)bounds[1]+(float)bounds[3]-.25f);
+   var state=Hotel(0).town;var position=ManagerPosition;
+   var gate=town.Point("hotel_gate");var exit=ManagerExit();
    if(state.phase=="street")return TownRoute.Find(town,position,targetId);
    if(state.phase!="hotel"||!MovementSegmentClear(position,position,false)||!MovementSegmentClear(exit,exit,false))return empty;
    var hotel=ActivityRoute(position,exit);
@@ -66,7 +75,7 @@ namespace Purrington.Domain
   }
   void ArriveManager(string target,LotPoint point)
   {
-   var state=Hotel(0).town;state.x=point.x;state.z=point.z;state.phase="street";state.destination="";
+   var state=Hotel(0).town;state.x=point.x;state.z=point.z;state.floor=0;state.phase="street";state.destination="";
    state.shop=TownContent.Current.Shop("paw_mart")?.door==target?"paw_mart":TownContent.Current.Shop("clothing")?.door==target?"clothing":"";
   }
   void AdvanceManager(float seconds)
@@ -76,17 +85,19 @@ namespace Purrington.Domain
    var route=BuildManagerRoute(target);
    if(route.Count==0)return;
    float remaining=seconds*ManagerSpeed;string phase=Hotel(0).town.phase;
-   var at=new LotPoint(Hotel(0).town.x,Hotel(0).town.z);
+   var at=ManagerPosition;
    foreach(var next in route.Skip(1))
    {
     if(phase=="hotel"&&next.Distance(TownContent.Current.Point("hotel_gate"))<.0001f){at=next;phase="street";continue;}
+    // Stairwells link matching cells on two floors; changing floor takes no walking distance.
+    if(next.floor!=at.floor){at=next;continue;}
     float gap=at.Distance(next);
     if(gap<=remaining){at=next;remaining-=gap;}
     else{float portion=remaining/gap;at=new LotPoint(at.x+(next.x-at.x)*portion,at.z+(next.z-at.z)*portion);remaining=0;break;}
    }
    bool arrived=at.Distance(TownContent.Current.Point(target))<.0001f;
-   if(!arrived&&at.Distance(new LotPoint(Hotel(0).town.x,Hotel(0).town.z))<.00001f)return;
-   var result=Transaction(()=>{if(arrived)ArriveManager(target,at);else{Hotel(0).town.x=at.x;Hotel(0).town.z=at.z;Hotel(0).town.phase=phase;}},arrived?"Arrived at "+target+".":"On the way.");
+   if(!arrived&&at.Distance(ManagerPosition)<.00001f)return;
+   var result=Transaction(()=>{if(arrived)ArriveManager(target,at);else{Hotel(0).town.x=at.x;Hotel(0).town.z=at.z;Hotel(0).town.phase=phase;Hotel(0).town.floor=phase=="street"?0:at.floor;}},arrived?"Arrived at "+target+".":"On the way.");
    if(result.success&&arrived)ManagerArrived?.Invoke(target);
   }
   internal static bool ValidManagerName(string name)
@@ -145,10 +156,12 @@ namespace Purrington.Domain
    if(state.shop.Length>0&&content.Shop(state.shop)==null)return false;
    if(state.phase!="hotel"&&state.phase!="street")return false;
    var position=new LotPoint(state.x,state.z);
+   // A hotel position blocked by later furniture is still a valid save: SettleManager moves the manager to open floor.
    if(state.phase=="hotel")
    {
-    if(index!=0||state.shop.Length>0||!MovementSegmentClear(position,position,false,0))return false;
+    if(index!=0||state.shop.Length>0||state.floor!=0&&!Hotel(0).floors.Any(f=>f.level==state.floor&&f.cells.Count>0))return false;
    }
+   else if(state.floor!=0)return false;
    else if(state.shop.Length==0&&TownRoute.Find(content,position,"hotel_gate").Count==0)return false;
    if(state.questFlags.Any(id=>id==null)||state.questFlags.Distinct().Count()!=state.questFlags.Count)return false;
    if(state.basketWelcomeDelivered&&!state.questFlags.Contains("welcome_picnic:completed"))return false;

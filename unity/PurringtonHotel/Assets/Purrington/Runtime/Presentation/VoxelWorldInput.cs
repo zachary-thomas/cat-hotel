@@ -117,18 +117,21 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
                 if(end) { if(carePressed && !OverUI(point)) GroundClicked?.Invoke(ScreenToGround(point)); carePressed=false; }
                 return;
             }
-            if(start && !OverUI(point)) { pressed=true; dragged=false; down=previous=point; }
+            if(start && !OverUI(point)) { pressed=true; dragged=false; down=previous=point; grabbing=!townMode&&!lifeControl&&!pathPainting&&GrabStart!=null&&GrabStart(point); }
             if(pressed && held)
             {
                 if(Vector2.Distance(point,down)>10) dragged=true;
-                if(pathPainting && !townMode) { GroundDragged?.Invoke(ScreenToGround(DrawPoint(point))); } else if(dragged) { townFollowing=false;manualCamera=true;focus += (ScreenToGround(previous)-ScreenToGround(point))*Unit; LimitCamera(); }
+                if(grabbing) { if(dragged) GrabMoved?.Invoke(ScreenToGround(point)); }
+                else if(pathPainting && !townMode) { GroundDragged?.Invoke(ScreenToGround(DrawPoint(point))); } else if(dragged) { townFollowing=false;manualCamera=true;focus += (ScreenToGround(previous)-ScreenToGround(point))*Unit; LimitCamera(); }
                 previous=point;
             }
             if(end && pressed)
             {
                 pressed=false; if(pathPainting && !townMode) GroundDragEnded?.Invoke();
+                if(grabbing){grabbing=false;if(dragged){GrabEnded?.Invoke(ScreenToGround(point));return;}}
                 if(!ShouldSendReleaseClick(dragged,OverUI(point))) return;
                 if(townMode){var townHits=Physics.RaycastAll(WorldCamera.ScreenPointToRay(point),500);System.Array.Sort(townHits,(a,b)=>a.distance.CompareTo(b.distance));foreach(var hit in townHits){var store=hit.collider.GetComponent<TownStoreHit>();if(store!=null){SelectTownStore(store.StoreId);return;}break;}}
+                else if(lifeControl){LifeTap(point);return;}
                 else{
                     var pick=PickAt(point);
                     if(pick.catId>=0){var cat=model.Actors.FirstOrDefault(a=>a.kind==Purrington.Domain.ActorKind.Guest&&a.catId==pick.catId);if(cat!=null&&cat.floor!=ViewFloor)SetViewFloor(cat.floor);CatSelected?.Invoke(pick.catId);return;}

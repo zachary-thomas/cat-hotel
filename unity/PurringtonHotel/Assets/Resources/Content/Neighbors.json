@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "note": "Meadow neighbors. Schedules are minutes of the game day (0-1439) and Main Street node ids; a neighbor walks to each place when its slot starts and is indoors once a home slot's walk ends.",
+  "gifts": [
+    { "id": "cinnamon_jar", "name": "Cinnamon jar", "price": 14 },
+    { "id": "sheet_music", "name": "Sheet music", "price": 20 },
+    { "id": "tennis_ball", "name": "Tennis ball", "price": 10 },
+    { "id": "sardine_tin", "name": "Tin of sardines", "price": 16 },
+    { "id": "moonflower_seeds", "name": "Moonflower seeds", "price": 12 },
+    { "id": "mystery_novel", "name": "Mystery novel", "price": 18 }
+  ],
+  "neighbors": [
+    {
+      "id": "marmalade", "name": "Marmalade", "personality": "Peppy baker", "coat": "ginger", "markings": "tabby",
+      "home": "south_far_east", "favoriteGift": "cinnamon_jar", "introduces": 7, "friendGift": "flowers", "bestGift": "baker_hat",
+      "likes": { "love": "snacks", "like": ["play", "gossip"], "dislike": "naps" },
+      "schedule": [[330, "paw_mart_door"], [540, "square"], [780, "bench_east"], [1020, "south_east"], [1140, "south_far_east"]],
+      "topics": {
+        "snacks": ["Fresh buns at dawn! I'd give you one, but I ate them. All of them!", "Snacks are my love language. Also my job. Also my hobby!"],
+        "play": ["Tag! You're it! No take-backs! Rolling-pin rules!", "I play fetch with dough. It never comes back. Great game!"],
+        "gossip": ["Old Tom smiled on Tuesday. I have witnesses!", "Word is Sir Reginald sings in the bath. Beautifully. Loudly."],
+        "naps": ["Naps are just waiting with your eyes closed. Unacceptable.", "Nap? Dough doesn't nap! Well, it rests. That's different!"],
+        "weather": ["Weather's nice! Bread rises either way!", "Sunny, cloudy, whatever. The oven's always toasty!"],
+        "hotel": ["Your hotel's cute! Does it have a kitchen? Asking for a croissant.", "Your hotel smells like towels. Needs more bread!"]
+      },
+      "greeting": ["Morning, {manager}! Or afternoon! I've been up since four!", "Oh! Hi hi hi! I'm running an errand. Everything's an errand!", "{manager}! Perfect timing! I had news! I forgot it! Hi!"],
+      "signoff": ["Gotta dash! The buns won't bake themselves! Well, they do.", "Bye! Come by the kiosk! I'll save you a crumb!"],
+      "chattedOut": ["I've talked so much today my whiskers are tired! Tomorrow!"],
+      "tierUp": ["You're officially my buddy! I'm telling my cousin Maple about you!", "Friends get free samples! Here! It's flowers, not bread. Sorry!", "Best friends! Take my spare baker's hat. It's floury. That's the charm!"],
+      "giftLove": ["CINNAMON?! You get me! You really, truly get me!"],
+      "giftOk": ["Aw, a present! It's going next to the flour. Place of honor!"]
+    },
+    {
+      "id": "reginald", "name": "Sir Reginald", "personality": "Retired opera star", "coat": "honey", "markings": "tuxedo",
+      "home": "south_far_west", "favoriteGift": "sheet_music", "introduces": 8, "friendGift": "lamp", "bestGift": "opera_cravat",
+      "likes": { "love": "hotel", "like": ["gossip", "snacks"], "dislike": "play" },
+      "schedule": [[600, "clothing_door"], [780, "bench_west"], [960, "hotel_gate"], [1080, "square"], [1260, "south_far_west"]],
+      "topics": {
+        "hotel": ["Your lobby has potential. Like a tenor with a head cold.", "A hotel is a stage, darling. Yours needs better lighting. And me."],
+        "gossip": ["I never gossip. I merely perform the news with feeling.", "Marmalade burnt the croissants. I heard it from the croissants."],
+        "snacks": ["A little salmon, a little cream. One must keep the voice supple.", "I dine as I sing: rarely, but with enormous flair."],
+        "play": ["I do not 'play.' I perform. There is a difference, darling.", "Chase a ball? In this fur? Absolutely not."],
+        "weather": ["The weather is adequate. So was my understudy.", "Rain, sun. The sky has such a limited range."],
+        "naps": ["I rest my voice. It is not a nap. It is maintenance.", "Naps are for amateurs. I take intermissions."]
+      },
+      "greeting": ["Ah. The manager. You may address me as Sir.", "{manager}. You catch me between engagements.", "Bravo, you found me. Most people simply hear me first."],
+      "signoff": ["I must away. My public is... somewhere. Ciao.", "Farewell, darling. Do try to keep up."],
+      "chattedOut": ["My voice is resting. Speak to my agent. Tomorrow."],
+      "tierUp": ["Call me Reggie. Actually, don't. My nephew Nori will visit you.", "A friend of the arts! Take this lantern. Every stage needs one.", "My dearest friend. My opera cravat. Wear it and project, darling."],
+      "giftLove": ["Sheet music! An aria! I shall weep, then sing, then weep again."],
+      "giftOk": ["How... thoughtful. I'll put it in the green room."]
+    },
+    {
+      "id": "pickles", "name": "Pickles", "personality": "Sporty jogger", "coat": "gray", "markings": "tabby",
+      "home": "east_end", "favoriteGift": "tennis_ball", "introduces": 6, "friendGift": "tunnel", "bestGift": "sweatband",
+      "likes": { "love": "play", "like": ["weather", "snacks"], "dislike": "naps" },
+      "schedule": [[300, "west_end"], [390, "east_end"], [480, "square"], [720, "south_far_west"], [900, "paw_mart_door"], [1080, "east_end"]],
+      "topics": {
+        "play": ["Race you! Ready, set... I already won. Again?", "Frisbee? Tennis ball? A leaf? I'll chase ANYTHING!"],
+        "weather": ["Perfect running weather! It's always running weather!", "Wind in my whiskers! That's nature's high five!"],
+        "snacks": ["Protein is key. Also tuna. Tuna is protein. I checked.", "Carbs are fuel! Marmalade's buns are rocket fuel!"],
+        "naps": ["Naps? I did forty laps before breakfast. Breakfast was a lap.", "Sleeping is just lying down without stretching first."],
+        "gossip": ["Gossip? I ran past it. Too slow to catch.", "Can't talk, cardio. Okay, I can talk. Briefly."],
+        "hotel": ["Your hallways are great for sprints. Not that I sprint indoors.", "Nice hotel. Needs a track. A small one. Around the lobby."]
+      },
+      "greeting": ["Hey {manager}! Walk with me! Jog with me! Stand with me! Okay!", "Pickles here! Mid-lap! Mostly mid-lap!", "{manager}! Stretch first. Always stretch first."],
+      "signoff": ["Gotta go! My shadow's winning!", "Bye! Hydrate! That's an order!"],
+      "chattedOut": ["Talked out! Running on empty! Literally going running now!"],
+      "tierUp": ["You're on the team! My pal Pebble's gonna check out your hotel!", "Team gift! A play tunnel. Cardio for the whole hotel!", "Best friends! Here's my lucky sweatband. It's been washed. Mostly."],
+      "giftLove": ["A TENNIS BALL. I'm chasing this until the sun goes down!"],
+      "giftOk": ["Thanks! I'll carry it on my run. Weight training!"]
+    },
+    {
+      "id": "tom", "name": "Old Tom", "personality": "Grumpy fisherman", "coat": "cocoa", "markings": "patchwork",
+      "home": "west_end", "favoriteGift": "sardine_tin", "introduces": 11, "friendGift": "bench", "bestGift": "fisher_cap",
+      "likes": { "love": "weather", "like": ["snacks", "naps"], "dislike": "gossip" },
+      "schedule": [[360, "lily_pond"], [720, "bench_west"], [900, "south_west"], [1020, "lily_pond"], [1200, "west_end"]],
+      "topics": {
+        "weather": ["Overcast. Perfect. Fish can't see me frown.", "Good drizzle today. Keeps the chatty ones indoors."],
+        "snacks": ["Caught a sardine this big. Ate it. Now it's this big.", "Marmalade's buns aren't bad. Don't tell her. She'll hug me."],
+        "naps": ["A nap on the pier. Best part of fishing. The fish are optional.", "I don't nap. I rest my eyes. For three hours."],
+        "gossip": ["Gossip's like bait. Smells bad and something always bites.", "Keep your rumors. I've got enough worms."],
+        "play": ["Play? I played once. Long time ago. It was fine.", "Young Pickles runs about. Tires me out just watching."],
+        "hotel": ["Your hotel's got a roof. That's more than my boat.", "Too many doors. A cat needs one door and a fish."]
+      },
+      "greeting": ["Hmph. Oh. It's you. Hello.", "Mm. {manager}. Fish aren't biting. Neither am I.", "You're blocking my view. ...Of nothing. Fine. Hello."],
+      "signoff": ["Right. Off you go. Nice chat. Don't make it a habit.", "Hmph. See you. Probably."],
+      "chattedOut": ["I've used all my words today. Had four. Now none."],
+      "tierUp": ["You're alright. My pal Tofu needs a warm bed. I'll send him over.", "Here. Old bench. I don't sit on it. You might as well.", "You're my friend. There. I said it. Take my cap before I change my mind."],
+      "giftLove": ["Sardines. ...You remembered. Don't look at me. I'm fine."],
+      "giftOk": ["Hmph. A present. Thanks. I suppose."]
+    },
+    {
+      "id": "juniper", "name": "Juniper", "personality": "Dreamy stargazer", "coat": "cream", "markings": "patchwork",
+      "home": "south_far_east", "favoriteGift": "moonflower_seeds", "introduces": 9, "friendGift": "flower_bed", "bestGift": "star_cloak",
+      "likes": { "love": "naps", "like": ["weather", "play"], "dislike": "hotel" },
+      "schedule": [[300, "bench_east"], [420, "south_far_east"], [1080, "square"], [1200, "hilltop"], [1380, "south_far_east"]],
+      "topics": {
+        "naps": ["In my dreams I'm a comet. A sleepy comet.", "Naps are how the stars visit us in daylight."],
+        "weather": ["The clouds today look like they're thinking about us.", "The moon's round as a yarn ball tonight. Don't chase it."],
+        "play": ["I chase moonbeams. They're very fast. I'm very patient.", "Let's find constellations. That one's the Big Fish."],
+        "hotel": ["Walls hide the sky. Why would anyone build walls?", "Hotels have ceilings. Ceilings are just sad skies."],
+        "snacks": ["I ate a moth once. It tasted like starlight. And dust.", "Food? I suppose. Even moonflowers need water."],
+        "gossip": ["The stars gossip too. Mostly about comets.", "Hmm? Sorry, I was listening to the grass."]
+      },
+      "greeting": ["Oh, {manager}... I dreamt you'd come. Or someone like you.", "Hello... did you see that? A leaf. Just a leaf. Hello.", "The evening feels soft today. Hi."],
+      "signoff": ["Goodbye... watch the sky tonight. It's watching you.", "I'll drift along now. Like a cloud with legs."],
+      "chattedOut": ["My thoughts floated off for today. They'll float back tomorrow."],
+      "tierUp": ["You feel like a friend... My friend Pip would love your hotel.", "For you: a flower bed. Plant wishes in it.", "Best friend... take my star cloak. It remembers every night sky."],
+      "giftLove": ["Moonflower seeds... they bloom at night. Just like me."],
+      "giftOk": ["A gift... thank you. I'll keep it under the stars."]
+    },
+    {
+      "id": "dot", "name": "Dot", "personality": "Bookish librarian", "coat": "charcoal", "markings": "tuxedo",
+      "home": "west_end", "favoriteGift": "mystery_novel", "introduces": 10, "friendGift": "perch", "bestGift": "library_lanyard",
+      "likes": { "love": "gossip", "like": ["hotel", "snacks"], "dislike": "weather" },
+      "schedule": [[540, "hotel_gate"], [660, "bench_west"], [840, "paw_mart_door"], [960, "square"], [1140, "west_end"]],
+      "topics": {
+        "gossip": ["I only deal in verified rumors. Cite your sources, please.", "Chapter one: Old Tom smiled. Chapter two: nobody believed it."],
+        "hotel": ["Your hotel has a lovely plot. Needs a library wing, though.", "I catalogued your hotel. Filed under: Cozy, Very."],
+        "snacks": ["Crumbs are banned from my books. Not from my mouth.", "I read with a biscuit. It's called research."],
+        "weather": ["Weather is just the sky being dramatic. Next topic.", "Rain ruins paperbacks. I hold a grudge."],
+        "play": ["I play chess against myself. Undefeated. Also defeated.", "Games are fine. Board games. Quiet ones."],
+        "naps": ["I fall asleep reading. That's a nap with footnotes.", "Naps interrupt chapters. Chapters interrupt naps. Tough call."]
+      },
+      "greeting": ["{manager}. Shh. Oh, we're outside. HELLO.", "Ah, a visitor. Overdue, I might add.", "Hello! I have exactly three minutes and a bookmark."],
+      "signoff": ["Back to the stacks. Return your library books!", "Goodbye. This chat is now due back tomorrow."],
+      "chattedOut": ["Sorry, you've reached today's borrowing limit on chats."],
+      "tierUp": ["You're in my good books! My friend Coco will stay at your hotel.", "A window perch, for reading. Friends share quiet corners.", "Best friends. My library lanyard. Please return it. Never."],
+      "giftLove": ["A mystery novel! Don't tell me who did it. It was the butler."],
+      "giftOk": ["Thank you! I'll shelve it with care. Alphabetically."]
+    }
+  ]
+}

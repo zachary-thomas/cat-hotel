@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "note": "Plaza events at Meadow. Hours are minutes of the game day; an event can start from 'from' up to (not including) 'to'. Duration is game seconds.",
+  "events": [
+    {
+      "id": "movie_night", "name": "Movie Night", "topic": "gossip", "price": 80, "from": 1080, "to": 1440, "duration": 120, "goldItem": "lamp",
+      "pitch": "A picture on a big sheet, popcorn, and whispering through the good bits.",
+      "greeting": ["Shh! The good part's coming. It's all good parts.", "I brought popcorn. I ate the popcorn. Want to hear about it?"],
+      "gold": "Movie Night was a smash! The square is still quoting it."
+    },
+    {
+      "id": "nap_a_thon", "name": "Nap-a-thon", "topic": "naps", "price": 60, "from": 600, "to": 960, "duration": 120, "goldItem": "sun_cushion",
+      "pitch": "Pillows, blankets, and a competitive amount of lying down.",
+      "greeting": ["Zzz... I'm winning... zzz...", "Shh. I'm in the lead. Don't wake the judges."],
+      "gold": "The Nap-a-thon was legendary. Nobody remembers it. Perfect."
+    },
+    {
+      "id": "yarn_festival", "name": "Yarn Festival", "topic": "play", "price": 100, "from": 480, "to": 1080, "duration": 120, "goldItem": "tunnel",
+      "pitch": "Mountains of yarn, a chasing contest, and absolutely no knitting.",
+      "greeting": ["So much yarn! I don't know where to start! Everywhere!", "I've been tangled for ten minutes. Best day of my life."],
+      "gold": "The Yarn Festival was a tangled triumph. Worth every knot."
+    }
+  ]
+}

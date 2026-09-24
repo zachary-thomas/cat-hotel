@@ -4,7 +4,7 @@ using Purrington.Domain;
 using UnityEngine;
 namespace Purrington.Presentation {
  public sealed partial class VoxelWorld {
-  MainStreetArt townArt;TownSquareArt squareArt;GodotCatRig managerRig;StoreInteriorView storeInterior;
+  MainStreetArt townArt;TownSquareArt squareArt;OutskirtsArt outskirts;PlazaEventArt plazaArt;GodotCatRig managerRig;StoreInteriorView storeInterior;
   bool townMode,townFollowing,townSavedManual;Vector3 townSavedFocus;float townSavedZoom;Bounds? townSavedBounds;
   string previewCoat,previewMarkings,managerLook,managerOutfitSignature;
   public GodotCatRig StreetManagerRig=>managerRig;
@@ -51,7 +51,7 @@ namespace Purrington.Presentation {
   public bool SelectStoreCashier(){return storeInterior!=null&&storeInterior.SelectCashier();}
   void RefreshTown(){
    if(TownContent.Current==null)return;
-   if(townArt==null){townArt=new MainStreetArt(geometry,renderRoot,TownContent.Current);squareArt=new TownSquareArt(geometry,townArt.Root,TownContent.Current,model);}
+   if(townArt==null){townArt=new MainStreetArt(geometry,renderRoot,TownContent.Current);squareArt=new TownSquareArt(geometry,townArt.Root,TownContent.Current,model);if(QuestContent.Current!=null)outskirts=new OutskirtsArt(geometry,townArt.Root,TownContent.Current);if(PlazaContent.Current!=null)plazaArt=new PlazaEventArt(geometry,townArt.Root,TownContent.Current);}
    townArt.Root.gameObject.SetActive(currentMap==0);
    if(currentMap!=0&&townMode)ExitTownMode();
    SyncManager(0);
@@ -92,19 +92,27 @@ namespace Purrington.Presentation {
   void SyncManager(float delta){
    if(!townMode&&!care&&currentMap==0)model.AdvanceTownWelcome(delta);
    squareArt?.Update(model,delta,model.State.settings.motion);
+   outskirts?.Update(model,delta,model.State.settings.motion,lifeControl);
+   plazaArt?.Update(model,delta,model.State.settings.motion);
+   SyncNeighbors(delta);
    if(TownContent.Current==null)return;
    string coat=previewCoat??model.State.managerCoat,marking=previewMarkings??model.State.managerMarkings,look=coat+"/"+marking;
    if(managerRig==null||managerLook!=look){DisposeNode(managerRig?.Root);managerRig=new GodotCatRig(geometry,renderRoot,ManagerCatArt.Recipe(geometry,coat,marking),91);managerRig.Root.localScale=Vector3.one*.83f;managerLook=look;managerOutfitSignature=null;}
    string outfit=CatOutfitView.Signature(model.State.managerOutfit);
    if(managerOutfitSignature!=outfit){CatOutfitView.Apply(geometry,managerRig,model.State.managerOutfit);managerOutfitSignature=outfit;}
    storeInterior?.SetManagerOutfit(model.State.managerOutfit);
-   managerRig.Root.gameObject.SetActive(currentMap==0&&(storeInterior==null||!storeInterior.IsVisible));
+   var t=model.Hotel(0).town;int level=model.ManagerInHotel?t.floor:0;
+   managerRig.Root.gameObject.SetActive(currentMap==0&&(storeInterior==null||!storeInterior.IsVisible)&&(!model.ManagerInHotel||FloorVisible(level,ViewFloor)));
    if(currentMap!=0)return;
-   var t=model.Hotel(0).town;var at=new Vector3(t.x*Unit,GroundY,t.z*Unit);var moved=at-managerRig.Root.localPosition;
-   if(moved.sqrMagnitude>.000001f)managerRig.Root.localRotation=Quaternion.LookRotation(moved);
-   managerRig.Root.localPosition=at;bool walking=!string.IsNullOrEmpty(t.destination);
-   managerRig.Advance(delta,model.State.settings.motion,walking?"walk":"rest",walking);
-   if(townMode&&townFollowing)focus=at+Vector3.up*.5f;
+   var ground=new Vector3(t.x*Unit,GroundY,t.z*Unit);var at=ground+Vector3.up*FloorY(level);var moved=at-managerRig.Root.localPosition;moved.y=0;
+   // Mid-chat the manager turns to the guest it is talking to.
+   var chat=model.CurrentChat;var partner=chat==null?null:model.Actors.FirstOrDefault(a=>a.kind==ActorKind.Guest&&a.catId==chat.catId);
+   if(partner!=null){var toward=new Vector3(partner.x*Unit-at.x,0,partner.z*Unit-at.z);if(toward.sqrMagnitude>.0001f)managerRig.Root.localRotation=Quaternion.Slerp(managerRig.Root.localRotation,Quaternion.LookRotation(toward),Mathf.Clamp01(delta*10));}
+   else if(moved.sqrMagnitude>.000001f)managerRig.Root.localRotation=Quaternion.LookRotation(moved);
+   managerRig.Root.localPosition=at;bool walking=model.ManagerWalking;
+   managerRig.Advance(delta,model.State.settings.motion,walking?"walk":"rest",walking,partner!=null?"talk":"");
+   if(townMode&&townFollowing)focus=ground+Vector3.up*.5f;
+   SyncLifeManager(ground);
   }
  }
 }

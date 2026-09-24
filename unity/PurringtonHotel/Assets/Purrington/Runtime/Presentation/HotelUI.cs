@@ -146,6 +146,7 @@ namespace Purrington.Presentation
             if(!(Mouse.current?.leftButton.isPressed??false)&&!(Touchscreen.current?.primaryTouch.press.isPressed??false))lastPathCell=null;
 
             RefreshValues();
+            UpdateLife();
             AnimateWelcome();
 
         }
@@ -170,6 +171,7 @@ namespace Purrington.Presentation
         {
 
             welcome=false;
+            LeaveLife(destination);
             bool returningFromTown=app.World.IsTownMode;
             if(returningFromTown){managerEditing=false;app.World.ExitTownMode();}
             if (careCat >= 0) { CloseWardrobe(); app.World.SetCareMode(careCat,false); }
@@ -195,6 +197,8 @@ namespace Purrington.Presentation
 
             if(tab=="Town"&&!settings){if(BackFromStore())return;if(managerEditing){managerEditing=false;app.World.ClearManagerPreview();Rebuild();}else CloseTown();return;}
             if (IsPlacing) { CancelPlacement(); return; }
+
+            if (LifeBack()) return;
 
             if (careCat>=0) { if(careDetails){careDetails=false;Rebuild();}else if(wardrobeOpen){CloseWardrobe();Rebuild();}else CloseCare(); return; }
 
@@ -225,6 +229,7 @@ namespace Purrington.Presentation
 
         {
 
+            if (PaintObjectTap(id)) return;
             if (tab!="Build" || IsPlacing) return;
 
             selectedObject=id;selectedRoom="";NoteSelection();Rebuild();
@@ -449,7 +454,8 @@ namespace Purrington.Presentation
 
             if(saveError)ShowNotice(persistentSaveError,true);
 
-            app.World.SetInputBlocked(settings || careCat>=0 || (tab!="Hotel" && tab!="Build" && tab!="Town"));
+            app.World.SetInputBlocked(settings || careCat>=0 || (tab!="Hotel" && tab!="Build" && tab!="Town" && !LifePlay));
+            app.World.SetLifeControl(LifePlay && !IsPlacing);
 
             if(dialogTitle.Length>0)DialogPanel();
 
@@ -1021,7 +1027,8 @@ namespace Purrington.Presentation
 
         {
 
-            var content=Sheet("Cat collection","Meet your guests",.78f);
+            var content=Sheet("Cat collection",catsView=="Neighbors"&&HasNeighbors?"Meet your neighbors":"Meet your guests",.78f);
+            if(CatsSwitch(content))return;
 
             foreach(var cat in app.Model.State.cats.Where(c=>c.known))
 
@@ -1049,7 +1056,7 @@ namespace Purrington.Presentation
 
         void CarePanel() { GestureCarePanel(); }
 
-        void LifePanel() { ParityLifePanel(); }
+        void LifePanel() { if(LifePlay){LifeHud();return;} if(lifeFocus=="events"&&app.Model.State.currentHotel==0){EventsPanel();return;} ParityLifePanel(); }
 
         void MapPanel() { ParityMapPanel(); }
 

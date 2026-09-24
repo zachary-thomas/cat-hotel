@@ -9,7 +9,7 @@ public sealed class WardrobeTests {
   var asset=Resources.Load<TextAsset>("Content/Wardrobe");
   Assert.IsNotNull(asset);
   Wardrobe.LoadJson(asset.text);
-  Assert.AreEqual(13,Wardrobe.All.Length);
+  Assert.AreEqual(19,Wardrobe.All.Length); // 13 plus six neighbor best-friend gifts
  }
 
  [Test] public void OutfitPiecesSitOnTheirAnchorsAndClearAway() {

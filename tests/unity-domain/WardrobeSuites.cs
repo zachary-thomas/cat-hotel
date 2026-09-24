@@ -10,7 +10,7 @@ static class WardrobeSuites
 	public static void RunWardrobe(Action<bool,string> Check,Func<string,JObject> P,ParityContent content)
 	{
 		string wardrobeJson=File.ReadAllText("unity/PurringtonHotel/Assets/Resources/Content/Wardrobe.json");Wardrobe.LoadJson(wardrobeJson);
-		Check(Wardrobe.All.Length==13&&Wardrobe.Slots.All(s=>Wardrobe.All.Count(w=>w.slot==s)>=3),"wardrobe: 13 items across head, neck and back");
+		Check(Wardrobe.All.Length==19&&Wardrobe.Slots.All(s=>Wardrobe.All.Count(w=>w.slot==s)>=3),"wardrobe: 19 items (13 plus six neighbor gifts) across head, neck and back");
 		Check(Wardrobe.All.Count(w=>w.giftCat>=0)==3,"wardrobe: three signature gifts");
 		var badGiver=JObject.Parse(wardrobeJson);badGiver["items"].First(i=>(string)i["id"]=="tiny_crown")["giftCat"]=18;bool rejectedGiver=false;
 		try{Wardrobe.LoadJson(badGiver.ToString());}catch(FormatException){rejectedGiver=true;}

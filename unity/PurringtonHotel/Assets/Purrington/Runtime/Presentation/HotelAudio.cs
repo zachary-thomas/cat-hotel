@@ -18,6 +18,13 @@ namespace Purrington.Presentation
    if(ambient){income+=System.Math.Max(0,state.coins-lastCoins);coinTimer+=Time.unscaledDeltaTime;meowTimer-=Time.unscaledDeltaTime;if(income>=1&&coinTimer>=5.5f){PlayEffect("income");coinTimer=0;income=0;}if(meowTimer<=0){PlayEffect("meow"+(meowIndex%3));meowIndex++;meowTimer=24+(meowIndex%4)*5;}}else income=0;lastCoins=state.coins;
   }
   public void PlayEffect(string kind){if(app?.Model==null||!foreground||!app.Model.State.settings.sound||!clips.TryGetValue(kind,out var clip)||clip==null)return;if(kind=="tap"){if(Time.unscaledTime-lastTap<.07f)return;lastTap=Time.unscaledTime;}var source=voices[voice++%voices.Length];source.clip=clip;source.volume=kind=="tap"||kind=="income"?.14f:.316f;source.pitch=1+((voice%3)-1)*.035f;source.Play();}
+  // Animal Crossing style voice: one soft generated blip per typed letter, pitched per cat.
+  AudioClip blip;float lastBlip=-10;
+  public void Blip(float pitch){
+   if(app?.Model==null||!foreground||!app.Model.State.settings.sound||Time.unscaledTime-lastBlip<.045f)return;lastBlip=Time.unscaledTime;
+   if(blip==null){const int rate=22050,length=rate/28;var data=new float[length];for(int i=0;i<length;i++){float t=(float)i/rate,env=Mathf.Sin(Mathf.PI*i/length);data[i]=env*env*(Mathf.Sin(2*Mathf.PI*520*t)*.7f+Mathf.Sin(2*Mathf.PI*1040*t)*.18f);}blip=AudioClip.Create("chat_blip",length,1,rate,false);blip.SetData(data,0);}
+   var source=voices[voice++%voices.Length];source.clip=blip;source.volume=.11f;source.pitch=pitch;source.Play();
+  }
   public void SetCareContact(bool active,bool immediate=false){if(purr==null)return;contact=active&&foreground&&app.Model.State.settings.sound;purrFade=0;if(contact){purr.loop=true;purr.volume=.4f;if(!purr.isPlaying){purr.clip=clips["purr"];if(purr.clip)purr.Play();}}else if(immediate)purr.Stop();}
   void OnApplicationFocus(bool value){foreground=value;if(!value)SetCareContact(false,true);}void OnApplicationPause(bool value){foreground=!value;if(value)SetCareContact(false,true);}
   void OnDisable(){foreach(var source in music)if(source)source.Stop();foreach(var source in voices)if(source)source.Stop();if(purr)purr.Stop();}

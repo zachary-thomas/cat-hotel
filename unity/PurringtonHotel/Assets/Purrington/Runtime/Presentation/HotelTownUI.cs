@@ -107,6 +107,7 @@ namespace Purrington.Presentation {
       Info(content,(string)offer["name"],(string)offer["price"]+" Cat Coins · "+(owned?"Owned · ready to use":"Available"));
       if(!owned)Height(Button(content,"Buy "+(string)offer["name"],()=>BuyGroceries(id),Gold,14),52*textScale);
      }
+     GiftShelf(content);
     }else{
      var target=Row(content,52*textScale);
      string targetName=clothingCat<0?app.Model.State.managerName:app.Model.State.cats.First(c=>c.id==clothingCat).name;
