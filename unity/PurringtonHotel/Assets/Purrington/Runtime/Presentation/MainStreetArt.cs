@@ -89,7 +89,7 @@ namespace Purrington.Presentation {
    Box(root,"Door handle",new Vector3(x+.38f,1.1f,front0+.27f),new Vector3(.09f,.3f,.07f),"D7AE55");
    Box(root,"Door step",new Vector3(x,.14f,front0+.4f),new Vector3(1.6f,.12f,.6f),"D9CFBC");
    float boardWidth=VoxelLetters.Width(title,SignPixel)+.4f;
-   Box(root,"Signboard",new Vector3(x,3.05f,front0+.14f),new Vector3(boardWidth,.62f,.1f),"244335");
+   Hit(Box(root,"Shop signboard",new Vector3(x,3.05f,front0+.14f),new Vector3(boardWidth,.62f,.1f),"244335"),id); // the signboard is a tap target too
    var letters=geometry.Build(root,VoxelLetters.Recipe("Store sign "+title,title,SignPixel,.05f,"F4EAD5"));letters.localPosition=new Vector3(x,3.05f,front0+.19f);letters.localScale=new Vector3(1,1,-1);
    foreach(float offset in new[]{-2.1f,2.1f})Window(root,x+offset,front0,boutique,3.6f);
    Yard(id,plan,cx,cz,boutique);

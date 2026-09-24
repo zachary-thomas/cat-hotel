@@ -493,6 +493,8 @@ namespace Purrington.Presentation
                 else if(sheet&&sheet.gameObject.activeInHierarchy)
                 {
                     var panelBounds=ScreenBounds(sheet);
+                    // Measure where the sheet comes to rest, not where its slide-in starts.
+                    float slide=(sheetRest.y-sheet.anchoredPosition.y)*canvas.scaleFactor;panelBounds.yMin+=slide;panelBounds.yMax+=slide;
                     if(wideLayout)visible.xMax=Mathf.Min(visible.xMax,panelBounds.xMin);
                     else visible.yMin=Mathf.Max(visible.yMin,panelBounds.yMax);
                 }
@@ -941,6 +943,7 @@ namespace Purrington.Presentation
             return Mathf.Clamp(Mathf.Min(requested,maxFraction),.32f,.55f);
         }
 
+        Vector2 sheetRest;
         RectTransform Sheet(string name,string title,float fraction=.61f)
 
         {
@@ -957,7 +960,7 @@ namespace Purrington.Presentation
                 Pin(sheet,Vector2.zero,new Vector2(1,fraction),Vector2.zero,new Vector2(10,welcome?10:96),new Vector2(-10,0));
             }
 
-            if(name!=lastSheetName)UiMotion.SlideIn(sheet);lastSheetName=name;
+            sheetRest=sheet.anchoredPosition;if(name!=lastSheetName)UiMotion.SlideIn(sheet);lastSheetName=name;
             var label=Text(sheet,title,18,Ink,true);
 
             Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(18,-58),new Vector2(-76,-8));

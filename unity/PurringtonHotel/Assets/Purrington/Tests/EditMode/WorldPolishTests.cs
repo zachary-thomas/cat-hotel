@@ -22,7 +22,7 @@ namespace Purrington.Tests {
     square.Market.gameObject.SetActive(true);
     int checkedSigns=0;
     foreach(var letters in art.Root.GetComponentsInChildren<Transform>(true).Where(t=>t.name.StartsWith("Store sign")||t.name.EndsWith("letters")||t.name.EndsWith(" sign")&&t.parent.name.StartsWith("Market kiosk"))){
-     var board=letters.parent.Cast<Transform>().Where(s=>s.name=="Signboard"||s.name=="Awning").OrderBy(s=>Mathf.Abs(Measure(s).center.x-Measure(letters).center.x)).FirstOrDefault();
+     var board=letters.parent.Cast<Transform>().Where(s=>s.name=="Signboard"||s.name=="Shop signboard"||s.name=="Awning").OrderBy(s=>Mathf.Abs(Measure(s).center.x-Measure(letters).center.x)).FirstOrDefault();
      Assert.That(board,Is.Not.Null,letters.name+" has a board");
      Bounds text=Measure(letters),face=Measure(board);
      Assert.That(text.size.x,Is.LessThanOrEqualTo(face.size.x-.1f),letters.name+" fits its board");

@@ -158,7 +158,7 @@ namespace Purrington.Presentation
                     yield return Screenshot("care");
                     yield return Click("Back","Hotel status");
                     Check("care returns to Cats",!app.UI.IsInCare&&app.UI.ActiveTab=="Cats");
-                    Check("care restores hotel camera",CameraEqual(cameraPosition,cameraZoom));
+                    Check("care restores hotel camera",CameraEqual(cameraPosition,cameraZoom),"moved "+(app.World.WorldCamera.transform.position-cameraPosition).ToString("F3")+" zoom "+cameraZoom.ToString("F3")+"->"+app.World.WorldCamera.orthographicSize.ToString("F3"));
                 }
                 yield return Click("Life","Navigation");Check("Life navigation",app.UI.ActiveTab=="Life");
                 yield return Click("Map","Navigation");Check("Map navigation",app.UI.ActiveTab=="Map");
@@ -179,7 +179,7 @@ namespace Purrington.Presentation
             yield return Click("Fit street");yield return new WaitForSecondsRealtime(5.2f);
             CheckLayout(safe);yield return Screenshot("main-street");
             // Find a visible storefront sign through the actual scene raycast.
-            var sign=app.World.GetComponentsInChildren<TownStoreHit>().FirstOrDefault(h=>h.StoreId=="paw_mart"&&h.name=="Store sign");
+            var sign=app.World.GetComponentsInChildren<TownStoreHit>().FirstOrDefault(h=>h.StoreId=="paw_mart"&&h.name=="Shop signboard");
             if(sign){
                 Vector2 screen=app.World.WorldCamera.WorldToScreenPoint(sign.transform.position);
                 bool visible=app.UI.AvailableWorldRect.Contains(screen);
