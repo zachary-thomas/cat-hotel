@@ -134,6 +134,16 @@ namespace Purrington.Editor
                     // Let panels finish sliding in and lighting settle before the shot.
                     if (elapsed < .8) return;
                     // capture -Filter pop shows an income pop half a second before the shot, once the panels have settled.
+                    // capture -Filter "click:Stairs up|click:Rotate" presses those UI buttons (by name) before the shot.
+                    if (r.filter.StartsWith("click:"))
+                    {
+                        foreach (var name in r.filter.Split('|').Select(x => x.StartsWith("click:") ? x.Substring(6) : x))
+                        {
+                            var button = UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None).FirstOrDefault(b => b.name == name && b.isActiveAndEnabled);
+                            if (button != null) button.onClick.Invoke(); else Debug.LogWarning("Bridge: no button named " + name);
+                        }
+                        r.filter = "clicked"; r.since = EditorApplication.timeSinceStartup; Save(r); return;
+                    }
                     if (r.filter == "pop") { UnityEngine.Object.FindFirstObjectByType<HotelApp>()?.World?.PopIncome(42); r.filter = "popped"; r.since = EditorApplication.timeSinceStartup + .3; Save(r); return; }
                     var file = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../builds/unity/editor-captures", DateTime.Now.ToString("yyyyMMdd-HHmmss") + (string.IsNullOrEmpty(r.tab) ? "" : "-" + r.tab) + ".png"));
                     Directory.CreateDirectory(Path.GetDirectoryName(file));

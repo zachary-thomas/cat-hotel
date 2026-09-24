@@ -52,7 +52,7 @@ namespace Purrington.Presentation
 
         Rect lastSafe;
 
-        bool wideLayout,buildToolsExpanded;
+        bool wideLayout;
 
         string persistentSaveError="";
 
@@ -227,11 +227,11 @@ namespace Purrington.Presentation
 
             if (tab!="Build" || IsPlacing) return;
 
-            selectedObject=id;selectedRoom="";if(activeScroll!=null)activeScroll.verticalNormalizedPosition=1; Rebuild();
+            selectedObject=id;selectedRoom="";NoteSelection();Rebuild();
 
         }
 
-        void EditRoom(string id){selectedRoom=id;selectedObject="";if(activeScroll!=null)activeScroll.verticalNormalizedPosition=1;Rebuild();}
+        void EditRoom(string id){selectedRoom=id;selectedObject="";NoteSelection();Rebuild();}
 
         public void GroundClicked(Vector3 point)
 
@@ -239,7 +239,8 @@ namespace Purrington.Presentation
 
             if (careCat>=0) return;
 
-            if (!IsPlacing) return;
+            // Tapping open ground in Build clears the selection (a room or furnishing tap also reports the ground under it).
+            if (!IsPlacing) { if(tab=="Build"&&!JustSelected&&(selectedRoom.Length>0||selectedObject.Length>0)){selectedRoom="";selectedObject="";Rebuild();} return; }
 
             if (commandAction.Length > 0) { UpdateCommandTarget(point); return; }
 
@@ -315,7 +316,7 @@ namespace Purrington.Presentation
 
             else app.World.SetPlacementPreview(placement,target,rotation,result.success,movingObject);
 
-            ShowNotice(result.success ? "Looks good! Confirm to place." : result.message,!result.success,false);
+            ApplyToolStatus(result.success ? "Looks good · tap Place to confirm." : result.message,result.success);
 
         }
 
@@ -487,7 +488,7 @@ namespace Purrington.Presentation
                 if(dock)visible.yMin=Mathf.Max(visible.yMin,ScreenBounds(dock).yMax);
                 var overview=FindActiveRect("Hotel overview");
                 if(overview)visible.yMin=Mathf.Max(visible.yMin,ScreenBounds(overview).yMax);
-                var placementPanel=FindActiveRect("Placement");
+                var placementPanel=FindActiveRect("Placement")??FindActiveRect("Selection");
                 if(placementPanel)visible.yMin=Mathf.Max(visible.yMin,ScreenBounds(placementPanel).yMax);
                 else if(sheet&&sheet.gameObject.activeInHierarchy)
                 {
@@ -793,7 +794,7 @@ namespace Purrington.Presentation
 
                 bool build=dest=="Build";
 
-                var btn=Button(row,dest,()=>Navigate(dest),Color.clear,build?13:12);buttons[dest]=btn;
+                var btn=Button(row,dest,()=>Navigate(dest),new Color(CardTone.r,CardTone.g,CardTone.b,0),build?13:12);buttons[dest]=btn;
 
                 var size=btn.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();size.flexibleWidth=build?1.35f:1;size.minWidth=build?64:48;
 
@@ -967,178 +968,6 @@ namespace Purrington.Presentation
             Pin(close,new Vector2(1,1),Vector2.one,Vector2.one,new Vector2(-66,-56),new Vector2(-10,-8));
 
             return Scroll(sheet,64,12);
-
-        }
-
-        void BuildPanel()
-
-        {
-
-            if(IsPlacing)
-
-            {
-
-                // Placement chrome only: item, price, Rotate, Cancel, Place — keep ≥50% safe height for the world.
-                var tray=Panel("Placement",safe,Cream);
-
-                float logicalSafeHeight=lastSafe.height/Mathf.Max(.01f,canvas.scaleFactor);
-
-                float headerReserve=56f;
-
-                float maxTrayTop=Mathf.Max(120f,logicalSafeHeight*.5f-headerReserve);
-
-                float trayTop=Mathf.Min(128f,maxTrayTop);
-
-                Pin(tray,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,10),new Vector2(-10,trayTop));
-
-                string name=commandAction.Length>0?commandTitle:movingRoom.Length>0?"Move room + furnishings":placement=="room"?"Cozy guest room":Catalog.All.First(x=>x.id==placement).name;
-
-                double price=commandAction.Length>0?0:movingRoom.Length>0||movingObject.Length>0||retrievingObject.Length>0?0:placement=="room"?450:Catalog.All.First(x=>x.id==placement).price;
-
-                string priceBit=price>0?" · "+price.ToString("N0")+" coins":"";
-
-                var label=Text(tray,name+priceBit+"\nTap hotel to position",13,Ink,true);
-
-                Pin(label.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(14,-52),new Vector2(-14,-6));
-
-                var row=Horizontal(tray,6,8);row.offsetMin=new Vector2(8,8);row.offsetMax=new Vector2(-8,-58);
-
-                Button(row,"Cancel",()=>CancelPlacement(),Lilac,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-                if(placement!="room"||movingRoom.Length>0)Button(row,"Rotate",Rotate,Gold,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-                string placeLabel=commandAction.Length>0?"Confirm":(movingRoom.Length>0||movingObject.Length>0?"Move":"Place");
-
-                Button(row,placeLabel,Place,Mint,14).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-                return;
-
-            }
-
-            var content=Sheet("Build catalogue","Build",.55f);
-            FloorChip(content);
-
-            var tools=Button(sheet,buildToolsExpanded?"Done":"Tools",()=>{buildToolsExpanded=!buildToolsExpanded;Rebuild();},Mint,12);
-            Pin(tools,Vector2.one,Vector2.one,Vector2.one,new Vector2(textScale>1?-150:-130,-56),new Vector2(-74,-8));
-
-            if(buildToolsExpanded)
-            {
-
-            var controls=Row(content,54);
-
-            Button(controls,"Undo",()=>{app.Report(app.Model.Undo());Rebuild();},Lilac,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-            Button(controls,"Redo",()=>{app.Report(app.Model.Redo());Rebuild();},Lilac,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-            Button(controls,"Play",()=>Navigate("Hotel"),Mint,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-            BuildExtras(content);
-            }
-
-            if(selectedRoom.Length>0)
-
-            {
-
-                var room=app.Model.State.rooms.FirstOrDefault(x=>x.id==selectedRoom);
-
-                if(room!=null)
-
-                {
-
-                    string id=room.id;
-
-                    if(room.cells==null)RoomExtras(content,id,room.width,room.depth);
-
-                    var roomStatus=app.Model.RoomStatus(room.id);
-                    Info(content,"EDIT ROOM",(room.cells==null?room.width+" × "+room.depth:room.cells.Count.ToString())+" tiles · "+roomStatus.status+"\n"+roomStatus.message+"\n"+(room.cells==null?"Move or resize this room.":"Reshape this room with Walls.")+" Removing stores furniture and returns "+room.paid.ToString("N0")+" shell coins.");
-
-                    var actions=Row(content,56);
-
-                    if(room.cells==null){Button(actions,"Move",()=>BeginMoveRoom(id),Mint,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-                    Button(actions,"Rotate",()=>BeginMoveRoom(id,true),Gold,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;}
-
-                    Button(actions,"Remove",()=>{var result=app.Model.RemoveRoom(id);app.Report(result);if(result.success)selectedRoom="";Rebuild();ShowNotice(result.message,!result.success);},Coral,13).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-                }
-
-            }
-
-            if(selectedObject.Length>0)
-
-            {
-
-                var selected=app.Model.State.objects.FirstOrDefault(x=>x.id==selectedObject);
-
-                if(selected!=null)
-
-                {
-
-                    string id=selected.id;
-
-                    Info(content,Catalog.Find(selected.itemId).name,"Move this furnishing, or keep it in Storage for later.");
-
-                    var actions=Row(content,56);
-
-                    Button(actions,"Move",()=>BeginMove(id),Mint,14).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-                    Button(actions,"Store",()=>{var result=app.Model.StoreObject(id);app.Report(result);if(result.success)selectedObject="";Rebuild();},Coral,14).gameObject.AddComponent<UnityEngine.UI.LayoutElement>().flexibleWidth=1;
-
-                }
-
-            }
-
-            var categories=new[]{"All","Hotel","Rooms","Arrangements","Land","Paths"}.Concat(Catalog.All.Select(x=>x.category).Distinct()).Concat(new[]{"Storage"}).ToArray();
-
-            CategoryChips(content,categories);
-
-            ParityCatalogue(content);
-
-            if(category=="Rooms")
-
-            {
-
-                int number=0;
-
-                foreach(var room in app.Model.State.rooms)
-
-                {
-
-                    string id=room.id;number++;
-
-                    var roomStatus=app.Model.RoomStatus(room.id);
-                    Card(content,"Room "+number+" · "+room.width+" × "+room.depth,roomStatus.status,"Edit",()=>EditRoom(id),Gold);
-
-                }
-
-            }
-
-            if(category=="Storage")
-
-            {
-
-                if(app.Model.State.storage.Count==0)Info(content,"ROOM TO REARRANGE","Stored furnishings appear here. Select a furnishing in your hotel to move it into Storage.");
-
-                foreach(var stored in app.Model.State.storage)
-
-                {
-
-                    string id=stored.id;var item=Catalog.Find(stored.itemId);
-
-                    CatalogCard(content,item.name,"Ready to place",0,()=>BeginRetrieve(id),Mint,item.role,item.id);
-
-                }
-
-            }
-
-            foreach(var item in Catalog.All.Where(x=>category=="All"||category==x.category))
-
-            {
-
-                var chosen=item;
-
-                CatalogCard(content,item.name,item.role+" · "+(item.indoorOnly?"Indoors":"Any floor")+(item.bond>0?" · "+item.bond+" bond":""),app.Model.State.settings.godMode?0:item.price,()=>BeginPlace(chosen.id),Mint,item.role,chosen.id);
-
-            }
 
         }
 
@@ -1470,7 +1299,7 @@ namespace Purrington.Presentation
 
             var scroll=root.gameObject.AddComponent<UnityEngine.UI.ScrollRect>();scroll.horizontal=false;scroll.movementType=UnityEngine.UI.ScrollRect.MovementType.Clamped;
 
-            activeScroll=scroll;scrollKey=settings?"Settings":tab=="Build"?"Build/"+category:tab;
+            activeScroll=scroll;scrollKey=settings?"Settings":tab=="Build"?"Build/"+buildMode+"/"+category:tab;
 
             var viewport=Rect("Viewport",root);Stretch(viewport);viewport.gameObject.AddComponent<UnityEngine.UI.RectMask2D>();
 

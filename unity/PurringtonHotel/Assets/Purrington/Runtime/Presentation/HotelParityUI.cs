@@ -91,7 +91,7 @@ namespace Purrington.Presentation
 
             app.World.SetCommandPreview(commandAction,commandPayload,quote.success);
 
-            ShowNotice((quote.success?"Confirm · "+quote.cost.ToString("N0")+" coins. ":"")+quote.message,!quote.success,false);
+            ApplyToolStatus(quote.success?(quote.cost>0?quote.cost.ToString("N0")+" coins · ":quote.cost<0?(-quote.cost).ToString("N0")+" coins back · ":"")+quote.message:quote.message,quote.success);
 
         }
 
@@ -101,7 +101,8 @@ namespace Purrington.Presentation
 
             if(!hasTarget){ShowNotice("Tap the hotel to choose a position.",false);return;}
 
-            var result=app.Model.Execute(commandAction,commandPayload);if(result.success){app.Audio?.PlayEffect("build");CancelPlacement(false);}
+            bool stairs=commandAction=="draw_room"&&(string)commandPayload["kind"]=="stairs";int stairFloor=(int?)commandPayload["floor"]??0;
+            var result=app.Model.Execute(commandAction,commandPayload);if(result.success){app.Audio?.PlayEffect("build");CancelPlacement(false);if(stairs)stairsOpened=stairFloor==-1?-1:stairFloor+1;}
 
             app.Report(result);Rebuild();ShowNotice(result.message,!result.success);
 
@@ -109,95 +110,7 @@ namespace Purrington.Presentation
 
         public void GroundDragged(Vector3 point){if(commandAction=="paint_path"||commandAction=="erase_path"||ShellDrawing(commandAction))UpdateCommandTarget(point);}
 
-        public void SelectRoom(string id){if(tab=="Build"&&!IsPlacing)EditRoom(id);}
-
-        void BuildExtras(RectTransform content)
-
-        {
-
-            var row=Row(content,50);
-
-            Button(row,"Fit hotel",()=>app.World.FitHotel(),Gold,13);
-
-            if(selectedObject.Length>0)Button(row,"Focus selection",()=>app.World.FocusObject(selectedObject),Mint,13);
-
-        }
-
-        void RoomExtras(RectTransform content,string id,int width,int depth)
-
-        {
-
-            var row=Row(content,52);
-
-            Button(row,"Focus",()=>app.World.FocusRoom(id),Mint,13);
-
-            Button(row,"Copy",()=>BeginCommand("copy_room",new JObject{{"id",id},{"w",width},{"h",depth},{"rotation",0}},"Copy room and furniture"),Gold,13);
-
-            var sizes=Row(content,52);
-
-            foreach(var delta in new[]{-1,1})
-
-            {
-
-                int d=delta;
-
-                Button(sizes,d<0?"Narrower":"Wider",()=>BeginCommand("resize_room",new JObject{{"id",id},{"w",Math.Max(2,width+d)},{"h",depth}},"Resize room"),Lilac,12);
-
-                Button(sizes,d<0?"Shorter":"Deeper",()=>BeginCommand("resize_room",new JObject{{"id",id},{"w",width},{"h",Math.Max(2,depth+d)}},"Resize room"),Lilac,12);
-
-            }
-
-        }
-
-        void ParityCatalogue(RectTransform content)
-
-        {
-
-            ShellCatalogue(content);
-
-            if(category=="Rooms")
-
-                foreach(var kind in new[]{"regular","suite","cottage"})
-
-                {
-
-                    string name=kind=="regular"?"Guest room":kind=="suite"?"Grand suite":"Garden cottage";
-
-                    var payload=new JObject{{"kind",kind=="cottage"?"regular":kind},{"w",4},{"h",kind=="suite"?5:kind=="cottage"?4:3},{"rotation",0},{"name",name}};
-
-                    CatalogCard(content,name,"Outdoor pavilion · draw indoor rooms under Hotel",app.Model.CatalogPrice("place_room",payload),()=>BeginCommand("place_room",payload,name),Gold,"room");
-
-                }
-
-            if(category=="Arrangements")foreach(var entry in app.Model.Content.Templates)
-
-            {
-
-                var payload=new JObject{{"template",(string)entry["id"]},{"rotation",0}};
-
-                CatalogCard(content,(string)entry["name"],"Individually editable furnishings",app.Model.CatalogPrice("place_template",payload),()=>BeginCommand("place_template",payload,(string)entry["name"]),Gold,"room");
-
-            }
-
-            if(category=="Land")Card(content,"Grow straight onto land","Use Hotel → Grow: land for sale is bought as the hotel grows onto it.","Grow",()=>BeginCommand("paint_floor",new JObject{{"floor",currentFloor},{"cells",new JArray()},{"buy",true}},"Grow the hotel"),Mint);
-
-            if(category=="Land")foreach(var plot in app.Model.Map()["plots"]??new JArray())
-
-            {
-
-                var p=(JObject)plot;Card(content,(string)p["name"],((int?)p["cost"]??0)+" coins","Select",()=>BeginCommand("buy_plot",new JObject{{"id",p["id"]}},(string)p["name"]),Mint);
-
-            }
-
-            if(category=="Paths")foreach(var style in new[]{"earth","gravel","brick","erase"})
-
-            {
-
-                string chosen=style;Card(content,style+" path","Tap or drag across cells, then confirm.","Paint",()=>BeginCommand(chosen=="erase"?"erase_path":"paint_path",new JObject{{"cells",new JArray()},{"style",chosen=="erase"?"earth":chosen}},chosen+" path"),Gold);
-
-            }
-
-        }
+        public void SelectRoom(string id){if(tab=="Build"&&!IsPlacing){buildMode="Build";EditRoom(id);}}
 
         void ParityLifePanel()
 

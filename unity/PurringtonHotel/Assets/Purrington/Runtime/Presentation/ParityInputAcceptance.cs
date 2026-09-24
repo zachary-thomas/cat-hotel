@@ -73,8 +73,7 @@ namespace Purrington.Presentation
                 var scroll=app.UI.GetComponentsInChildren<ScrollRect>().FirstOrDefault(s=>s.vertical);
                 if(scroll){yield return Wheel(HotelUI.ScreenBounds(scroll.viewport).center,-180);yield return Wheel(HotelUI.ScreenBounds(scroll.viewport).center,180);}
                 Check("catalogue wheel does not zoom world",CameraEqual(cameraPosition,cameraZoom));
-                yield return Click("Rooms");
-                yield return Click(null,"Guest room");Check("room placement opened",app.UI.IsPlacing);
+                yield return Click("Guest room","Build tools");Check("room placement opened",app.UI.IsPlacing);
                 Check("placement world height",app.UI.AvailableWorldRect.height/Screen.height>=.5f,app.UI.AvailableWorldRect.ToString());
                 yield return Screenshot("placement");
                 cameraPosition=app.World.WorldCamera.transform.position;cameraZoom=app.World.WorldCamera.orthographicSize;
@@ -275,11 +274,7 @@ namespace Purrington.Presentation
         IEnumerator DrawRoom(bool withTouch)
         {
             int before=app.Model.Hotel().rooms.Count;
-            if(!withTouch)
-            {
-                yield return Click("Hotel","Catalogue categories");
-            }
-            yield return Click("Draw","Bedroom");
+            yield return Click("Bedroom","Build tools");
             Check((withTouch?"touch":"mouse")+" bedroom draw opened",app.UI.IsPlacing);
             if(!FindRoomDraw(withTouch,out int x,out int z))
             {
