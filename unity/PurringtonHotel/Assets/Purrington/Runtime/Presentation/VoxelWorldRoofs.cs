@@ -10,6 +10,7 @@ namespace Purrington.Presentation {
  // and slate under snow with icicles at Snowcap.
  public sealed partial class VoxelWorld {
   const float RoofBase=2.84f,RoofStep=.2f;const int RoofSteps=3;
+  readonly List<(Transform puff,Vector3 from,float phase)> smoke=new List<(Transform,Vector3,float)>();
   static readonly string[] RoofColors={"C07F68","7FB2C0","8C5E47","8C9BA8"};
   static readonly Vector2Int[] RoofSides={new Vector2Int(1,0),new Vector2Int(-1,0),new Vector2Int(0,1),new Vector2Int(0,-1)};
   public static Dictionary<Vector2Int,int> RoofDepths(ICollection<Vector2Int> cells){
@@ -48,6 +49,8 @@ namespace Purrington.Presentation {
    Box(roof,chimney+Vector3.up*.3f,new Vector3(.32f,.6f,.32f),"A8604B");Box(roof,chimney+Vector3.up*.2f,new Vector3(.34f,.05f,.34f),"8E4F3D");
    Box(roof,chimney+Vector3.up*.63f,new Vector3(.42f,.08f,.42f),snow?"F4F6F2":"6E4A3B");
    Bake(roof);
+   // Chimney smoke: a few soft puffs that rise, drift and fade (animated in UpdateLife; hidden with the roof in cutaway).
+   for(int k=0;k<4;k++){var puff=Group(roof,"Chimney smoke");Box(puff,Vector3.zero,Vector3.one*.28f,"E9E6DF");smoke.Add((puff,chimney+Vector3.up*.75f,k/4f));}
   }
  }
 }

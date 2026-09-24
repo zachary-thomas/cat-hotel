@@ -8,7 +8,7 @@ namespace Purrington.Presentation {
  // With reduced motion on, nothing is emitted and the ambient emitters stay quiet.
  public sealed class VoxelFx {
   public readonly Transform Root;
-  readonly ParticleSystem hearts,coins,petalsPink,petalsWhite,fireflies,dust,leavesAmber,leavesRed;
+  readonly ParticleSystem hearts,coins,petalsPink,petalsWhite,fireflies,dust,leavesAmber,leavesRed,snow;
   readonly List<TextMeshProUGUI> pops=new List<TextMeshProUGUI>();int popNext;
   public Camera View;
   float heartClock;
@@ -23,6 +23,8 @@ namespace Purrington.Presentation {
    dust=Make("Dust motes",cube,geometry.GlowTwin(geometry.Material("FFF1D0")),true,m=>{m.startLifetime=new ParticleSystem.MinMaxCurve(5,8);m.startSpeed=.02f;m.startSize=new ParticleSystem.MinMaxCurve(.025f,.045f);m.startRotation3D=true;m.maxParticles=60;},false);
    leavesAmber=Make("Autumn leaves",cube,geometry.Material("D9824A"),true,m=>{m.startLifetime=8;m.startSpeed=.05f;m.startSize=new ParticleSystem.MinMaxCurve(.09f,.13f);m.gravityModifier=.02f;m.startRotation3D=true;},false);
    leavesRed=Make("Red leaves",cube,geometry.Material("B85A3C"),true,m=>{m.startLifetime=8;m.startSpeed=.05f;m.startSize=new ParticleSystem.MinMaxCurve(.08f,.12f);m.gravityModifier=.02f;m.startRotation3D=true;},false);
+   snow=Make("Snowfall",cube,geometry.Material("FFFFFF"),true,m=>{m.startLifetime=10;m.startSpeed=.03f;m.startSize=new ParticleSystem.MinMaxCurve(.05f,.09f);m.gravityModifier=.01f;m.maxParticles=260;},false);
+   {var shape=snow.shape;shape.shapeType=ParticleSystemShapeType.Box;shape.scale=new Vector3(28,.5f,28);var drift=snow.velocityOverLifetime;drift.enabled=true;drift.space=ParticleSystemSimulationSpace.World;drift.x=new ParticleSystem.MinMaxCurve(.05f,.2f);drift.y=new ParticleSystem.MinMaxCurve(-.5f,-.35f);drift.z=new ParticleSystem.MinMaxCurve(-.1f,.1f);var sway=snow.noise;sway.enabled=true;sway.strength=.25f;sway.frequency=.35f;}
    foreach(var leaves in new[]{leavesAmber,leavesRed}){var shape=leaves.shape;shape.shapeType=ParticleSystemShapeType.Box;shape.scale=new Vector3(26,.5f,26);var drift=leaves.velocityOverLifetime;drift.enabled=true;drift.space=ParticleSystemSimulationSpace.World;drift.x=new ParticleSystem.MinMaxCurve(.2f,.45f);drift.y=new ParticleSystem.MinMaxCurve(-.4f,-.25f);drift.z=new ParticleSystem.MinMaxCurve(-.15f,.15f);var sway=leaves.noise;sway.enabled=true;sway.strength=.4f;sway.frequency=.3f;var spin=leaves.rotationOverLifetime;spin.enabled=true;spin.separateAxes=true;spin.x=spin.y=spin.z=new ParticleSystem.MinMaxCurve(-3,3);}
    {var shape=dust.shape;shape.shapeType=ParticleSystemShapeType.Box;shape.scale=new Vector3(14,2.4f,14);var noise=dust.noise;noise.enabled=true;noise.strength=.12f;noise.frequency=.25f;noise.scrollSpeed=.1f;var fade=dust.sizeOverLifetime;fade.enabled=true;fade.size=new ParticleSystem.MinMaxCurve(1,new AnimationCurve(new Keyframe(0,0),new Keyframe(.3f,1),new Keyframe(.7f,1),new Keyframe(1,0)));}
    foreach(var petals in new[]{petalsPink,petalsWhite}){var shape=petals.shape;shape.shapeType=ParticleSystemShapeType.Box;shape.scale=new Vector3(26,.5f,26);var drift=petals.velocityOverLifetime;drift.enabled=true;drift.space=ParticleSystemSimulationSpace.World;drift.x=new ParticleSystem.MinMaxCurve(.15f,.35f);drift.y=new ParticleSystem.MinMaxCurve(-.22f,-.14f);drift.z=new ParticleSystem.MinMaxCurve(-.1f,.1f);var spin=petals.rotationOverLifetime;spin.enabled=true;spin.separateAxes=true;spin.x=spin.y=spin.z=new ParticleSystem.MinMaxCurve(-2,2);}
@@ -40,17 +42,18 @@ namespace Purrington.Presentation {
   }
   public Transform Attach(Transform parent){Root.SetParent(parent,false);return Root;}
   public bool Motion=true;
-  public int Live=>hearts.particleCount+coins.particleCount+petalsPink.particleCount+petalsWhite.particleCount+fireflies.particleCount+dust.particleCount+leavesAmber.particleCount+leavesRed.particleCount;
+  public int Live=>hearts.particleCount+coins.particleCount+petalsPink.particleCount+petalsWhite.particleCount+fireflies.particleCount+dust.particleCount+leavesAmber.particleCount+leavesRed.particleCount+snow.particleCount;
   // While a cat is being petted, a heart floats up every half second from above its head.
   public void Affection(Vector3 head,float dt){if(!Motion)return;heartClock-=dt;if(heartClock>0)return;heartClock=.55f;hearts.transform.position=head;hearts.Emit(1);}
   public void Hearts(Vector3 at,int count=4){if(!Motion)return;hearts.transform.position=at;hearts.Emit(count);}
   public void Coins(Vector3 at,int count=8){if(!Motion)return;coins.transform.position=at;coins.Emit(count);}
   // center is the ground point in the middle of the view; glow is the evening/night lamp level from WorldLighting.
-  // autumn swaps the blossom petals for falling leaves (Forest Lodge).
-  public void Ambient(Vector3 center,float glow,bool outdoors,bool autumn=false){
+  // autumn swaps the blossom petals for falling leaves (Forest Lodge); winter for gentle snowfall (Snowcap Spa).
+  public void Ambient(Vector3 center,float glow,bool outdoors,bool autumn=false,bool winter=false){
    bool on=Motion&&outdoors;float day=Mathf.Clamp01(1-glow*2.5f),night=Mathf.Clamp01((glow-.45f)*2.5f);
-   foreach(var petals in new[]{petalsPink,petalsWhite}){petals.transform.position=center+Vector3.up*6.5f;var e=petals.emission;e.rateOverTime=on&&!autumn?day*(petals==petalsPink?2.4f:1.2f):0;}
+   foreach(var petals in new[]{petalsPink,petalsWhite}){petals.transform.position=center+Vector3.up*6.5f;var e=petals.emission;e.rateOverTime=on&&!autumn&&!winter?day*(petals==petalsPink?2.4f:1.2f):0;}
    foreach(var leaves in new[]{leavesAmber,leavesRed}){leaves.transform.position=center+Vector3.up*6.5f;var e=leaves.emission;e.rateOverTime=on&&autumn?(.4f+day*.6f)*(leaves==leavesAmber?2.2f:1.4f):0;}
+   snow.transform.position=center+Vector3.up*7f;{var e=snow.emission;e.rateOverTime=on&&winter?14:0;}
    dust.transform.position=center+Vector3.up*1.4f;var d=dust.emission;d.rateOverTime=on?day*5:0;
    fireflies.transform.position=center+Vector3.up*1.1f;var f=fireflies.emission;f.rateOverTime=on?night*5:0;
   }

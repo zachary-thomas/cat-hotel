@@ -17,7 +17,7 @@ namespace Purrington.Presentation {
    if(fx==null)return;
    bool motion=model.State.settings.motion;Tween.Reduced=!motion;fx.Motion=motion;
    bool outdoors=!care&&storeInterior?.IsVisible!=true&&ViewFloor>=0;
-   fx.Ambient(ViewCenter(),WorldLighting.Glow,outdoors,model.State.currentHotel==2);
+   fx.Ambient(ViewCenter(),WorldLighting.Glow,outdoors,model.State.currentHotel==2,model.State.currentHotel==3);UpdateLife(dt);
    if(care&&careRig!=null&&(careRig.Reaction=="purr"||careRig.Reaction=="brush"||careRig.Reaction=="head_bump"))fx.Affection(careRig.Bindings["head"].position+Vector3.up*.55f,dt);
    double coins=model.State.coins;
    if(fxCoins>=0&&coins>fxCoins)fxEarned+=coins-fxCoins;

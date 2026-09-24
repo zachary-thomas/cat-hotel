@@ -35,6 +35,16 @@ namespace Purrington.Tests {
    Assert.That(sign==null||!sign.gameObject.activeInHierarchy,Is.True,"the Godot Meadow House board gives way to the PURRINGTON arch");
   }
 
+  [Test] public void SeasideLifeMovesOnlyWithMotionOn(){
+   var model=new HotelModel(new MemoryStore(),ParityContent.Current);Assert.IsTrue(model.LoadOrCreate().success);model.State.currentHotel=1;
+   var world=root.AddComponent<VoxelWorld>();world.Initialize(model);
+   var all=root.GetComponentsInChildren<Transform>(true);
+   Assert.AreEqual(3,all.Count(t=>t.name=="Sailboat"));Assert.That(all.Count(t=>t.name=="Surf"),Is.GreaterThan(20));Assert.AreEqual(3,all.Count(t=>t.name=="Towel"));
+   var boat=all.First(t=>t.name=="Sailboat");var step=typeof(VoxelWorld).GetMethod("UpdateLife",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);
+   model.State.settings.motion=false;var before=boat.localPosition;step.Invoke(world,new object[]{2f});Assert.AreEqual(before,boat.localPosition,"reduced motion keeps the harbour still");
+   model.State.settings.motion=true;step.Invoke(world,new object[]{2f});Assert.AreNotEqual(before,boat.localPosition,"boats sail");
+  }
+
   [Test] public void RoofsStepUpFromTheirEdges(){
    var cells=new System.Collections.Generic.HashSet<Vector2Int>();for(int x=0;x<5;x++)for(int z=0;z<5;z++)cells.Add(new Vector2Int(x,z));cells.Remove(new Vector2Int(4,4));
    var depth=VoxelWorld.RoofDepths(cells);
@@ -43,7 +53,7 @@ namespace Purrington.Tests {
   }
 
   [Test] public void DestinationKitsStayOffTheHotelLotsRoadsAndHouses(){
-   for(int map=1;map<=3;map++){
+   for(int map=0;map<=3;map++){
     Object.DestroyImmediate(root);root=new GameObject("detail test");
     var model=new HotelModel(new MemoryStore(),ParityContent.Current);Assert.IsTrue(model.LoadOrCreate().success);model.State.currentHotel=map;
     var world=root.AddComponent<VoxelWorld>();world.Initialize(model);

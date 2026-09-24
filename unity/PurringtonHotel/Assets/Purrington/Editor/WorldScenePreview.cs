@@ -126,6 +126,8 @@ namespace Purrington.Editor
                 var camera = world.WorldCamera; camera.targetTexture = texture; camera.aspect = 1920f / 1080;
                 typeof(VoxelWorld).GetMethod("UpdateCamera", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.Invoke(world, null);
                 if (zoom > 0) camera.orthographicSize *= zoom;
+                // Step the animated destination life a few seconds in so boats, birds and smoke are mid-motion.
+                typeof(VoxelWorld).GetMethod("UpdateLife", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.Invoke(world, new object[] { 3.7f });
                 camera.Render();
                 var previous = RenderTexture.active; RenderTexture.active = texture;
                 var image = new Texture2D(1920, 1080, TextureFormat.RGB24, false); image.ReadPixels(new Rect(0, 0, 1920, 1080), 0, 0); image.Apply();
