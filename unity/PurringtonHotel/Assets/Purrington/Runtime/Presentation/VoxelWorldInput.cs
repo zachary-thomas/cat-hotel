@@ -11,9 +11,39 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
             return result.Count>0;
         }
         public static bool ShouldSendReleaseClick(bool dragged,bool overUI){return !dragged&&!overUI;}
+        public struct Pick{public int catId;public string objectId;}
+        // What a tap selects. A guest cat anywhere along the ray beats the furniture or room it stands in; a tap that just misses a
+        // small cat still finds it within a finger's width; otherwise the nearest furnishing or room on the viewed floor.
+        public Pick PickAt(Vector2 point)
+        {
+            var hits=Physics.RaycastAll(WorldCamera.ScreenPointToRay(point),500);
+            System.Array.Sort(hits,(a,b)=>a.distance.CompareTo(b.distance));
+            string objectId=null;bool directObject=false;
+            foreach(var hit in hits)
+            {
+                var marker=hit.collider.GetComponent<WorldPick>();
+                if(marker==null)break;
+                if(!PickOnViewedFloor(marker))continue;
+                if(marker.catId>=0)return new Pick{catId=marker.catId};
+                if(objectId==null&&!string.IsNullOrEmpty(marker.objectId)){objectId=marker.objectId;directObject=!marker.objectId.StartsWith("room:");}
+            }
+            if(!directObject)
+            {
+                float reach=Mathf.Max(28f,Screen.height*.035f),best=reach*reach;int nearest=-1;
+                foreach(var marker in renderRoot.GetComponentsInChildren<WorldPick>())
+                {
+                    if(marker.catId<0||!PickOnViewedFloor(marker))continue;
+                    var box=marker.GetComponent<Collider>();if(box==null||!box.enabled)continue;
+                    var screen=WorldCamera.WorldToScreenPoint(box.bounds.center);if(screen.z<=0)continue;
+                    float d=((Vector2)screen-point).sqrMagnitude;if(d<best){best=d;nearest=marker.catId;}
+                }
+                if(nearest>=0)return new Pick{catId=nearest};
+            }
+            return new Pick{catId=-1,objectId=objectId};
+        }
         bool PickOnViewedFloor(WorldPick marker)
         {
-            if(marker.catId>=0)return model.Actors.Any(a=>a.kind==Purrington.Domain.ActorKind.Guest&&a.catId==marker.catId&&a.floor==ViewFloor);
+            if(marker.catId>=0)return marker.gameObject.activeInHierarchy&&model.Actors.Any(a=>a.kind==Purrington.Domain.ActorKind.Guest&&a.catId==marker.catId&&FloorVisible(a.floor,ViewFloor)); // cats on a floor shown below stay tappable
             for(var root=marker.transform;root!=null;root=root.parent)
                 if(floorOf.TryGetValue(root,out int floor))return floor==ViewFloor;
             return true; // Unregistered scenery keeps its existing ground-click behavior.
@@ -98,21 +128,11 @@ namespace Purrington.Presentation { public sealed partial class VoxelWorld {    
             {
                 pressed=false; if(pathPainting && !townMode) GroundDragEnded?.Invoke();
                 if(!ShouldSendReleaseClick(dragged,OverUI(point))) return;
-                var ray=WorldCamera.ScreenPointToRay(point);
-                var hits=Physics.RaycastAll(ray,500);
-                System.Array.Sort(hits,(a,b)=>a.distance.CompareTo(b.distance));
-                foreach(var hit in hits)
-                {
-                    var store=hit.collider.GetComponent<TownStoreHit>();
-                    if(townMode&&store!=null){SelectTownStore(store.StoreId);return;}
-                    if(townMode){SelectTownGround(ScreenToGround(point));return;}
-                    var marker=hit.collider.GetComponent<WorldPick>();
-                    if(marker==null)break;
-                    if(!PickOnViewedFloor(marker))continue;
-                    if(marker.catId<0&&string.IsNullOrEmpty(marker.objectId))continue; // staff, visitors and decor never block a pick behind them
-                    if(marker.catId>=0) { CatSelected?.Invoke(marker.catId); return; }
-                    if(!string.IsNullOrEmpty(marker.objectId)) { if(marker.objectId.StartsWith("room:")) RoomSelected?.Invoke(marker.objectId.Substring(5)); else ObjectSelected?.Invoke(marker.objectId); }
-                    break;
+                if(townMode){var townHits=Physics.RaycastAll(WorldCamera.ScreenPointToRay(point),500);System.Array.Sort(townHits,(a,b)=>a.distance.CompareTo(b.distance));foreach(var hit in townHits){var store=hit.collider.GetComponent<TownStoreHit>();if(store!=null){SelectTownStore(store.StoreId);return;}break;}}
+                else{
+                    var pick=PickAt(point);
+                    if(pick.catId>=0){var cat=model.Actors.FirstOrDefault(a=>a.kind==Purrington.Domain.ActorKind.Guest&&a.catId==pick.catId);if(cat!=null&&cat.floor!=ViewFloor)SetViewFloor(cat.floor);CatSelected?.Invoke(pick.catId);return;}
+                    if(!string.IsNullOrEmpty(pick.objectId)){if(pick.objectId.StartsWith("room:"))RoomSelected?.Invoke(pick.objectId.Substring(5));else ObjectSelected?.Invoke(pick.objectId);}
                 }
                 if(townMode)SelectTownGround(ScreenToGround(point));else GroundClicked?.Invoke(ScreenToGround(point));
             }

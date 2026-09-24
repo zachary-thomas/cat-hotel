@@ -7,7 +7,9 @@ namespace Purrington.Presentation {
  // framed pictures on the room side of outer walls, and wall-mounted bookshelves and glowing sconces on inside partitions. Nothing here stands on the floor
  // inside a room, so furniture placement, paths and cats are never blocked.
  public sealed partial class VoxelWorld {
-  static readonly string[] DressBlooms={"F2A7B5","F7CC62","C9B6E4","F4F1E8","E6B7C1"};
+  // Window-box and bed blooms follow the destination: spring flowers, beach pinks and shells, autumn marigolds, holly and snow.
+  static readonly string[][] BloomTones={new[]{"F2A7B5","F7CC62","C9B6E4","F4F1E8","E6B7C1"},new[]{"F2A7B5","F4E3C0","8CC8D6","F7CC62","E98A7A"},new[]{"E0913A","C8553C","F2B13A","D9A441","B5452F"},new[]{"C8453C","F8FAF8","FFFFFF","B33A34","F4F1EA"}};
+  string[] DressBlooms=>BloomTones[Mathf.Clamp(currentMap,0,3)];
   static readonly string[] BookColors={"BF7958","738448","9FB7C9","D7AE55","C9B6E4","E6B7C1","5F7040"};
   static float Hash(uint seed,int i){uint x=seed^(uint)(i*2654435761u);x^=x>>15;x*=2246822519u;x^=x>>13;x*=3266489917u;x^=x>>16;return (x&0xFFFF)/65535f;}
   static Vector3 Outward(int side)=>side==0?Vector3.right:side==1?Vector3.forward:side==2?Vector3.left:Vector3.back;

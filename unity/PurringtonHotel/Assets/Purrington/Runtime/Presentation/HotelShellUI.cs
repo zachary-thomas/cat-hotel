@@ -9,20 +9,20 @@ namespace Purrington.Presentation {
         Vector2Int? roomAnchor;
         int currentFloor;
         static string FloorName(int level){return level==-1?"Basement":level==0?"Ground":level==1?"Upstairs":"Rooftop";}
-        RectTransform FloorChip(Transform parent)
+        // The Hotel tab's floor stack: every built floor, top floor first, the one in view highlighted. It sits on the world's
+        // right edge so going up or down (to see inside a lower floor) is always one tap.
+        RectTransform FloorStack()
         {
-            var levels=app.Model.Hotel().floors.Select(f=>f.level).OrderBy(level=>level).ToArray();
-            currentFloor=app.World.ViewFloor;
-            if(levels.Length==0)return null;
-            int index=System.Array.IndexOf(levels,currentFloor);
-            if(index<0){index=System.Array.IndexOf(levels,0);if(index<0)index=0;currentFloor=levels[index];app.World.SetViewFloor(currentFloor);}
+            var levels=app.Model.Hotel().floors.Where(f=>f.level==0||f.cells.Count>0).Select(f=>f.level).Union(new[]{0}).OrderByDescending(level=>level).ToArray();
+            currentFloor=VoxelWorld.ShownFloor(app.Model,app.World.ViewFloor);if(currentFloor!=app.World.ViewFloor)app.World.SetViewFloor(currentFloor);
             if(levels.Length<2)return null;
-            var row=Row(parent,40);
-            int below=index>0?levels[index-1]:currentFloor,above=index<levels.Length-1?levels[index+1]:currentFloor;
-            Button(row,"▼",()=>SwitchFloor(below),index>0?Mint:Cream,14);
-            Button(row,FloorName(currentFloor),()=>{},Gold,13);
-            Button(row,"▲",()=>SwitchFloor(above),index<levels.Length-1?Mint:Cream,14);
-            return row;
+            var stack=Panel("Floor stack",safe,CardTone);
+            float top=wideLayout?-100:-136,h=26+levels.Length*50;
+            Pin(stack,Vector2.one,Vector2.one,Vector2.one,new Vector2(-10-108,top-h),new Vector2(-10,top));
+            var title=Text(stack,"Floors",12,InkSoft,true);title.alignment=TMPro.TextAlignmentOptions.Center;Pin(title.rectTransform,new Vector2(0,1),Vector2.one,new Vector2(.5f,1),new Vector2(4,-24),new Vector2(-4,-4));
+            var list=Rect("Levels",stack);Stretch(list,6,26,6,6);var v=list.gameObject.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();v.spacing=4;v.childControlWidth=v.childControlHeight=true;v.childForceExpandWidth=v.childForceExpandHeight=true;
+            foreach(int level in levels){int chosen=level;var b=Button(list,(level>currentFloor?"▲ ":level<currentFloor?"▼ ":"")+FloorName(level),()=>SwitchFloor(chosen),level==currentFloor?Gold:Color.white,13);b.name=FloorName(level);}
+            return stack;
         }
         void SwitchFloor(int level){if(level==currentFloor)return;CancelPlacement(false);app.World.StopWatching();currentFloor=level;app.World.SetViewFloor(level);Rebuild();}
         bool ShellDrawing(string action){return action=="paint_floor"||action=="erase_floor"||action=="draw_room"||action=="draw_wall";}

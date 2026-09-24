@@ -22,7 +22,7 @@ public sealed class LivingColorTests {
   var sun=new GameObject("sun").AddComponent<Light>();var cam=new GameObject("cam").AddComponent<Camera>();
   try{
    WorldLighting.ApplyTo(sun,cam,cycle.Evaluate(750));
-   Assert.AreEqual(UnityEngine.Rendering.AmbientMode.Trilight,RenderSettings.ambientMode);Assert.AreEqual(.58f,sun.shadowStrength,1e-3f);Assert.AreEqual(1.2f,sun.intensity,1e-3f);
+   Assert.AreEqual(UnityEngine.Rendering.AmbientMode.Trilight,RenderSettings.ambientMode);Assert.AreEqual(.58f,sun.shadowStrength,1e-3f);Assert.AreEqual(1.3f,sun.intensity,1e-3f);
    var day=cam.backgroundColor;WorldLighting.ApplyTo(sun,cam,cycle.Evaluate(1380));Assert.Less(cam.backgroundColor.grayscale,day.grayscale);Assert.Less(sun.intensity,.4f);
   }finally{Object.DestroyImmediate(sun.gameObject);Object.DestroyImmediate(cam.gameObject);}}
 }

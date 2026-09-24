@@ -2,10 +2,10 @@ using System.Linq;using NUnit.Framework;using UnityEditor;using UnityEngine.Rend
 namespace Purrington.Tests {
 public sealed class RenderingSetupTests {
  [Test]public void GradingIsHighKeyPastel(){var p=AssetDatabase.LoadAssetAtPath<VolumeProfile>("Assets/Resources/ParityGrading.asset");Assert.IsNotNull(p);
-  Assert.IsTrue(p.TryGet<ColorAdjustments>(out var c));Assert.AreEqual(20f,c.saturation.value,1e-3f);Assert.AreEqual(6f,c.contrast.value,1e-3f);
+  Assert.IsTrue(p.TryGet<ColorAdjustments>(out var c));Assert.AreEqual(30f,c.saturation.value,1e-3f);Assert.AreEqual(16f,c.contrast.value,1e-3f);
   Assert.IsTrue(p.TryGet<Bloom>(out var b)&&b.active);Assert.AreEqual(1f,b.threshold.value,1e-3f);Assert.AreEqual(.4f,b.intensity.value,1e-3f);Assert.AreEqual(.7f,b.scatter.value,1e-3f);Assert.IsFalse(b.highQualityFiltering.value);
   Assert.IsTrue(p.TryGet<SplitToning>(out var s)&&s.active);Assert.AreEqual(0f,s.balance.value,1e-3f);
-  Assert.IsTrue(p.TryGet<LiftGammaGain>(out var l)&&l.active);Assert.Greater(l.lift.value.w,0f);
+  Assert.IsTrue(p.TryGet<LiftGammaGain>(out var l)&&l.active);Assert.Greater(l.lift.value.w,0f);Assert.Less(l.lift.value.w,.02f,"a strong lift washes the world out");
   Assert.IsTrue(p.TryGet<WhiteBalance>(out _));Assert.IsFalse(p.TryGet<Vignette>(out _));
   Assert.IsTrue(p.TryGet<Tonemapping>(out var t));Assert.AreEqual(TonemappingMode.Neutral,t.mode.value);}
  [Test]public void GlowTemplateKeepsTheEmissionVariant(){var m=AssetDatabase.LoadAssetAtPath<UnityEngine.Material>("Assets/Resources/WorldGlowMaterial.mat");Assert.IsNotNull(m,"run tools/unity.ps1 Rendering");Assert.AreEqual("Universal Render Pipeline/Lit",m.shader.name);

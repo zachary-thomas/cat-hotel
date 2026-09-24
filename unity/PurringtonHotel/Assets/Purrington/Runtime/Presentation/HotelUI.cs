@@ -760,8 +760,9 @@ namespace Purrington.Presentation
             else
             {
                 // Gear drawn from ink rects so the menu needs no icon font.
-                var gear=Button(panel,"",()=>{settings=!settings;Rebuild();},CardTone,13);gear.name="Menu";
-                Pin(gear,new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(-52,-22),new Vector2(-8,22));
+                var gear=Button(panel,"",()=>{settings=!settings;Rebuild();},new Color(CardTone.r,CardTone.g,CardTone.b,0),13);gear.name="Menu";
+                // A 52-point target keeps the gear at least 44 screen pixels even when the canvas scales below 1.
+                Pin(gear,new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(1,.5f),new Vector2(-56,-26),new Vector2(-4,26));
                 for(int i=0;i<8;i++){float a=i*45f*Mathf.Deg2Rad;var tooth=Rect("Tooth",gear);tooth.anchorMin=tooth.anchorMax=tooth.pivot=new Vector2(.5f,.5f);tooth.sizeDelta=new Vector2(4,6);tooth.anchoredPosition=new Vector2(Mathf.Sin(a),Mathf.Cos(a))*11;tooth.localRotation=Quaternion.Euler(0,0,-i*45f);var t=tooth.gameObject.AddComponent<UnityEngine.UI.Image>();t.color=Ink;t.raycastTarget=false;}
                 foreach(var (size,color) in new[]{(16f,Ink),(7f,CardTone)}){var disc=Panel("Gear disc",gear,color);disc.anchorMin=disc.anchorMax=disc.pivot=new Vector2(.5f,.5f);disc.sizeDelta=new Vector2(size,size);disc.anchoredPosition=Vector2.zero;disc.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;}
             }
@@ -886,9 +887,9 @@ namespace Purrington.Presentation
         {
             lastSheetName="";
             // Compact objective card is the default; expand for room/capacity details.
-            bool floorChoices=app.Model.Hotel().floors.Count>1;
+            FloorStack();
             float goalArea=64+12*textScale;
-            float h=(compactObjective?goalArea:Mathf.Lerp(165,205,(textScale-1)*2))+(floorChoices?44:0);
+            float h=(compactObjective?goalArea:Mathf.Lerp(165,205,(textScale-1)*2));
             HomeTitle();
             var panel=Panel("Hotel overview",safe,Cream);
             Pin(panel,Vector2.zero,new Vector2(1,0),new Vector2(.5f,0),new Vector2(12,96),new Vector2(-12,96+h));
@@ -899,7 +900,6 @@ namespace Purrington.Presentation
                 var details=panel.gameObject.AddComponent<UnityEngine.UI.Button>();details.targetGraphic=panel.GetComponent<UnityEngine.UI.Image>();details.onClick.AddListener(()=>{app.Audio?.PlayEffect("tap");compactObjective=false;Rebuild();});
                 GoalCard(panel,goalArea);
                 if(app.Model.State.currentHotel==0){bool shortLabel=!wideLayout&&(textScale>1.2f||((RectTransform)safe).rect.width<380);var exploreStreet=Button(safe,shortLabel?"Main Street":"Explore Main Street",app.TownUI.Explore,Mint,14);exploreStreet.name="Explore Main Street";Pin(exploreStreet,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(12,-126),new Vector2(184,-78));}
-                if(floorChoices){var floorChip=FloorChip(panel);Pin(floorChip,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,6),new Vector2(-10,46));}
                 return;
             }
             string headline=compactObjective
@@ -913,7 +913,6 @@ namespace Purrington.Presentation
                 var explore=Button(safe,"Explore Main Street",app.TownUI.Explore,Mint,14);
                 Pin(explore,new Vector2(0,1),new Vector2(0,1),new Vector2(0,1),new Vector2(12,-126),new Vector2(184,-78));
             }
-            if(floorChoices){var chip=FloorChip(panel);Pin(chip,new Vector2(0,1),Vector2.one,new Vector2(0,1),new Vector2(10,-94),new Vector2(-10,-54));}
             if(compactObjective)return;
             int ready=app.Model.State.rooms.Count(r=>app.Model.IsRoomReady(r));
             int staying=app.Model.Actors.Count(a=>a.kind==ActorKind.Guest);
@@ -924,7 +923,7 @@ namespace Purrington.Presentation
                 ? arriving+" arriving at reception · "+ready+"/"+app.Model.State.rooms.Count+" rooms ready"
                 : ready+"/"+app.Model.State.rooms.Count+" rooms ready · guests rotate in through reception";
             var copy=Text(panel,lifeLine+"\n"+arrivalLine,13,Ink);
-            Pin(copy.rectTransform,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(14,62),new Vector2(-14,floorChoices?-94:-50));
+            Pin(copy.rectTransform,Vector2.zero,Vector2.one,Vector2.zero,new Vector2(14,62),new Vector2(-14,-50));
             var actions=Rect("Hotel actions",panel);Pin(actions,Vector2.zero,new Vector2(1,0),Vector2.zero,new Vector2(10,8),new Vector2(-10,58));
             var row=Horizontal(actions,6,0);Button(row,"Build",()=>Navigate("Build"),Gold,14);Button(row,"Life",()=>Navigate("Life"),Mint,14);
             if(app.Model.State.pendingCoins>0)Button(row,"Collect "+Math.Floor(app.Model.State.pendingCoins).ToString("N0"),()=>{var result=app.Model.ClaimOffline();app.Report(result);if(result.success)app.Audio?.PlayEffect("collect");Rebuild();},Coral,13);
